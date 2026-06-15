@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .page-review-wrap {
+        font-size: 0.92rem;
+    }
+
+    .review-table {
+        width: 100%;
+        table-layout: fixed;
+        background: #fff;
+    }
+
+    .review-table th,
+    .review-table td {
+        vertical-align: top;
+        padding: 0.65rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .review-table thead th {
+        background: #f1f3f5;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .review-table input,
+    .review-table textarea,
+    .review-table select {
+        width: 100%;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .review-table textarea {
+        resize: none;
+        overflow: hidden;
+        min-height: 56px;
+        white-space: pre-wrap;
+        word-break: normal;
+        overflow-wrap: break-word;
+    }
+
+    .checkbox-col {
+        width: 60px;
+        text-align: center;
+    }
+
+    .checkbox-col input[type="checkbox"] {
+        display: inline-block;
+        margin: 0 auto;
+    }
+
+    .type-col {
+        width: 160px;
+    }
+
+    .screenshot-box {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        background: #fff;
+        padding: 0.75rem;
+    }
+
+    .screenshot-box img {
+        width: 100%;
+        border-radius: 0.35rem;
+        border: 1px solid #e9ecef;
+    }
+</style>
+
+<div class="page-review-wrap">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Page Extraction Review</h3>
+            <div class="text-muted">Workflow: {{ workflow_name }}</div>
+        </div>
+        <span class="badge text-bg-secondary">Stage 1: Page Elements Review</span>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>Page Summary</h5>
+                    <p><strong>Page Name:</strong> {{ page_name }}</p>
+                    <p><strong>Page URL:</strong> {{ page_url }}</p>
+                    <p><strong>Total Extracted Elements:</strong> {{ raw_elements_count }}</p>
+
+                    <hr>
+                    <div class="small text-muted mb-3">
+                        Run extraction if needed, review the extracted elements, and save the approved locator model. Add missing elements if Playwright did not capture them.
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <form method="post" action="/page-review/{{ workflow_name }}/extract">
+                            <button class="btn btn-primary w-100" type="submit">Run Extraction</button>
+                        </form>
+                        <a href="/" class="btn btn-outline-dark">Back to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+
+            {% if screenshot_web_path %}
+            <div class="screenshot-box mt-3">
+                <h6>Page Screenshot</h6>
+                <img src="{{ screenshot_web_path }}" alt="Page Screenshot">
+            </div>
+            {% else %}
+            <div class="screenshot-box mt-3">
+                <h6>Page Screenshot</h6>
+                <div class="text-muted small">
+                    No screenshot available yet. Run extraction to generate the page screenshot.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-8">
+            {% if elements and elements|length > 0 %}
+            <form method="post" action="/page-review/{{ workflow_name }}/save" id="page-review-form">
+                <input type="hidden" name="element_count" value="{{ elements|length }}">
+                <input type="hidden" name="manual_count" id="manual_count" value="0">
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="mb-1">Approved Locator Model</h5>
+                        <div class="text-muted small">
+                            Approve extracted elements and add any missing elements before moving to keyword generation.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="review-table" id="review-table">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-col">
+                                    <input type="checkbox" checked onclick="toggleAllPageReviewRows(this)">
+                                </th>
+                                <th>Approved Name</th>
+                                <th class="type-col">Type</th>
+                                <th>Locator</th>
+                            </tr>
+                        </thead>
+                        <tbody id="review-table-body">
+                            {% for element in elements %}
+                            <tr>
+                                <td class="checkbox-col">
+                                    <input type="checkbox" class="page-review-checkbox" name="element_{{ loop.index0 }}_approved" checked>
+                                </td>
+                                <td>
+                                    <textarea class="form-control auto-fit" name="element_{{ loop.index0 }}_approved_name">{{ element.approvedName }}</textarea>
+                                </td>
+                                <td>
+                                    <textarea class="form-control auto-fit" name="element_{{ loop.index0 }}_type">{{ element.type }}</textarea>
+                                </td>
+                                <td>
+                                    <textarea class="form-control auto-fit" name="element_{{ loop.index0 }}_locator">{{ element.locator }}</textarea>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary" onclick="addManualRow()">Add Missing Element</button>
+                    <button class="btn btn-success" type="submit">Approve Selected Elements and Continue</button>
+                    <a href="/keywords/{{ workflow_name }}" class="btn btn-outline-secondary">Go to Keywords</a>
+                </div>
+            </form>
+            {% else %}
+            <div class="alert alert-info">
+                No extracted elements available yet. Click <strong>Run Extraction</strong> to generate the page elements and review them here.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+let manualRowCount = 0;
+
+function toggleAllPageReviewRows(masterCheckbox) {
+    document.querySelectorAll('.page-review-checkbox').forEach(function (checkbox) {
+        checkbox.checked = masterCheckbox.checked;
+    });
+}
+
+function autoFitTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + 2) + 'px';
+}
+
+function initAutoFitTextareas() {
+    document.querySelectorAll('.auto-fit').forEach(function (el) {
+        autoFitTextarea(el);
+        el.addEventListener('input', function () {
+            autoFitTextarea(el);
+        });
+    });
+}
+
+function addManualRow() {
+    const tbody = document.getElementById('review-table-body');
+    if (!tbody) return;
+
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+        <td class="checkbox-col">
+            <input type="checkbox" class="page-review-checkbox" name="manual_${manualRowCount}_approved" checked>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" name="manual_${manualRowCount}_approved_name" placeholder="e.g. login_error_message"></textarea>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" name="manual_${manualRowCount}_type" placeholder="e.g. message / textbox / button"></textarea>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" name="manual_${manualRowCount}_locator" placeholder="Enter locator"></textarea>
+        </td>
+    `;
+
+    tbody.appendChild(row);
+    manualRowCount += 1;
+    document.getElementById('manual_count').value = manualRowCount;
+
+    row.querySelectorAll('.auto-fit').forEach(function (el) {
+        autoFitTextarea(el);
+        el.addEventListener('input', function () {
+            autoFitTextarea(el);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initAutoFitTextareas();
+});
+</script>
+{% endblock %}

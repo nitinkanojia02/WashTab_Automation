@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h3 class="mb-3">Test Design Input</h3>
+        <form method="post" action="/workflow/save">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Workflow Name</label>
+                    <input class="form-control" name="workflow_name" value="{{ data.workflowName if data else 'Login' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Module</label>
+                    <input class="form-control" name="module" value="{{ data.module if data else 'Authentication' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Feature</label>
+                    <input class="form-control" name="feature" value="{{ data.feature if data else 'Login' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Page Name</label>
+                    <input class="form-control" name="page_name" value="{{ data.pages[0].name if data and data.pages else 'login_page' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Page URL</label>
+                    <input class="form-control" name="page_url" value="{{ data.pages[0].url if data and data.pages else '' }}" required>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Resource File</label>
+                    <input class="form-control" name="resource_file" value="{{ data.resourceFiles[0] if data and data.resourceFiles else 'login_page/login_page.resource' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Observed Preconditions (one per line)</label>
+                    <textarea class="form-control" rows="6" name="preconditions_text">{% if data and data.observedPreconditions %}{{ data.observedPreconditions | join('\n') }}{% endif %}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Observed Steps (one per line)</label>
+                    <textarea class="form-control" rows="6" name="steps_text">{% if data and data.observedSteps %}{{ data.observedSteps | join('\n') }}{% endif %}</textarea>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Observed Expected Result</label>
+                    <textarea class="form-control" rows="3" name="expected_result">{{ data.observedExpectedResult if data else '' }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Fields (format: name|label|type|required)</label>
+                    <textarea class="form-control" rows="8" name="fields_text">{% if data and data.fields %}{% for field in data.fields %}{{ field.name }}|{{ field.label }}|{{ field.type }}|{{ field.required }}
+{% endfor %}{% endif %}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Observed Validations (one per line)</label>
+                    <textarea class="form-control" rows="8" name="validations_text">{% if data and data.observedValidations %}{{ data.observedValidations | join('\n') }}{% endif %}</textarea>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Scenario Intent (comma separated)</label>
+                    <input class="form-control" name="scenario_intent_text" value="{% if data and data.scenarioIntent %}{{ data.scenarioIntent | join(',') }}{% else %}positive,negative,edge,ui{% endif %}">
+                </div>
+            </div>
+            <div class="mt-4 d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Save and Continue</button>
+                <a href="/" class="btn btn-outline-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

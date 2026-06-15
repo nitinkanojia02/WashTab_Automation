@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import os
@@ -8,7 +9,6 @@ from typing import Dict, List, Tuple
 import requests
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_PATH = BASE_DIR / "config" / "page_model_config.json"
@@ -21,20 +21,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger("extract_page_model")
 
-
 def load_config() -> dict:
     if not CONFIG_PATH.exists():
         raise FileNotFoundError(f"Config file not found: {CONFIG_PATH}")
     return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
 
-
 def ensure_dir(path: Path):
     path.mkdir(parents=True, exist_ok=True)
 
-
 def clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip())
-
 
 def slugify(text: str) -> str:
     text = clean_text(text).lower()
@@ -42,10 +38,8 @@ def slugify(text: str) -> str:
     text = re.sub(r"_+", "_", text).strip("_")
     return text or "element"
 
-
 def title_case(text: str) -> str:
     return " ".join(word.capitalize() for word in re.split(r"[_\-\s]+", clean_text(text)) if word)
-
 
 def xpath_literal(value: str) -> str:
     if "'" not in value:
@@ -54,7 +48,6 @@ def xpath_literal(value: str) -> str:
         return f"\"{value}\""
     parts = value.split("'")
     return "concat(" + ", \"'\", ".join(f"'{p}'" for p in parts) + ")"
-
 
 def get_ai_token(ai_cfg: dict) -> str:
     token = str(ai_cfg.get("token", "")).strip()
@@ -67,17 +60,10 @@ def get_ai_token(ai_cfg: dict) -> str:
 
     return ""
 
-
 def validate_config(config: dict) -> dict:
     pages = config.get("pages", [])
-    if not isinstance(pages, list) or not pages:
-        raise ValueError("'pages' must be a non-empty list.")
-
-    for page in pages:
-        if not str(page.get("url", "")).strip():
-            raise ValueError("Each page must contain non-empty 'url'.")
-        if not str(page.get("page_name", "")).strip():
-            raise ValueError("Each page must contain non-empty 'page_name'.")
+    if not isinstance(pages, list):
+        raise ValueError("'pages' must be a list.")
 
     browser = str(config.get("browser", "chromium")).lower()
     if browser not in SUPPORTED_BROWSERS:
@@ -108,20 +94,18 @@ def validate_config(config: dict) -> dict:
 
     return config
 
-
 def is_meaningless_label(text: str) -> bool:
     return slugify(text) in {
         "input", "button", "link", "textbox", "password",
         "select", "dropdown", "element", "ion_input", "ion_button"
     }
 
-
 def infer_role(item: dict) -> str:
     tag = (item.get("tag") or "").lower()
     attrs = item.get("attributes", {}) or {}
     input_type = (attrs.get("type") or "").lower()
 
-    if tag in {"button", "ion-button", "ion-fab-button"}:
+    if tag in {"button", "ion-button"}:
         return "button"
     if tag == "a":
         return "link"
@@ -138,7 +122,6 @@ def infer_role(item: dict) -> str:
             return "radio"
         return "textbox"
     return "element"
-
 
 def infer_label(item: dict) -> str:
     attrs = item.get("attributes", {}) or {}
@@ -157,7 +140,6 @@ def infer_label(item: dict) -> str:
             return c
     return clean_text(item.get("tag", "element")) or "element"
 
-
 def best_identity(item: dict) -> Tuple[str, str, str, str]:
     attrs = item.get("attributes", {}) or {}
     return (
@@ -166,7 +148,6 @@ def best_identity(item: dict) -> Tuple[str, str, str, str]:
         clean_text(attrs.get("name", "")),
         clean_text(attrs.get("placeholder", "")),
     )
-
 
 def make_var_name(label: str, role: str, used_names: set) -> str:
     base = slugify(label)
@@ -182,7 +163,6 @@ def make_var_name(label: str, role: str, used_names: set) -> str:
         i += 1
     used_names.add(name)
     return name
-
 
 def build_best_locator(item: dict) -> str:
     tag = (item.get("tag") or "").lower()
@@ -218,10 +198,6 @@ def build_best_locator(item: dict) -> str:
         if name:
             return f"xpath=//ion-button[@name={xpath_literal(name)}]"
         return "xpath=//ion-button"
-    if tag == "ion-fab-button":
-        if aria:
-            return f"xpath=//ion-fab-button[@aria-label={xpath_literal(aria)}]"
-        return "xpath=//ion-fab-button"
     if name and tag in {"input", "textarea", "select"}:
         return f"xpath=//{tag}[@name={xpath_literal(name)}]"
     if placeholder and tag in {"input", "textarea"}:
@@ -232,29 +208,39 @@ def build_best_locator(item: dict) -> str:
         return f"xpath=//{tag}[normalize-space(.)={xpath_literal(text)}]"
     return f"xpath=//{tag}"
 
-
 def should_skip_item(item: dict) -> bool:
     tag = (item.get("tag") or "").lower()
     attrs = item.get("attributes", {}) or {}
+    text = clean_text(item.get("text", ""))
+    label = clean_text(item.get("label", ""))
+    placeholder = clean_text(attrs.get("placeholder", ""))
+    aria = clean_text(attrs.get("aria-label", ""))
+    name = clean_text(attrs.get("name", ""))
+    el_id = clean_text(attrs.get("id", ""))
+    formcontrolname = clean_text(attrs.get("formcontrolname", ""))
+    data_testid = clean_text(attrs.get("data-testid", ""))
+
     allowed = {
         "input", "textarea", "select", "button", "a",
-        "ion-button", "ion-input", "ion-select", "ion-fab-button"
+        "ion-button", "ion-input", "ion-select"
     }
     if tag not in allowed:
         return True
 
-    content_present = any([
-        clean_text(item.get("text", "")),
-        clean_text(item.get("label", "")),
-        clean_text(attrs.get("placeholder", "")),
-        clean_text(attrs.get("aria-label", "")),
-        clean_text(attrs.get("name", "")),
-        clean_text(attrs.get("id", "")),
-        clean_text(attrs.get("formcontrolname", "")),
-        clean_text(attrs.get("data-testid", "")),
+    meaningful_content = any([
+        text, label, placeholder, aria, name, el_id, formcontrolname, data_testid
     ])
-    return not content_present and tag != "ion-fab-button"
 
+    if not meaningful_content:
+        return True
+
+    if tag == "a" and not text and not aria:
+        return True
+
+    if tag == "ion-button" and not text and not aria and not name and not el_id:
+        return True
+
+    return False
 
 def is_duplicate_item(item: dict, seen_identity: set, seen_locator: set) -> bool:
     identity = best_identity(item)
@@ -265,14 +251,20 @@ def is_duplicate_item(item: dict, seen_identity: set, seen_locator: set) -> bool
     seen_locator.add(locator)
     return False
 
-
 def collect_elements(page) -> List[dict]:
     js = """
     () => {
       const isVisible = (el) => {
         const s = window.getComputedStyle(el);
         const r = el.getBoundingClientRect();
-        return s && s.visibility !== 'hidden' && s.display !== 'none' && r.width > 0 && r.height > 0;
+        const hiddenByAttr = el.hasAttribute('hidden') || el.getAttribute('aria-hidden') === 'true';
+        return s &&
+               s.visibility !== 'hidden' &&
+               s.display !== 'none' &&
+               s.opacity !== '0' &&
+               !hiddenByAttr &&
+               r.width > 0 &&
+               r.height > 0;
       };
 
       const getText = (el) => {
@@ -299,37 +291,40 @@ def collect_elements(page) -> List[dict]:
         'a',
         'ion-button',
         'ion-input',
-        'ion-select',
-        'ion-fab-button'
+        'ion-select'
       ];
 
       const nodes = Array.from(document.querySelectorAll(tags.join(',')));
 
-      return nodes.filter(isVisible).map(el => {
-        const attrs = {};
-        for (const a of el.attributes) attrs[a.name] = a.value;
+      return nodes
+        .filter(isVisible)
+        .map(el => {
+          const attrs = {};
+          for (const a of el.attributes) attrs[a.name] = a.value;
 
-        let label = '';
-        const id = el.getAttribute('id');
-        if (id) {
-          const linked = document.querySelector(`label[for="${id}"]`);
-          if (linked) label = (linked.innerText || linked.textContent || '').trim();
-        }
-        if (!label) {
-          const parent = el.closest('label');
-          if (parent) label = (parent.innerText || parent.textContent || '').trim();
-        }
+          let label = '';
+          const id = el.getAttribute('id');
+          if (id) {
+            const linked = document.querySelector(`label[for="${id}"]`);
+            if (linked) label = (linked.innerText || linked.textContent || '').trim();
+          }
+          if (!label) {
+            const parent = el.closest('label');
+            if (parent) label = (parent.innerText || parent.textContent || '').trim();
+          }
 
-        return {
-          tag: (el.tagName || '').toLowerCase(),
-          text: getText(el),
-          attributes: attrs,
-          label: label
-        };
-      });
+          return {
+            tag: (el.tagName || '').toLowerCase(),
+            text: getText(el),
+            attributes: attrs,
+            label: label
+          };
+        });
     }
     """
     raw = page.evaluate(js)
+    logger.info("Raw extracted nodes count: %s", len(raw))
+
     out, seen_id, seen_loc = [], set(), set()
     for item in raw:
         if should_skip_item(item):
@@ -337,12 +332,19 @@ def collect_elements(page) -> List[dict]:
         if is_duplicate_item(item, seen_id, seen_loc):
             continue
         out.append(item)
-    return out
 
+    logger.info("Filtered extracted elements count: %s", len(out))
+    if out:
+        tags_summary = {}
+        for item in out:
+            tag = item.get("tag", "unknown")
+            tags_summary[tag] = tags_summary.get(tag, 0) + 1
+        logger.info("Element tags after filtering: %s", tags_summary)
+
+    return out
 
 def keyword_doc(action: str, label_title: str, role: str) -> str:
     return f"{action} action for {label_title} ({role}) using page object locator."
-
 
 def generate_keyword(var_name: str, label: str, role: str) -> str:
     label_title = title_case(label)
@@ -385,7 +387,6 @@ def generate_keyword(var_name: str, label: str, role: str) -> str:
     Wait Until Element Is Visible    ${{{var_name}}}    10s
     Click Element    ${{{var_name}}}"""
 
-
 def generate_resource(url: str, elements: List[dict]) -> str:
     used_names, variables, keywords = set(), [], []
 
@@ -422,7 +423,6 @@ Open Browser To Page
 
     return f"{settings_block}\n\n{variables_block}\n\n{keywords_block}\n"
 
-
 def call_ai_chat(endpoint: str, token: str, messages: List[dict], temperature: float = 0.2) -> str:
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     payload = {"messages": messages, "temperature": temperature}
@@ -442,14 +442,12 @@ def call_ai_chat(endpoint: str, token: str, messages: List[dict], temperature: f
 
     return json.dumps(data, indent=2)
 
-
 def is_valid_ai_resource(content: str) -> bool:
     if not content.strip():
         return False
     if "```" in content:
         return False
     return "*** Keywords ***" in content and "*** Variables ***" in content
-
 
 def maybe_ai_generate_keywords(config: dict, page_name: str, url: str, elements: List[dict], resource_path: Path):
     ai = config.get("ai", {})
@@ -494,7 +492,6 @@ def maybe_ai_generate_keywords(config: dict, page_name: str, url: str, elements:
     except Exception as exc:
         logger.warning("AI keyword generation failed for %s: %s", page_name, exc)
 
-
 def get_browser_engine(playwright, browser_name: str):
     if browser_name in {"chromium", "chrome", "edge"}:
         return playwright.chromium
@@ -503,7 +500,6 @@ def get_browser_engine(playwright, browser_name: str):
     if browser_name == "webkit":
         return playwright.webkit
     raise ValueError(f"Unsupported browser: {browser_name}")
-
 
 def maybe_accept_cookies(page, enabled: bool, button_text: str):
     if not enabled:
@@ -517,6 +513,55 @@ def maybe_accept_cookies(page, enabled: bool, button_text: str):
     except Exception:
         logger.info("Cookie button not found/click failed. Continuing.")
 
+def wait_for_meaningful_page_content(page, wait_seconds: int):
+    try:
+        page.wait_for_load_state("networkidle", timeout=15000)
+    except Exception:
+        logger.info("Networkidle wait timed out; continuing with additional waits.")
+
+    selectors_to_try = [
+        "input",
+        "button",
+        "textarea",
+        "select",
+        "ion-input",
+        "ion-button"
+    ]
+
+    found_selector = None
+    for selector in selectors_to_try:
+        try:
+            page.wait_for_selector(selector, state="visible", timeout=5000)
+            found_selector = selector
+            break
+        except Exception:
+            continue
+
+    if found_selector:
+        logger.info("Meaningful visible selector found: %s", found_selector)
+    else:
+        logger.warning("No meaningful visible selector found during wait stage.")
+
+    page.wait_for_timeout(wait_seconds * 1000)
+
+    try:
+        page.wait_for_function(
+            """
+            () => {
+              const meaningful = Array.from(document.querySelectorAll('input, textarea, select, button, a, ion-input, ion-button, ion-select'))
+                .filter(el => {
+                  const s = window.getComputedStyle(el);
+                  const r = el.getBoundingClientRect();
+                  return s.visibility !== 'hidden' && s.display !== 'none' && r.width > 0 && r.height > 0;
+                });
+              return meaningful.length >= 2;
+            }
+            """,
+            timeout=8000
+        )
+        logger.info("Meaningful control count reached expected threshold.")
+    except Exception:
+        logger.warning("Meaningful control count threshold was not reached before timeout.")
 
 def process_page(playwright, config: dict, page_entry: Dict[str, str]):
     gc = config["generation_control"]
@@ -548,7 +593,15 @@ def process_page(playwright, config: dict, page_entry: Dict[str, str]):
     try:
         logger.info("Opening URL: %s", url)
         page.goto(url, wait_until="domcontentloaded", timeout=120000)
-        page.wait_for_timeout(config["wait_seconds"] * 1000)
+
+        wait_for_meaningful_page_content(page, config["wait_seconds"])
+
+        logger.info("Final page URL after load: %s", page.url)
+        try:
+            logger.info("Page title: %s", page.title())
+        except Exception:
+            logger.info("Unable to fetch page title.")
+
         maybe_accept_cookies(page, config["accept_cookies"], config["cookie_button_text"])
 
         try:
@@ -562,6 +615,10 @@ def process_page(playwright, config: dict, page_entry: Dict[str, str]):
             logger.warning("HTML save failed for %s: %s", page_name, exc)
 
         elements = collect_elements(page)
+
+        if not elements:
+            logger.warning("No meaningful elements extracted for page: %s", page_name)
+
         json_path.write_text(json.dumps(elements, indent=2, ensure_ascii=False), encoding="utf-8")
 
         resource_content = generate_resource(url, elements)
@@ -576,11 +633,26 @@ def process_page(playwright, config: dict, page_entry: Dict[str, str]):
 
     except PlaywrightTimeoutError as exc:
         logger.error("Timeout while processing %s: %s", url, exc)
+        raise
     finally:
         browser.close()
 
+def build_single_page_config(config: dict, page_name: str, url: str) -> dict:
+    single_config = dict(config)
+    single_config["pages"] = [{
+        "page_name": page_name,
+        "url": url
+    }]
+    return single_config
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Extract page model(s) and generate POM resources.")
+    parser.add_argument("--page-name", help="Extract only this page name.")
+    parser.add_argument("--url", help="Extract only this page URL.")
+    return parser.parse_args()
 
 def main():
+    args = parse_args()
     config = validate_config(load_config())
     gc = config["generation_control"]
 
@@ -588,15 +660,24 @@ def main():
         logger.info("POM generation is disabled via config (regenerate_pom_pages=false). Exiting.")
         return
 
+    if args.page_name or args.url:
+        if not args.page_name or not args.url:
+            raise ValueError("Both --page-name and --url must be provided for single-page extraction.")
+        config = build_single_page_config(config, args.page_name, args.url)
+
+    pages = config.get("pages", [])
+    if not pages:
+        raise ValueError("No pages available for extraction.")
+
     ensure_dir(BASE_DIR / config["pom_output_dir"])
 
     with sync_playwright() as playwright:
-        for page_entry in config["pages"]:
+        for page_entry in pages:
             try:
                 process_page(playwright, config, page_entry)
             except Exception as exc:
                 logger.error("Failed page '%s': %s", page_entry.get("page_name"), exc)
-
+                raise
 
 if __name__ == "__main__":
     main()

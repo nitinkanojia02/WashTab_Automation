@@ -1,27 +1,60 @@
 {
+  "inputType": "exploratory_workflow",
+  "workflowId": "LOGIN_001",
   "workflowName": "Login",
+  "module": "Authentication",
+  "feature": "Login",
+  "source": {
+    "createdBy": "UI user",
+    "notes": "Workflow entered from MVP UI."
+  },
   "resourceFiles": [
     "login_page/login_page.resource"
   ],
-  "preconditions": [
-    "user has valid credentials",
-    "app is reachable"
+  "pages": [
+    {
+      "name": "login_page",
+      "url": "http://172.21.166.115/washtabui/login?data=undefined"
+    }
   ],
-  "steps": [
-    "Open login page",
-    "Enter valid username 'haklarr'",
-    "Enter valid password 'Icstunnel1'",
-    "Click login button"
-  ],
-  "expectedResult": "User lands on home page http://172.21.166.115/washtabui/home",
+  "observedPreconditions": [],
+  "observedSteps": [],
+  "observedExpectedResult": "",
   "fields": [
-    "username textbox",
-    "password textbox",
-    "login button",
-    "error message area"
+    {
+      "name": "",
+      "label": "",
+      "type": "",
+      "required": false
+    },
+    {
+      "name": "",
+      "label": "",
+      "type": "",
+      "required": false
+    },
+    {
+      "name": "",
+      "label": "",
+      "type": "",
+      "required": false
+    },
+    {
+      "name": "",
+      "label": "",
+      "type": "",
+      "required": false
+    }
   ],
   "observedValidations": [
     "Login failed when incorrect username or password",
     "Login failed when username and password is blank"
+  ],
+  "testDataRefs": {},
+  "scenarioIntent": [
+    "positive",
+    "negative",
+    "edge",
+    "ui"
   ]
 }

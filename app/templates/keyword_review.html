@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .keyword-review-wrap {
+        font-size: 0.92rem;
+    }
+
+    .keyword-table {
+        width: 100%;
+        table-layout: fixed;
+        background: #fff;
+    }
+
+    .keyword-table th,
+    .keyword-table td {
+        vertical-align: top;
+        padding: 0.65rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .keyword-table thead th {
+        background: #f1f3f5;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .keyword-table textarea,
+    .keyword-table input {
+        width: 100%;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .keyword-table textarea {
+        resize: none;
+        overflow: hidden;
+        min-height: 56px;
+        white-space: pre-wrap;
+        word-break: normal;
+        overflow-wrap: break-word;
+    }
+
+    .checkbox-col {
+        width: 60px;
+        text-align: center;
+    }
+
+    .checkbox-col input[type="checkbox"] {
+        display: inline-block;
+        margin: 0 auto;
+    }
+
+    .action-col {
+        width: 85px;
+    }
+
+    .args-col {
+        width: 105px;
+    }
+
+    .implementation-col {
+        width: 58%;
+    }
+
+    .code-box {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 0.83rem;
+        background: #f8f9fa;
+        border: 1px solid #ced4da;
+        color: #212529;
+        line-height: 1.45;
+    }
+</style>
+
+<div class="keyword-review-wrap">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Keyword Review</h3>
+            <div class="text-muted">Workflow: {{ workflow_name }} | Page: {{ page_name }}</div>
+        </div>
+        <span class="badge text-bg-secondary">Stage 2: Page Keywords Review</span>
+    </div>
+
+    {% if keywords and keywords|length > 0 %}
+    <form method="post" action="/keywords/{{ workflow_name }}/save" id="keyword-review-form">
+        <input type="hidden" name="keyword_count" id="keyword_count" value="{{ keywords|length }}">
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="mb-1">Generated Keywords</h5>
+                <div class="text-muted small">
+                    Review the generated keywords, edit if needed, and approve the ones that should be used in downstream manual test and automation generation.
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="keyword-table">
+                <thead>
+                    <tr>
+                        <th class="checkbox-col">
+                            <input type="checkbox" checked onclick="toggleAllKeywordRows(this)">
+                        </th>
+                        <th>Keyword Name</th>
+                        <th class="action-col">Action</th>
+                        <th class="args-col">Arguments</th>
+                        <th class="implementation-col">Implementation</th>
+                    </tr>
+                </thead>
+                <tbody id="keyword-table-body">
+                    {% for keyword in keywords %}
+                    <tr>
+                        <td class="checkbox-col">
+                            <input type="checkbox" class="keyword-checkbox" name="keyword_{{ loop.index0 }}_approved" checked>
+                            <input type="hidden" name="keyword_{{ loop.index0 }}_id" value="{{ keyword.keywordId }}">
+                            <input type="hidden" name="keyword_{{ loop.index0 }}_target" value="{{ keyword.targetElement }}">
+                        </td>
+                        <td>
+                            <textarea class="form-control auto-fit" name="keyword_{{ loop.index0 }}_name">{{ keyword.keywordName }}</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control auto-fit" name="keyword_{{ loop.index0 }}_action">{{ keyword.action }}</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control auto-fit" name="keyword_{{ loop.index0 }}_arguments">{{ keyword.arguments | join(', ') }}</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control auto-fit code-box" name="keyword_{{ loop.index0 }}_implementation">{{ keyword.implementation | join('\n') }}</textarea>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-outline-secondary" onclick="addMissingKeyword()">Add Missing Keyword</button>
+            <button class="btn btn-success" type="submit">Approve Selected Keywords and Continue</button>
+            <a href="/" class="btn btn-outline-dark">Back to Dashboard</a>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-info">
+        No keywords available yet. Complete Page Elements Review first so the system can generate keywords here.
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="/" class="btn btn-outline-dark">Back to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+let keywordRowCount = {{ keywords|length if keywords else 0 }};
+
+function toggleAllKeywordRows(masterCheckbox) {
+    document.querySelectorAll('.keyword-checkbox').forEach(function (checkbox) {
+        checkbox.checked = masterCheckbox.checked;
+    });
+}
+
+function autoFitTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + 2) + 'px';
+}
+
+function initAutoFitTextareas() {
+    document.querySelectorAll('.auto-fit').forEach(function (el) {
+        autoFitTextarea(el);
+        el.addEventListener('input', function () {
+            autoFitTextarea(el);
+        });
+    });
+}
+
+function addMissingKeyword() {
+    const tbody = document.getElementById('keyword-table-body');
+    if (!tbody) return;
+
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+        <td class="checkbox-col">
+            <input type="checkbox" class="keyword-checkbox" name="keyword_${keywordRowCount}_approved" checked>
+            <input type="hidden" name="keyword_${keywordRowCount}_id" value="KW_${String(keywordRowCount + 1).padStart(3, '0')}">
+            <input type="hidden" name="keyword_${keywordRowCount}_target" value="">
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" name="keyword_${keywordRowCount}_name" placeholder="Enter keyword name"></textarea>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" name="keyword_${keywordRowCount}_action" placeholder="e.g. click"></textarea>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" name="keyword_${keywordRowCount}_arguments" placeholder="e.g. text"></textarea>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit code-box" name="keyword_${keywordRowCount}_implementation" placeholder="Enter Robot Framework implementation"></textarea>
+        </td>
+    `;
+
+    tbody.appendChild(row);
+    keywordRowCount += 1;
+    document.getElementById('keyword_count').value = keywordRowCount;
+
+    row.querySelectorAll('.auto-fit').forEach(function (el) {
+        autoFitTextarea(el);
+        el.addEventListener('input', function () {
+            autoFitTextarea(el);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initAutoFitTextareas();
+});
+</script>
+{% endblock %}

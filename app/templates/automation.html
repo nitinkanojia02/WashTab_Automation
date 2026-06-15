@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0">Automation Review</h3>
+        <div class="text-muted">Workflow: {{ workflow_name }}</div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="badge text-bg-secondary status-pill">Stage: Automation Review</span>
+        <a href="/manual-tests/{{ workflow_name }}" class="btn btn-outline-primary">Back to Manual Tests</a>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <h5>Robot Script</h5>
+                <p class="text-muted mb-0">Generate automation with AI, review it, and save the approved version.</p>
+            </div>
+            <form method="post" action="/automation/{{ workflow_name }}/generate">
+                <button class="btn btn-primary" type="submit">Generate Automation</button>
+            </form>
+        </div>
+        {% if not robot_content %}
+        <div class="alert alert-info mt-3">
+            No automation script available yet. Click <strong>Generate Automation</strong> after approving manual tests.
+        </div>
+        {% endif %}
+        <form method="post" action="/automation/{{ workflow_name }}/save">
+            <textarea class="form-control code" name="robot_content" placeholder="Generated Robot Framework script will appear here...">{{ robot_content }}</textarea>
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                <button class="btn btn-success" type="submit">Save Automation</button>
+                <a href="/" class="btn btn-outline-dark">Back to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

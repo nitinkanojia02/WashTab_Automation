@@ -6,3 +6,7 @@ robotframework-databaselibrary
 robotframework-pabot
 pyodbc
 pillow
+fastapi
+uvicorn
+jinja2
+python-multipart

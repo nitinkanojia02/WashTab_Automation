@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .status-pill {
+        font-size: 0.8rem;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-done {
+        background: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #664d03;
+        border: 1px solid #ffecb5;
+    }
+</style>
+
+<div class="row g-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Automation Generation Workbench</h2>
+                <p class="text-muted">
+                    A simple MVP UI for exploratory input, page extraction review, keyword review, manual test review, and automation review.
+                </p>
+                <a href="/workflow/new" class="btn btn-primary">Create / Edit Workflow</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="mb-3">Workflows</h5>
+
+                {% if workflow_rows %}
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 220px;">Workflow</th>
+                                <th style="width: 560px;">Status Summary</th>
+                                <th>Available Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in workflow_rows %}
+                            <tr>
+                                <td><strong>{{ row.name }}</strong></td>
+                                <td>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <span class="status-pill {% if row.status.page_reviewed %}status-done{% else %}status-pending{% endif %}">
+                                            Page Reviewed: {% if row.status.page_reviewed %}Yes{% else %}No{% endif %}
+                                        </span>
+                                        <span class="status-pill {% if row.status.keywords_reviewed %}status-done{% else %}status-pending{% endif %}">
+                                            Keywords Approved: {% if row.status.keywords_reviewed %}Yes{% else %}No{% endif %}
+                                        </span>
+                                        <span class="status-pill {% if row.status.manual_approved %}status-done{% else %}status-pending{% endif %}">
+                                            Manual Tests Approved: {% if row.status.manual_approved %}Yes{% else %}No{% endif %}
+                                        </span>
+                                        <span class="status-pill {% if row.status.automation_generated %}status-done{% else %}status-pending{% endif %}">
+                                            Automation Generated: {% if row.status.automation_generated %}Yes{% else %}No{% endif %}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <a href="/page-review/{{ row.name }}" class="btn btn-outline-primary btn-sm">Page Review</a>
+                                        <a href="/keywords/{{ row.name }}" class="btn btn-outline-info btn-sm">Keywords</a>
+                                        <a href="/manual-tests/{{ row.name }}" class="btn btn-outline-secondary btn-sm">Manual Tests</a>
+                                        <a href="/automation/{{ row.name }}" class="btn btn-outline-dark btn-sm">Automation</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-muted">No workflows found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5>Manual Test Files</h5>
+                <ul>
+                    {% for item in manuals %}
+                    <li><a href="/manual-tests/{{ item }}">{{ item }}</a></li>
+                    {% else %}
+                    <li>No manual tests found.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5>Automation Files</h5>
+                <ul>
+                    {% for item in tests %}
+                    <li>{{ item }}</li>
+                    {% else %}
+                    <li>No automation files found.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
