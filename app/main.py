@@ -776,9 +776,9 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
 
     robot_content = normalize_robot_content(robot_content)
 
-    errors = validate_robot_content(robot_content, resource_files)
-    if errors:
-        raise HTTPException(status_code=400, detail="; ".join(errors))
+    is_valid, validation_message = validate_robot_content(robot_content, resource_files)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=validation_message)
 
     target = TESTS_DIR / f"{workflow_name}_tests.robot"
     target.parent.mkdir(parents=True, exist_ok=True)

@@ -316,11 +316,10 @@ def process_manual_file(config: dict, manual_json_path: Path):
     robot_content = re.sub(r"^```[a-zA-Z0-9_-]*\s*\n", "", robot_content)
     robot_content = re.sub(r"\n```$", "", robot_content)
 
-    errors = validate_robot_content(robot_content, resource_files)
-    if errors:
+    is_valid, validation_message = validate_robot_content(robot_content, resource_files)
+    if not is_valid:
         raise ValueError(
-            f"Generated invalid robot content for {manual_json_path.name}: "
-            + "; ".join(str(error) for error in errors)
+            f"Generated invalid robot content for {manual_json_path.name}: {validation_message}"
         )
     
     ensure_dir(tests_output_dir)
