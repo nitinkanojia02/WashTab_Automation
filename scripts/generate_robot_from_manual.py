@@ -318,8 +318,11 @@ def process_manual_file(config: dict, manual_json_path: Path):
 
     errors = validate_robot_content(robot_content, resource_files)
     if errors:
-        raise ValueError(f"Generated invalid robot content for {manual_json_path.name}: {errors}")
-
+        raise ValueError(
+            f"Generated invalid robot content for {manual_json_path.name}: "
+            + "; ".join(str(error) for error in errors)
+        )
+    
     ensure_dir(tests_output_dir)
     output_path.write_text(robot_content, encoding="utf-8")
     logger.info("Generated robot test: %s", output_path)
