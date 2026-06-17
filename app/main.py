@@ -19,6 +19,7 @@ from scripts.generate_manual_tests_json import (
 )
 from scripts.generate_robot_from_manual import (
     build_prompt as build_robot_prompt,
+    build_review_prompt,
     call_ai_chat,
     get_ai_token as get_robot_ai_token,
     load_json as load_robot_ai_json,
@@ -801,6 +802,18 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
     )
 
     robot_content = normalize_robot_content(robot_content)
+
+    review_prompt = build_review_prompt(manual_data, resource_context, robot_content)
+    reviewed_robot_content = call_ai_chat(
+        endpoint=endpoint,
+        token=token,
+        prompt=review_prompt,
+        timeout_seconds=ai_cfg.get("timeout_seconds", 120),
+        verify_ssl=ai_cfg.get("verify_ssl", False),
+    )
+    reviewed_robot_content = normalize_robot_content(reviewed_robot_content)
+    if reviewed_robot_content:
+        robot_content = reviewed_robot_content
 
     is_valid, validation_message = validate_robot_content(robot_content, resource_files)
     if not is_valid:

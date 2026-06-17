@@ -188,6 +188,47 @@ def extract_response_text(resp: requests.Response) -> str:
 
     return resp.text.strip()
 
+
+def build_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
+    payload = {
+        "manual_test": manual_data,
+        "resource_context": resource_context,
+        "generated_robot": generated_robot,
+        "resource_import_prefix": "../pom_pages/",
+        "common_resource_hint": "../resources/common_keywords.resource"
+    }
+
+    return (
+        "You are a senior Robot Framework reviewer and repair specialist.\n"
+        "Your task is to review an already generated Robot Framework test suite and return a corrected version of the same suite.\n\n"
+        "Review objectives:\n"
+        "- Preserve the intent and coverage of the approved manual tests.\n"
+        "- Correct Robot Framework syntax and framework alignment issues.\n"
+        "- Improve reuse of resource keywords, resource variables, setup/teardown, and validation steps.\n"
+        "- Ensure the output remains a thin suite that relies on the provided page resource files.\n\n"
+        "Mandatory repair rules:\n"
+        "- Return only Robot Framework code, with no markdown fences and no explanation.\n"
+        "- Keep only the suite file; do not generate resource content.\n"
+        "- Use only the provided resource files from manual_test.resourceFiles.\n"
+        "- Do not add a *** Variables *** section.\n"
+        "- Do not add a *** Keywords *** section unless a tiny test-specific helper is absolutely unavoidable; prefer resource keywords instead.\n"
+        "- Replace bad blank handling with ${EMPTY} and single-space handling with ${SPACE}. Never leave input arguments visually empty.\n"
+        "- Replace hardcoded reusable test data with resource variables whenever the resource context supports it or clearly implies it.\n"
+        "- If resource keywords suggest page lifecycle operations, use Suite/Test Setup and Teardown intelligently.\n"
+        "- Every test must contain explicit validation aligned to expectedResult.\n"
+        "- If a test is about password masking, ensure there is an explicit masking verification.\n"
+        "- If a test is about validation messages, blocked login, or rejection behavior, ensure there is an explicit assertion for that behavior.\n"
+        "- If a test is about successful login or navigation, ensure there is an explicit post-condition verification.\n"
+        "- Prefer business-readable resource keyword calls over low-level one-off steps.\n\n"
+        "Repair focus areas:\n"
+        "- built-in variables (${EMPTY}, ${SPACE})\n"
+        "- resource variable reuse instead of hardcoded inline data\n"
+        "- setup and teardown usage\n"
+        "- validation/assertion coverage from expectedResult\n"
+        "- Robot syntax correctness and maintainability\n\n"
+        f"Input JSON:\n{json.dumps(payload, indent=2)}"
+    )
+
 def call_ai_chat(
     endpoint: str,
     token: str,
@@ -358,6 +399,19 @@ def process_manual_file(config: dict, manual_json_path: Path):
     robot_content = robot_content.strip()
     robot_content = re.sub(r"^```[a-zA-Z0-9_-]*\s*\n", "", robot_content)
     robot_content = re.sub(r"\n```$", "", robot_content)
+
+    review_prompt = build_review_prompt(manual_data, resource_context, robot_content)
+    reviewed_robot_content = call_ai_chat(
+        endpoint=endpoint,
+        token=token,
+        prompt=review_prompt,
+        timeout_seconds=ai.get("timeout_seconds", 120),
+        verify_ssl=ai.get("verify_ssl", False),
+    )
+    reviewed_robot_content = reviewed_robot_content.strip()
+    reviewed_robot_content = re.sub(r"^```[a-zA-Z0-9_-]*\s*\n", "", reviewed_robot_content)
+    reviewed_robot_content = re.sub(r"\n```$", "", reviewed_robot_content)
+    robot_content = reviewed_robot_content or robot_content
 
     is_valid, validation_message = validate_robot_content(robot_content, resource_files)
     if not is_valid:
