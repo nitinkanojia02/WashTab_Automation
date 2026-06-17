@@ -157,7 +157,7 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- If test data is reused across test cases, reference a variable from the resource file rather than declaring suite variables.\n"
         "- Use resource variables for valid, invalid, blank, whitespace-only, leading/trailing-space, boundary, long-input, special-character, uppercase/lowercase, and other approved edge-case data whenever suitable variables exist in the resource context.\n"
         "- For intentionally blank input use Robot built-in ${EMPTY}; for a single blank space use ${SPACE}; do not leave argument positions visually empty.\n"
-        "- Never hardcode reusable credential and negative/edge data values directly in tests when a resource variable is available or clearly implied by the resource context.\n"
+        "- Never hardcode reusable credential and negative/edge data values directly in tests when a resource variable is available or clearly implied by the resource context. If the approved manual tests clearly require an edge-case value, prefer a resource variable over inline literal values in the suite.\n"
         "- For masking, visibility, error message, disabled state, enabled state, page navigation, redirection, and UI behavior expectations, include explicit assertion/verification steps that satisfy expectedResult.\n"
         "- Keep the suite focused on calling resource keywords and assertions only.\n"
         "- Do not include markdown fences.\n"
@@ -234,7 +234,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Do not add a *** Variables *** section.\n"
         "- Do not add a *** Keywords *** section unless a tiny test-specific helper is absolutely unavoidable; prefer resource keywords instead.\n"
         "- Replace bad blank handling with ${EMPTY} and single-space handling with ${SPACE}. Never leave input arguments visually empty.\n"
-        "- Replace hardcoded reusable test data with resource variables whenever the resource context supports it or clearly implies it.\n"
+        "- Replace hardcoded reusable test data with resource variables whenever the resource context supports it or clearly implies it. Do not leave reusable usernames, passwords, whitespace variants, long values, case-variant values, or special-character values inline in the suite when a page-resource variable should be used instead.\n"
         "- Prefer common/shared resource keywords for generic browser lifecycle, page opening, navigation, waiting, clicking, and text entry when suitable. Raw SeleniumLibrary keywords in the suite should be replaced by shared/common resource keywords whenever a suitable helper exists.\n"
         "- If resource keywords suggest page lifecycle operations, use Suite/Test Setup and Teardown intelligently.\n"
         "- Every test must contain explicit validation aligned to expectedResult.\n"
@@ -307,10 +307,10 @@ def validate_resource_content(content: str, common_resource_context: List[Dict] 
 
     variables_match = re.search(r"(?is)\*\*\*\s*variables\s*\*\*\*(.*?)(?:\n\*\*\*|\Z)", content)
     if variables_match and re.search(r"\n\s*\n\s*\$\{", variables_match.group(1)):
-        warnings.append("Generated resource contains blank lines between consecutive variable definitions; keep variable blocks compact")
+        errors.append("Generated resource contains blank lines between consecutive variable definitions; keep variable blocks compact")
 
     if re.search(r"(?im)^\s*Resource\s+\.\./\.\./resources/common_keywords\.resource\s*$", content) is None:
-        warnings.append("Generated page resource does not import ../../resources/common_keywords.resource; import the shared common layer when common helpers are used or expected")
+        errors.append("Generated page resource must import ../../resources/common_keywords.resource")
 
     common_keyword_names = set()
     for item in common_resource_context or []:
@@ -412,6 +412,14 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
 
     if not re.search(r"\$\{[A-Z0-9_]+\}", content):
         warnings.append("Generated suite does not appear to use reusable resource variables; prefer resource-file test data over hardcoded inline data")
+
+    likely_inline_literals = [
+        r"(?im)^\s{4,}(?:Enter|Input|Type)\b.*\s{2,}(?!\$\{)(?!xpath=)(?!css=)(?!id=)(?!name=)(?!//)([^\n]+)$",
+    ]
+    for pattern in likely_inline_literals:
+        if re.search(pattern, content):
+            warnings.append("Generated suite appears to contain inline literal test data; prefer page-resource variables instead of direct values in test cases")
+            break
 
     is_valid = len(errors) == 0
     message_parts = []

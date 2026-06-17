@@ -163,6 +163,10 @@ def clean_workflow_for_prompting(workflow: dict) -> dict:
             if clean_text(str(value))
         }
 
+    resource_files = cleaned.get("resourceFiles", [])
+    if isinstance(resource_files, list):
+        cleaned["resourceFiles"] = [clean_text(str(item)) for item in resource_files if clean_text(str(item))]
+
     return cleaned
 
 
@@ -583,13 +587,17 @@ def build_resource_generation_prompt(
         "- The page resource should contain only page-specific behavior such as entering credentials into this page, clicking page-specific buttons, and validating page-specific messages or field behavior.\n"
         "- The page resource must import ../../resources/common_keywords.resource in its *** Settings *** section whenever it uses shared/common helpers.\n"
         "- Page-specific action keywords should prefer shared/common helpers such as Input Text When Ready, Click When Ready, and Wait For Element To Be Ready whenever those helpers fit the action. Avoid raw SeleniumLibrary calls in page keywords when an appropriate common helper exists.\n"
+        "- The page resource must import ../../resources/common_keywords.resource in *** Settings ***. Treat this import as mandatory for generated page resources in this framework.\n"
+        "- If a page keyword uses a common helper or depends on a common variable, the page resource must reuse that helper or variable through the common resource import instead of inlining raw SeleniumLibrary behavior.\n"
         "- Prefer atomic page-object keywords over workflow/business-flow orchestration. Good examples are Enter Username, Enter Password, Click Sign In Button, Verify Login Error Message, Verify Password Field Is Masked, Verify Login Page Loaded.\n"
         "- Avoid business-flow keywords that merely orchestrate a whole login scenario when they are not truly page-specific. Avoid keywords such as Login With Valid Credentials, Login With Credentials, Submit Login, Perform Successful Login, or other scenario wrappers unless there is a compelling page-specific reason.\n"
         "- Do not duplicate keywords that already exist in common/shared resources.\n\n"
         "Resource quality requirements:\n"
         "- The Variables section should centralize reusable page-level test data so generated .robot test suites do not hardcode those values.\n"
+        "- Create reusable page-resource variables for approved edge-case data such as invalid values, whitespace-only values, leading/trailing-space values, special-character values, case-variant values, and long-input values when those scenarios appear in approved manual tests.\n"
         "- Keep the Variables section semantically clean: variable names must accurately match the actual values. For example, a variable named WITH_SPACES must really contain spaces; otherwise do not create it.\n"
         "- Remove unnecessary, duplicate, or weak variables if they are not clearly supported by approved manual tests.\n"
+        "- Do not leave reusable edge-case or credential-like values inline in test suites; define them as page-resource variables so they are easier to maintain later.\n"
         "- The Keywords section should contain reusable business-friendly page actions and validations rather than low-level one-off steps only.\n"
         "- If approved manual tests mention password masking, create a reusable page-specific keyword to verify password masking behavior if feasible in the framework.\n"
         "- If approved manual tests mention validation messages, incorrect credentials, blocked login, rejection behavior, required-field behavior, whitespace handling, case sensitivity, duplicate submission behavior, copy-paste behavior, or successful navigation, create reusable page-specific validation/assertion keywords where feasible instead of relying only on page-loaded checks.\n"
@@ -621,7 +629,7 @@ def normalize_resource_content(content: str) -> str:
             continue
 
         if stripped == "":
-            if in_variables_section and previous_was_variable:
+            if in_variables_section:
                 continue
             blank_count += 1
             if blank_count <= 1:
@@ -638,6 +646,17 @@ def normalize_resource_content(content: str) -> str:
     content = "\n".join(cleaned).strip() + "\n"
     content = re.sub(r"(?m)^\s*: FOR\b", "FOR", content)
     content = re.sub(r"(?m)^\s*\\\s+", "    ", content)
+
+    if re.search(r"(?im)^\s*\*\*\*\s*settings\s*\*\*\*", content):
+        if re.search(r"(?im)^\s*Resource\s+\.\./\.\./resources/common_keywords\.resource\s*$", content) is None:
+            settings_match = re.search(r"(?is)(^\*\*\*\s*settings\s*\*\*\*\s*\n)(.*?)(?=^\*\*\*|\Z)", content, re.MULTILINE)
+            if settings_match:
+                settings_body = settings_match.group(2)
+                new_settings_body = "Resource    ../../resources/common_keywords.resource\n" + settings_body.lstrip("\n")
+                content = content[:settings_match.start(2)] + new_settings_body + content[settings_match.end(2):]
+    else:
+        content = "*** Settings ***\nResource    ../../resources/common_keywords.resource\n\n" + content
+
     return content
 
 
@@ -678,10 +697,11 @@ def build_resource_review_prompt(
         "- Keep page-specific test-data variables only when they are clearly useful, reusable, and semantically accurate.\n"
         "- Remove unused, duplicate, overly noisy, or weak one-off variables when they are not justified by approved manual tests. Merge similar variables where appropriate.\n"
         "- If a variable name implies spaces, blanks, long text, invalid credentials, or another property, ensure the value really matches that meaning; otherwise repair or remove it.\n"
-        "- Ensure the page resource imports ../../resources/common_keywords.resource in *** Settings *** when shared/common helper keywords are used.\n"
+        "- Ensure the page resource imports ../../resources/common_keywords.resource in *** Settings ***. Treat this import as mandatory for generated page resources in this framework.\n"
         "- Use compact formatting with minimal blank lines and no blank lines between consecutive variable definitions.\n"
         "- Use modern Robot Framework syntax only. Do not use deprecated ': FOR' syntax or backslash-prefixed loop bodies.\n"
         "- Prefer page-specific validation keywords for incorrect credentials, validation messages, blocked login, and password masking when approved manual tests imply them.\n"
+        "- Do not allow the page resource to stop at only generic validations such as Verify Login Failed or Verify Page Loaded if approved manual tests imply richer assertions. Add more specific page validation keywords for authentication error messages, required-field validation, successful login redirect, duplicate submission prevention, or other grounded outcomes whenever feasible.\n"
         "- Do not create generic browser open/close keywords here.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
