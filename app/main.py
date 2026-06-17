@@ -25,6 +25,7 @@ from scripts.generate_robot_from_manual import (
     load_json as load_robot_ai_json,
     parse_resource_file,
     validate_config as validate_robot_config,
+    validate_resource_content,
     validate_robot_content,
 )
 
@@ -494,47 +495,82 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
 # AI-driven resource generation
 # -------------------------------------------------------------------
 
-def build_resource_generation_prompt(workflow: dict, approved_elements: list[dict], approved_keywords: list[dict], approved_manual_tests: list[dict] | None = None) -> str:
+def build_resource_generation_prompt(
+    workflow: dict,
+    approved_elements: list[dict],
+    approved_keywords: list[dict],
+    approved_manual_tests: list[dict] | None = None,
+    common_resource_context: list[dict] | None = None,
+) -> str:
     payload = {
         "workflow": workflow,
         "approved_elements": approved_elements,
         "approved_keywords": approved_keywords,
-        "approved_manual_tests": approved_manual_tests or []
+        "approved_manual_tests": approved_manual_tests or [],
+        "common_resource_context": common_resource_context or [],
     }
 
     return (
         "You are an expert Robot Framework resource-file designer working on a maintainable enterprise UI automation framework.\n"
-        "Generate exactly one valid Robot Framework .resource file.\n\n"
+        "Generate exactly one valid page-specific Robot Framework .resource file.\n\n"
         "Primary objective:\n"
-        "- Build a reusable page resource file that contains page locators, reusable action keywords, reusable validation keywords, reusable setup/teardown keywords when appropriate, and reusable test-data variables inferred from approved workflow and approved manual tests.\n\n"
+        "- Build a reusable page resource file that contains only page-specific locators, page-specific action keywords, page-specific validation keywords, and page-specific test-data variables inferred from approved workflow and approved manual tests.\n"
+        "- You are also given common/shared resource context. Reuse that knowledge and avoid duplicating common keywords, browser lifecycle keywords, and generic variables already suitable for shared resources.\n\n"
         "Mandatory output rules:\n"
         "- Return only Robot Framework resource code.\n"
         "- Do not include markdown fences.\n"
         "- Include only these sections if needed: *** Settings ***, *** Variables ***, *** Keywords ***.\n"
-        "- Use SeleniumLibrary in Settings.\n"
+        "- Use SeleniumLibrary in Settings only if truly needed in this page resource.\n"
         "- Use the approved elements to create locator variables.\n"
         "- Use the approved keywords as the foundation for reusable keyword implementations.\n"
         "- Create reusable test-data variables based on approved manual tests, not just workflow.testData.\n"
-        "- If approved manual tests imply data such as invalid username, invalid password, blank username, blank password, whitespace-only username, whitespace-only password, long username, long password, special-character inputs, or boundary-value inputs, define them as resource variables when useful.\n"
+        "- If approved manual tests imply data such as invalid username, invalid password, blank username, blank password, whitespace-only username, whitespace-only password, long username, long password, special-character inputs, or boundary-value inputs, define them as page-resource variables when useful for this page.\n"
         "- Valid business data should come from workflow.testData if present.\n"
-        "- Invalid, edge, or long input variables should be created in the resource file whenever the approved manual tests suggest they are relevant.\n"
+        "- Invalid, edge, or long input variables should be created in the page resource file whenever the approved manual tests suggest they are relevant.\n"
         "- Do NOT define Robot Framework built-in variables like ${EMPTY}, ${SPACE}, ${True}, ${False}, or ${None}; reference them directly only where needed.\n"
-        "- The resource file must be reusable and aligned with real Robot Framework framework standards.\n"
         "- Keep naming clean and maintainable.\n"
         "- Prefer clear reusable variable names such as ${VALID_USERNAME}, ${INVALID_USERNAME}, ${BLANK_USERNAME}, ${SPACE_USERNAME}, ${LONG_USERNAME}, and similar names for passwords or other fields where justified by approved manual tests.\n"
         "- Prefer reusable validation keywords when expected results mention UI messages, masking, redirection, visibility, enabled/disabled state, or validation behavior.\n"
-        "- If the workflow clearly needs browser/page lifecycle handling, create reusable setup/teardown keywords in the resource file, such as opening the relevant page and closing the browser, but only if these are appropriate for the page model.\n"
         "- Do not invent unnecessary variables or keywords.\n"
-        "- Preserve a clean resource file structure.\n"
+        "- Preserve a clean resource file structure with minimal blank lines: at most one blank line between variables and at most one blank line between keyword blocks.\n"
+        "- Use modern Robot Framework syntax only. Do NOT use deprecated loop syntax such as ': FOR' or backslash-prefixed loop bodies. Use 'FOR ... END' syntax if a loop is truly necessary.\n"
         "- Use AI intelligence instead of hardcoded assumptions.\n\n"
+        "Shared-vs-page resource rules:\n"
+        "- Generic or common variables belong in resources/common_keywords.resource, not in the page resource. Examples include browser selection such as ${BROWSER}, generic timeout variables, generic environment/base-url variables, and other cross-page defaults.\n"
+        "- Generic or common keywords belong in resources/common_keywords.resource, not in the page resource. Examples include Open Browser To Url, Go To Url, Open Login Page, Open Browser Session, Close Browser Session, Wait For Element To Be Ready, generic click/input wrappers, and other cross-page/browser lifecycle helpers.\n"
+        "- If a common/shared keyword already exists or is strongly implied by common_resource_context, do not recreate it in the page resource. Instead, design the page resource to rely on the shared/common resource layer.\n"
+        "- The page resource should contain only page-specific behavior such as entering credentials, clicking page-specific buttons, and validating page-specific messages or field behavior.\n"
+        "- Do not duplicate keywords that already exist in common/shared resources.\n\n"
         "Resource quality requirements:\n"
-        "- The Variables section should centralize reusable test data so generated .robot test suites do not hardcode those values.\n"
-        "- The Keywords section should contain reusable business-friendly actions and validations rather than low-level one-off steps only.\n"
-        "- If approved manual tests mention password masking, create a reusable keyword to verify password masking behavior if feasible in the framework.\n"
-        "- If approved manual tests mention validation messages or rejection behavior, create reusable validation/assertion keywords where feasible.\n"
-        "- If approved manual tests imply open-page, login-page-ready, or browser-close lifecycle behavior, create reusable keywords for those behaviors when appropriate.\n\n"
+        "- The Variables section should centralize reusable page-level test data so generated .robot test suites do not hardcode those values.\n"
+        "- The Keywords section should contain reusable business-friendly page actions and validations rather than low-level one-off steps only.\n"
+        "- If approved manual tests mention password masking, create a reusable page-specific keyword to verify password masking behavior if feasible in the framework.\n"
+        "- If approved manual tests mention validation messages or rejection behavior, create reusable page-specific validation/assertion keywords where feasible.\n"
+        "- Do not create generic browser open/close keywords here if those belong in common/shared resources.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
+
+def normalize_resource_content(content: str) -> str:
+    content = strip_markdown_fences(content)
+    lines = content.splitlines()
+
+    cleaned: list[str] = []
+    blank_count = 0
+    for line in lines:
+        normalized_line = line.rstrip()
+        if normalized_line.strip() == "":
+            blank_count += 1
+            if blank_count <= 1:
+                cleaned.append("")
+        else:
+            blank_count = 0
+            cleaned.append(normalized_line)
+
+    content = "\n".join(cleaned).strip() + "\n"
+    content = re.sub(r"(?m)^\s*: FOR\b", "FOR", content)
+    content = re.sub(r"(?m)^\s*\\\s+", "    ", content)
+    return content
+
 
 def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]):
     review_data = get_page_review_data(workflow)
@@ -550,6 +586,15 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
         except Exception:
             approved_manual_tests = []
 
+    common_resource_context = []
+    resources_dir = BASE_DIR / "resources"
+    if resources_dir.exists():
+        for resource_path in sorted(resources_dir.glob("*.resource")):
+            try:
+                common_resource_context.append(parse_resource_file(resource_path))
+            except Exception:
+                continue
+
     config = validate_robot_config(load_robot_ai_json(CONFIG_PATH))
     ai_cfg = config["ai"]
 
@@ -561,7 +606,13 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     if not endpoint or not token:
         raise HTTPException(status_code=400, detail="AI endpoint/token missing for resource generation.")
 
-    prompt = build_resource_generation_prompt(workflow, approved_elements, approved_keywords, approved_manual_tests)
+    prompt = build_resource_generation_prompt(
+        workflow,
+        approved_elements,
+        approved_keywords,
+        approved_manual_tests,
+        common_resource_context,
+    )
     resource_content = call_ai_chat(
         endpoint=endpoint,
         token=token,
@@ -570,9 +621,12 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
         verify_ssl=ai_cfg.get("verify_ssl", False),
     )
 
-    resource_content = strip_markdown_fences(resource_content).strip() + "\n"
+    resource_content = normalize_resource_content(resource_content)
 
     resource_path = get_resource_path(page_name)
+    is_valid, validation_message = validate_resource_content(resource_content, common_resource_context)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=validation_message)
     resource_path.write_text(resource_content, encoding="utf-8")
 
 # -------------------------------------------------------------------
@@ -791,6 +845,14 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
         if not resource_path.exists():
             raise HTTPException(status_code=400, detail=f"Resource file not found: {resource_path}")
         resource_context.append(parse_resource_file(resource_path))
+
+    resources_dir = BASE_DIR / "resources"
+    if resources_dir.exists():
+        for common_resource_path in sorted(resources_dir.glob("*.resource")):
+            try:
+                resource_context.append(parse_resource_file(common_resource_path))
+            except Exception:
+                continue
 
     prompt = build_robot_prompt(manual_data, resource_context)
     robot_content = call_ai_chat(

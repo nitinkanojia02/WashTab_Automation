@@ -136,12 +136,13 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Import only the resource files listed in manual_test.resourceFiles.\n"
         "- Use provided keyword names and variable names from resource_context wherever possible.\n"
         "- Prefer existing keywords from resource_context over inventing new ones.\n"
+        "- Treat resource_context as including both page-specific resources and shared/common resources. Use common/shared keywords for generic browser lifecycle, navigation, and waiting behaviors, and avoid duplicating them in suite logic.\n"
         "- Include *** Settings *** and *** Test Cases *** sections.\n"
         "- Do NOT include a *** Variables *** section in the generated .robot file.\n"
         "- Do NOT include a *** Keywords *** section in the generated .robot file unless a test-specific helper is absolutely unavoidable; navigation/page-open/page-ready/data keywords must never be defined in the suite.\n"
         "- Do NOT define keywords such as Open Browser To Login Page, Open Browser To Page, Open Page, Wait Until Login Page Loads, or any equivalent wrapper if the resource file already provides page-open/navigation capability.\n"
         "- If the resource file provides browser/page setup or teardown keywords, use them as Test Setup, Suite Setup, Test Teardown, or Suite Teardown as appropriate.\n"
-        "- Prefer reusable setup/teardown from the resource file for opening and closing browser or preparing page state.\n"
+        "- Prefer reusable setup/teardown from shared/common resources for opening and closing browser or preparing generic page state.\n"
         "- If the resource file appears to provide page-open, page-ready, browser-open, browser-close, or cleanup keywords, use them intelligently in suite/test setup and teardown rather than repeating those actions inside every test.\n"
         "- If test data is reused across test cases, reference a variable from the resource file rather than declaring suite variables.\n"
         "- Use resource variables for valid, invalid, blank, whitespace, boundary, and long-input data whenever suitable variables exist in the resource context.\n"
@@ -219,7 +220,8 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- If a test is about password masking, ensure there is an explicit masking verification.\n"
         "- If a test is about validation messages, blocked login, or rejection behavior, ensure there is an explicit assertion for that behavior.\n"
         "- If a test is about successful login or navigation, ensure there is an explicit post-condition verification.\n"
-        "- Prefer business-readable resource keyword calls over low-level one-off steps.\n\n"
+        "- Prefer business-readable resource keyword calls over low-level one-off steps.\n"
+        "- Do not compensate for duplicated common/page keywords by creating additional duplicates; prefer the shared/common resource keyword when the intent is generic.\n\n"
         "Repair focus areas:\n"
         "- built-in variables (${EMPTY}, ${SPACE})\n"
         "- resource variable reuse instead of hardcoded inline data\n"
@@ -263,6 +265,42 @@ def call_ai_chat(
         ) from exc
 
     return extract_response_text(resp)
+
+def validate_resource_content(content: str, common_resource_context: List[Dict] | None = None) -> tuple[bool, str]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if "*** Keywords ***" not in content:
+        warnings.append("Generated resource does not include a *** Keywords *** section")
+
+    if re.search(r"(?im)^\s*: FOR\b", content):
+        errors.append("Generated resource uses deprecated ': FOR' syntax; use modern FOR/END syntax")
+
+    if re.search(r"(?im)^\s*\\\s+", content):
+        errors.append("Generated resource uses deprecated backslash loop-body syntax; use modern FOR/END syntax")
+
+    if re.search(r"\n{3,}", content):
+        warnings.append("Generated resource contains excessive blank lines; keep formatting compact")
+
+    common_keyword_names = set()
+    for item in common_resource_context or []:
+        for kw in item.get("keywords", []):
+            name = clean_text(str(kw.get("name", "")))
+            if name:
+                common_keyword_names.add(name.lower())
+
+    for common_name in sorted(common_keyword_names):
+        if re.search(rf"(?im)^\s*{re.escape(common_name)}\s*$", content):
+            warnings.append(f"Generated resource appears to duplicate shared/common keyword: {common_name}")
+
+    is_valid = len(errors) == 0
+    message_parts = []
+    if errors:
+        message_parts.append("\n".join(errors))
+    if warnings:
+        message_parts.append("Warnings:\n" + "\n".join(warnings))
+    return is_valid, "\n\n".join(part for part in message_parts if part)
+
 
 def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[bool, str]:
     errors: list[str] = []
@@ -378,6 +416,14 @@ def process_manual_file(config: dict, manual_json_path: Path):
         if not resource_path.exists():
             raise FileNotFoundError(f"{manual_json_path.name}: resource not found -> {resource_path}")
         resource_context.append(parse_resource_file(resource_path))
+
+    resources_dir = BASE_DIR / "resources"
+    if resources_dir.exists():
+        for common_resource_path in sorted(resources_dir.glob("*.resource")):
+            try:
+                resource_context.append(parse_resource_file(common_resource_path))
+            except Exception:
+                continue
 
     if not ai.get("enabled", True):
         raise ValueError("AI is disabled in config.")
