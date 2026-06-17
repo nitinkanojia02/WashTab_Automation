@@ -143,7 +143,7 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Do NOT include a *** Variables *** section in the generated .robot file.\n"
         "- Do NOT include a *** Keywords *** section in the generated .robot file unless a test-specific helper is absolutely unavoidable; navigation/page-open/page-ready/data keywords must never be defined in the suite.\n"
         "- Do NOT define keywords such as Open Browser To Login Page, Open Browser To Page, Open Page, Wait Until Login Page Loads, or any equivalent wrapper if the resource layer already provides page-open/navigation capability.\n"
-        "- Prefer shared/common resource keywords such as Open Browser Session, Close Browser Session, Open Browser To Url, Open Login Page, Go To Url, Wait For Element To Be Ready, Click When Ready, and Input Text When Ready whenever they fit the intent.\n"
+        "- Prefer shared/common resource keywords such as Open Browser Session, Close Browser Session, Open Browser To Url, Open Login Page, Go To Url, Wait For Element To Be Ready, Click When Ready, and Input Text When Ready whenever they fit the intent. Raw SeleniumLibrary keywords in the suite should be a last resort, not the default.\n"
         "- If the resource layer provides browser/page setup or teardown keywords, use them as Test Setup, Suite Setup, Test Teardown, or Suite Teardown as appropriate.\n"
         "- Prefer reusable setup/teardown from shared/common resources for opening and closing browser or preparing generic page state.\n"
         "- If the resource layer appears to provide page-open, page-ready, browser-open, browser-close, or cleanup keywords, use them intelligently in suite/test setup and teardown rather than repeating those actions inside every test.\n"
@@ -163,9 +163,10 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Do not leave missing data arguments blank in a keyword call; use an explicit built-in or resource variable.\n"
         "- Each test case should have a clear final verification aligned to its expectedResult.\n"
         "- If a manual test is about password masking, generate an explicit verification for masking behavior instead of only entering data.\n"
-        "- If a manual test expects an error message, validation message, rejection, blocked login, or failed authentication, generate an explicit verification for that result, not only a page-loaded check.\n"
+        "- If a manual test expects an error message, validation message, rejection, blocked login, or failed authentication, generate an explicit verification for that result, not only a page-loaded check. Prefer dedicated page validation keywords such as Verify Login Error Message or Verify Validation Message if the resource context supports them or clearly implies them.\n"
+        "- For negative authentication scenarios, do not rely solely on Verify Login Page Loaded. Include at least one stronger observable assertion such as an error message check, validation message check, no-navigation check, or protected-area-not-visible check.\n"
         "- If a manual test expects successful navigation or successful login, generate an explicit verification for landing page, URL change, success state, or another observable post-condition.\n"
-        "- If a manual test expects field-level behavior such as required validation, character masking, disabled state, or visibility, include a corresponding verification step and do not stop at action steps only.\n"
+        "- If a manual test expects field-level behavior such as required validation, character masking, disabled state, visibility, duplicate submission prevention, or no duplicate request behavior, include a corresponding verification step and do not stop at action steps only.\n"
         "- Prefer business-readable test cases that call reusable resource keywords over low-level keyword chains when the resource context supports that style.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
@@ -219,11 +220,11 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Do not add a *** Keywords *** section unless a tiny test-specific helper is absolutely unavoidable; prefer resource keywords instead.\n"
         "- Replace bad blank handling with ${EMPTY} and single-space handling with ${SPACE}. Never leave input arguments visually empty.\n"
         "- Replace hardcoded reusable test data with resource variables whenever the resource context supports it or clearly implies it.\n"
-        "- Prefer common/shared resource keywords for generic browser lifecycle, page opening, navigation, waiting, clicking, and text entry when suitable.\n"
+        "- Prefer common/shared resource keywords for generic browser lifecycle, page opening, navigation, waiting, clicking, and text entry when suitable. Raw SeleniumLibrary keywords in the suite should be replaced by shared/common resource keywords whenever a suitable helper exists.\n"
         "- If resource keywords suggest page lifecycle operations, use Suite/Test Setup and Teardown intelligently.\n"
         "- Every test must contain explicit validation aligned to expectedResult.\n"
         "- If a test is about password masking, ensure there is an explicit masking verification.\n"
-        "- If a test is about validation messages, blocked login, rejection behavior, or failed authentication, ensure there is an explicit assertion for that behavior and not only a page-loaded check.\n"
+        "- If a test is about validation messages, blocked login, rejection behavior, or failed authentication, ensure there is an explicit assertion for that behavior and not only a page-loaded check. For negative authentication scenarios, include at least one stronger observable assertion such as an error message check, validation message check, no-navigation check, or protected-area-not-visible check.\n"
         "- If a test is about successful login or navigation, ensure there is an explicit post-condition verification.\n"
         "- Prefer business-readable resource keyword calls over low-level one-off steps.\n"
         "- Do not compensate for duplicated common/page keywords by creating additional duplicates; prefer the shared/common resource keyword when the intent is generic.\n\n"
@@ -298,6 +299,32 @@ def validate_resource_content(content: str, common_resource_context: List[Dict] 
     for common_name in sorted(common_keyword_names):
         if re.search(rf"(?im)^\s*{re.escape(common_name)}\s*$", content):
             warnings.append(f"Generated resource appears to duplicate shared/common keyword: {common_name}")
+
+    discouraged_page_keywords = [
+        "Login With Credentials",
+        "Login With Valid Credentials",
+        "Submit Login",
+        "Perform Successful Login",
+        "Perform Login Flow",
+    ]
+    for keyword_name in discouraged_page_keywords:
+        if re.search(rf"(?im)^\s*{re.escape(keyword_name)}\s*$", content):
+            warnings.append(
+                f"Generated resource contains a broad scenario-wrapper keyword '{keyword_name}'; prefer atomic page-object actions and validations"
+            )
+
+    variable_names = re.findall(r"(?im)^\s*\$\{([A-Z0-9_]+)\}\s{2,}(.+?)\s*$", content)
+    for var_name, var_value in variable_names:
+        upper_name = var_name.upper()
+        normalized_value = var_value.strip()
+        if "WITH_SPACES" in upper_name and " " not in normalized_value:
+            warnings.append(f"Variable ${{{var_name}}} implies spaces but its value does not contain spaces")
+        if "SPACE_" in upper_name and "${SPACE}" not in normalized_value and " " not in normalized_value:
+            warnings.append(f"Variable ${{{var_name}}} implies a space-oriented value but its value does not contain spaces")
+        if "BLANK" in upper_name and "${EMPTY}" not in normalized_value and normalized_value != "":
+            warnings.append(f"Variable ${{{var_name}}} implies a blank value but is not blank/${{EMPTY}}")
+        if "LONG" in upper_name and len(normalized_value.replace("${SPACE}", " ")) < 16:
+            warnings.append(f"Variable ${{{var_name}}} implies a long value but appears short")
 
     is_valid = len(errors) == 0
     message_parts = []
