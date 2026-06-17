@@ -94,7 +94,15 @@ Central configuration for:
 - configured pages
 
 ### `resources/common_keywords.resource`
-Shared common Robot keywords used across generated resources/tests.
+Shared common Robot keywords and variables used across generated resources/tests.
+
+Current intent of this shared layer:
+- common variables such as `${BROWSER}` and `${DEFAULT_TIMEOUT}`
+- browser lifecycle keywords such as `Open Browser Session` and `Close Browser Session`
+- generic navigation helpers such as `Open Browser To Url`, `Open Login Page`, and `Go To Url`
+- generic interaction helpers such as `Wait For Element To Be Ready`, `Click When Ready`, and `Input Text When Ready`
+
+Page-specific resource files under `pom_pages/<page>/` should avoid duplicating these common concerns and should focus on page locators, page-specific actions, page-specific validations, and page-specific test-data variables.
 
 ---
 
