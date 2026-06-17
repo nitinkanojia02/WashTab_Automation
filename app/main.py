@@ -721,9 +721,13 @@ def normalize_robot_blank_and_space_arguments(content: str) -> str:
     ]
 
     for line in lines:
+        line = line.replace("${Empty}", "${EMPTY}").replace("${Space}", "${SPACE}")
+
         if any(re.match(pattern, line) for pattern in keyword_patterns):
+            if re.search(r"\s{2,}$", line):
+                line = re.sub(r"\s{2,}$", "    ${EMPTY}", line)
             for pattern in blank_case_patterns:
-                line = re.sub(pattern, r"\1${None}\2", line, flags=re.IGNORECASE)
+                line = re.sub(pattern, r"\1${EMPTY}\2", line, flags=re.IGNORECASE)
             for pattern in space_case_patterns:
                 line = re.sub(pattern, r"\1${SPACE}\2", line, flags=re.IGNORECASE)
 
@@ -736,6 +740,126 @@ def normalize_robot_content(content: str) -> str:
     content = normalize_robot_blank_and_space_arguments(content)
     content = normalize_robot_content_spacing(content)
     return content
+
+def _split_robot_sections(resource_content: str) -> dict[str, list[str]]:
+    sections: dict[str, list[str]] = {}
+    current = None
+    for line in resource_content.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("***") and stripped.endswith("***"):
+            current = stripped.lower()
+            sections.setdefault(current, []).append(line)
+        elif current:
+            sections[current].append(line)
+    return sections
+
+def _serialize_robot_sections(sections: dict[str, list[str]]) -> str:
+    ordered_names = ["*** settings ***", "*** variables ***", "*** keywords ***"]
+    chunks: list[str] = []
+    for name in ordered_names:
+        lines = sections.get(name, [])
+        if not lines:
+            continue
+        text = "\n".join(line.rstrip() for line in lines).strip()
+        if text:
+            chunks.append(text)
+    return "\n\n".join(chunks).strip() + "\n"
+
+def _derive_variable_name_from_title(title: str) -> str:
+    text = slugify(title).upper()
+    replacements = {
+        "USERNAME": "USERNAME",
+        "PASSWORD": "PASSWORD",
+        "USER_NAME": "USERNAME",
+    }
+    for source, target in replacements.items():
+        text = text.replace(source, target)
+    return text or "TEST_DATA_VALUE"
+
+def _derive_variable_entries_from_manual_cases(cases: list[dict]) -> list[tuple[str, str]]:
+    entries: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    for case in cases:
+        title = str(case.get("title", "")).strip()
+        expected = str(case.get("expectedResult", "")).strip()
+        combined = f"{title} {expected}".lower()
+
+        candidate_names: list[str] = []
+        if "invalid username" in combined:
+            candidate_names.append("INVALID_USERNAME")
+        if "invalid password" in combined:
+            candidate_names.append("INVALID_PASSWORD")
+        if "blank username" in combined or "username is blank" in combined or "without username" in combined:
+            candidate_names.append("BLANK_USERNAME")
+        if "blank password" in combined or "password is blank" in combined or "without password" in combined:
+            candidate_names.append("BLANK_PASSWORD")
+        if "long username" in combined or "maximum length" in combined and "username" in combined:
+            candidate_names.append("LONG_USERNAME")
+        if "long password" in combined or "maximum length" in combined and "password" in combined:
+            candidate_names.append("LONG_PASSWORD")
+        if "whitespace" in combined and "username" in combined:
+            candidate_names.append("SPACE_USERNAME")
+        if "whitespace" in combined and "password" in combined:
+            candidate_names.append("SPACE_PASSWORD")
+
+        if not candidate_names and title:
+            candidate_names.append(_derive_variable_name_from_title(title))
+
+        for name in candidate_names:
+            if name in seen:
+                continue
+            seen.add(name)
+            value = ""
+            if name.startswith("BLANK_"):
+                value = "${EMPTY}"
+            elif name.startswith("SPACE_"):
+                value = "${SPACE}"
+            elif name.startswith("LONG_"):
+                value = "TestAutomationData_1234567890_ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            elif name.startswith("INVALID_"):
+                value = f"invalid_{name.split('_', 1)[1].lower()}"
+            else:
+                continue
+            entries.append((name, value))
+
+    return entries
+
+def sync_resource_variables_from_manual_tests(workflow_name: str):
+    workflow = load_workflow_or_404(workflow_name)
+    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    if not manual_path.exists():
+        return
+
+    manual = read_json(manual_path)
+    cases = extract_manual_test_cases(manual)
+    variable_entries = _derive_variable_entries_from_manual_cases(cases)
+    if not variable_entries:
+        return
+
+    resource_files = workflow.get("resourceFiles", [])
+    if not resource_files:
+        return
+
+    resource_path = POM_DIR / str(resource_files[0]).replace("\\", "/")
+    if not resource_path.exists():
+        return
+
+    existing_content = read_text(resource_path)
+    sections = _split_robot_sections(existing_content)
+    variables_section = sections.get("*** variables ***", ["*** Variables ***"])
+    existing_names = {
+        match.group(1)
+        for match in re.finditer(r"^\$\{([^}]+)\}", "\n".join(variables_section), flags=re.MULTILINE)
+    }
+
+    for name, value in variable_entries:
+        if name in existing_names:
+            continue
+        variables_section.append(f"${{{name}}}    {value}")
+
+    sections["*** variables ***"] = variables_section
+    resource_path.write_text(_serialize_robot_sections(sections), encoding="utf-8")
 
 def generate_automation_for_workflow(workflow_name: str) -> str:
     manual_path = MANUAL_DIR / f"{workflow_name}.json"
@@ -1123,6 +1247,7 @@ async def save_manual_tests(request: Request, workflow_name: str):
 
         updated = update_manual_with_ui_cases(original, cases)
         write_json(manual_path, updated)
+        sync_resource_variables_from_manual_tests(workflow_name)
         update_workflow_status(workflow_name, manual_approved=True)
         return RedirectResponse(url=f"/automation/{workflow_name}", status_code=HTTP_303_SEE_OTHER)
 

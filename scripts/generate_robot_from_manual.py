@@ -125,10 +125,11 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "You are an expert Robot Framework automation engineer working in a strict POM-based framework.\n"
         "Generate exactly one valid Robot Framework .robot test suite file.\n\n"
         "Framework architecture rules:\n"
-        "- Page object resource files are the single source of truth for locators, reusable UI action keywords, page-open keywords, and reusable test data variables.\n"
+        "- Page object resource files are the single source of truth for locators, reusable UI action keywords, page-open keywords, setup/teardown keywords, validation keywords, and reusable test data variables.\n"
         "- The generated .robot suite must remain thin and contain only suite-level settings and executable test cases.\n"
         "- Any navigation/open-page/wait-for-page-ready keyword already belongs in the resource file and must be reused from there.\n"
-        "- Any reusable test data such as usernames, passwords, long strings, SQL injection payloads, or whitespace variants belongs in the resource file, not in the test suite.\n\n"
+        "- Any reusable test data such as usernames, passwords, long strings, invalid variants, SQL injection payloads, or whitespace variants belongs in the resource file, not in the test suite.\n"
+        "- Every generated test must align with the manual test title, steps, and expectedResult; do not skip the expected validation.\n\n"
         "Mandatory output rules:\n"
         "- Use only the provided resource files.\n"
         "- Import only the resource files listed in manual_test.resourceFiles.\n"
@@ -138,12 +139,23 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Do NOT include a *** Variables *** section in the generated .robot file.\n"
         "- Do NOT include a *** Keywords *** section in the generated .robot file unless a test-specific helper is absolutely unavoidable; navigation/page-open/page-ready/data keywords must never be defined in the suite.\n"
         "- Do NOT define keywords such as Open Browser To Login Page, Open Browser To Page, Open Page, Wait Until Login Page Loads, or any equivalent wrapper if the resource file already provides page-open/navigation capability.\n"
+        "- If the resource file provides browser/page setup or teardown keywords, use them as Test Setup, Suite Setup, Test Teardown, or Suite Teardown as appropriate.\n"
+        "- Prefer reusable setup/teardown from the resource file for opening and closing browser or preparing page state.\n"
         "- If test data is reused across test cases, reference a variable from the resource file rather than declaring suite variables.\n"
+        "- For intentionally blank input use Robot built-in ${EMPTY}; for a single blank space use ${SPACE}; do not leave argument positions visually empty.\n"
+        "- Never hardcode reusable credential and negative/edge data values directly in tests when a resource variable is available.\n"
+        "- For masking, visibility, error message, disabled state, or UI behavior expectations, include explicit assertion/verification steps that satisfy expectedResult.\n"
         "- Keep the suite focused on calling resource keywords and assertions only.\n"
         "- Do not include markdown fences.\n"
         "- Return only Robot Framework code.\n"
         "- Use resource import paths with prefix ../pom_pages/.\n"
         "- Do not add explanation text before or after the Robot code.\n\n"
+        "Robot quality requirements:\n"
+        "- Use valid Robot Framework syntax with two-or-more-space separation between keyword and arguments.\n"
+        "- Use built-in variables correctly: ${EMPTY}, ${SPACE}, ${True}, ${False}, ${None} only when semantically correct.\n"
+        "- Do not leave missing data arguments blank in a keyword call; use an explicit built-in or resource variable.\n"
+        "- Each test case should have a clear final verification aligned to its expectedResult.\n"
+        "- If a manual test is about password masking, generate an explicit verification for masking behavior instead of only entering data.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
 
@@ -235,6 +247,15 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
         if re.search(pattern, content):
             errors.append("Generated suite contains navigation/wait helper definitions that should live in the POM resource file")
             break
+
+    if re.search(r"(?im)^\s*(?:Input|Enter|Type)\b.*\s{2,}$", content):
+        errors.append("Generated suite contains an input keyword call with an empty trailing argument; use ${EMPTY} or ${SPACE} explicitly")
+
+    if re.search(r"\$\{Empty\}", content):
+        errors.append("Use Robot built-in ${EMPTY} instead of ${Empty}")
+
+    if re.search(r"\$\{Space\}", content):
+        errors.append("Use Robot built-in ${SPACE} instead of ${Space}")
 
     is_valid = len(errors) == 0
     return is_valid, "\n".join(errors)
