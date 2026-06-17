@@ -1,0 +1,348 @@
+{
+  "workflowName": "Login",
+  "resourceFiles": [
+    "login_page/login_page.resource"
+  ],
+  "preconditions": [
+    "Application is accessible at http://172.21.166.115/washtabui/login?data=undefined",
+    "Valid username is haklarr",
+    "Valid password is Icstunnel1",
+    "User is not currently logged in"
+  ],
+  "testCases": [
+    {
+      "id": "LOGIN_TC_001",
+      "title": "Verify login page loads successfully",
+      "type": "positive",
+      "steps": [
+        "Open a web browser",
+        "Navigate to http://172.21.166.115/washtabui/login?data=undefined",
+        "Observe the login page"
+      ],
+      "expectedResult": "Login page loads successfully and displays username field, password field, and login button.",
+      "fields": [
+        "loginPage",
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_002",
+      "title": "Verify successful login with valid username and password",
+      "type": "positive",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "User is successfully authenticated and redirected to the application home or dashboard page.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_003",
+      "title": "Verify login fails with incorrect username and valid password",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Enter invalidUser in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails and an error message indicating incorrect username or password is displayed.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_004",
+      "title": "Verify login fails with valid username and incorrect password",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter WrongPassword in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails and an error message indicating incorrect username or password is displayed.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_005",
+      "title": "Verify login fails when both username and password are blank",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Leave username field empty",
+        "Leave password field empty",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login is not allowed and an error message is displayed indicating that username and password are required.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_006",
+      "title": "Verify login fails when username is blank",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Leave username field empty",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails and a validation message is displayed indicating that username is required.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_007",
+      "title": "Verify login fails when password is blank",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Leave password field empty",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails and a validation message is displayed indicating that password is required.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_008",
+      "title": "Verify username field accepts input",
+      "type": "positive",
+      "steps": [
+        "Navigate to the login page",
+        "Click on the username field",
+        "Type haklarr"
+      ],
+      "expectedResult": "Username text is entered and visible in the username field.",
+      "fields": [
+        "username"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_009",
+      "title": "Verify password field masks characters",
+      "type": "positive",
+      "steps": [
+        "Navigate to the login page",
+        "Click on the password field",
+        "Enter Icstunnel1"
+      ],
+      "expectedResult": "Entered password characters are masked or hidden in the password field.",
+      "fields": [
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_010",
+      "title": "Verify login using Enter key",
+      "type": "edge",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Press the Enter key"
+      ],
+      "expectedResult": "Login is triggered and user is authenticated successfully.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_011",
+      "title": "Verify login fails with whitespace-only username",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Enter spaces in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails and validation message is shown for invalid username.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_012",
+      "title": "Verify login fails with whitespace-only password",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter spaces in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails and validation message is shown for invalid password.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_013",
+      "title": "Verify username with leading and trailing spaces",
+      "type": "edge",
+      "steps": [
+        "Navigate to the login page",
+        "Enter space haklarr space in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "System trims whitespace or rejects login with validation error depending on implementation.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_014",
+      "title": "Verify password with leading and trailing spaces",
+      "type": "edge",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter space Icstunnel1 space in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails or password is treated literally based on system behavior.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_015",
+      "title": "Verify login with very long username input",
+      "type": "edge",
+      "steps": [
+        "Navigate to the login page",
+        "Enter a username string longer than 256 characters",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "System prevents submission or shows validation error for exceeding allowed length.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_016",
+      "title": "Verify login with very long password input",
+      "type": "edge",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter a password longer than 256 characters",
+        "Click the Login button"
+      ],
+      "expectedResult": "System prevents submission or displays validation error for invalid password length.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_017",
+      "title": "Verify login fails with special characters in username",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Enter !@#$$% in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails and system shows invalid username or authentication error.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_018",
+      "title": "Verify case sensitivity of username",
+      "type": "edge",
+      "steps": [
+        "Navigate to the login page",
+        "Enter HAKLARR in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login behavior reflects system case-sensitivity rules for username.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_019",
+      "title": "Verify case sensitivity of password",
+      "type": "negative",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter icstunnel1 in the password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Login fails if password is case sensitive and does not match stored credentials.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_020",
+      "title": "Verify repeated clicking of login button during submission",
+      "type": "edge",
+      "steps": [
+        "Navigate to the login page",
+        "Enter haklarr in the username field",
+        "Enter Icstunnel1 in the password field",
+        "Rapidly click the Login button multiple times"
+      ],
+      "expectedResult": "System processes a single login request and prevents duplicate submissions.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    },
+    {
+      "id": "LOGIN_TC_021",
+      "title": "Verify copy paste into username and password fields",
+      "type": "edge",
+      "steps": [
+        "Copy haklarr to clipboard",
+        "Navigate to login page",
+        "Paste into username field",
+        "Copy Icstunnel1 to clipboard",
+        "Paste into password field",
+        "Click the Login button"
+      ],
+      "expectedResult": "Credentials are accepted and login succeeds.",
+      "fields": [
+        "username",
+        "password"
+      ]
+    }
+  ]
+}

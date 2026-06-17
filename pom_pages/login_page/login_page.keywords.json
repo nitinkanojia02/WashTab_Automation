@@ -1,0 +1,45 @@
+{
+  "pageName": "login_page",
+  "keywords": [
+    {
+      "keywordId": "KW_001",
+      "keywordName": "Enter User Name Textbox",
+      "targetElement": "user_name_textbox",
+      "action": "input",
+      "arguments": [
+        "text"
+      ],
+      "implementation": [
+        "Wait Until Element Is Visible    ${USER_NAME_TEXTBOX}    10s",
+        "Input Text    ${USER_NAME_TEXTBOX}    ${text}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_002",
+      "keywordName": "Enter Password Textbox",
+      "targetElement": "password_textbox",
+      "action": "input",
+      "arguments": [
+        "text"
+      ],
+      "implementation": [
+        "Wait Until Element Is Visible    ${PASSWORD_TEXTBOX}    10s",
+        "Input Text    ${PASSWORD_TEXTBOX}    ${text}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_003",
+      "keywordName": "Click Sign In Button",
+      "targetElement": "sign_in_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [
+        "Wait Until Element Is Visible    ${SIGN_IN_BUTTON}    10s",
+        "Click Element    ${SIGN_IN_BUTTON}"
+      ],
+      "approved": true
+    }
+  ]
+}
