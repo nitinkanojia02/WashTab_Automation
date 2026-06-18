@@ -243,18 +243,8 @@ def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manu
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
-def get_workflow_status(workflow_name: str) -> str:
-    workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
-    robot_path = TESTS_DIR / f"{workflow_name}_tests.robot"
-
-    if robot_path.exists():
-        return "automation_generated"
-    if manual_path.exists():
-        return "manual_tests_generated"
-    if workflow_path.exists():
-        return "workflow_saved"
-    return "not_started"
+def get_workflow_status(workflow_name: str) -> dict:
+    return load_workflow_status(workflow_name)
 
 def slugify(value: str) -> str:
     value = (value or "").strip().lower()
