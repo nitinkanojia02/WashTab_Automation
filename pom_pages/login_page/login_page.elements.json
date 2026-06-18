@@ -1,0 +1,212 @@
+{
+  "pageName": "login_page",
+  "pageUrl": "http://172.21.166.115/washtabui/login?data=undefined",
+  "rawElements": [
+    {
+      "tag": "ion-fab-button",
+      "text": "home",
+      "attributes": {
+        "_ngcontent-ymk-c151": "",
+        "tappable": "",
+        "color": "light",
+        "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
+      },
+      "label": "",
+      "visibility": {
+        "is_visible": true,
+        "is_in_viewport": true,
+        "is_covered": false,
+        "has_visible_descendant": true,
+        "width": 40,
+        "height": 40,
+        "x": 1793.96875,
+        "y": 23
+      },
+      "shadow": {
+        "has_shadow_root": true,
+        "has_native_control": true,
+        "text": "close",
+        "icon_aria_label": "close",
+        "aria_label": "",
+        "tag": "button",
+        "type": "button",
+        "disabled": false,
+        "placeholder": ""
+      }
+    },
+    {
+      "tag": "ion-fab-button",
+      "text": "arrow back",
+      "attributes": {
+        "_ngcontent-ymk-c151": "",
+        "tappable": "",
+        "color": "light",
+        "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
+      },
+      "label": "",
+      "visibility": {
+        "is_visible": true,
+        "is_in_viewport": true,
+        "is_covered": false,
+        "has_visible_descendant": true,
+        "width": 40,
+        "height": 40,
+        "x": 1743.96875,
+        "y": 23
+      },
+      "shadow": {
+        "has_shadow_root": true,
+        "has_native_control": true,
+        "text": "close",
+        "icon_aria_label": "close",
+        "aria_label": "",
+        "tag": "button",
+        "type": "button",
+        "disabled": false,
+        "placeholder": ""
+      }
+    },
+    {
+      "tag": "ion-input",
+      "text": "password",
+      "attributes": {
+        "_ngcontent-ymk-c151": "",
+        "type": "password",
+        "id": "password",
+        "clearonedit": "true",
+        "autocomplete": "off",
+        "class": "login-class ng-untouched ng-pristine ng-valid ion-untouched ion-pristine ion-valid sc-ion-input-md-h sc-ion-input-md-s md hydrated",
+        "style": "-webkit-text-security: disc;"
+      },
+      "label": "",
+      "visibility": {
+        "is_visible": true,
+        "is_in_viewport": true,
+        "is_covered": false,
+        "has_visible_descendant": true,
+        "width": 250,
+        "height": 44,
+        "x": 863,
+        "y": 515.84375
+      },
+      "shadow": null
+    },
+    {
+      "tag": "input",
+      "text": "Password",
+      "attributes": {
+        "class": "native-input sc-ion-input-md",
+        "aria-labelledby": "ion-input-1-lbl",
+        "autocapitalize": "off",
+        "autocomplete": "off",
+        "autocorrect": "off",
+        "name": "ion-input-1",
+        "placeholder": "Password",
+        "type": "password",
+        "style": ""
+      },
+      "label": "",
+      "visibility": {
+        "is_visible": true,
+        "is_in_viewport": true,
+        "is_covered": false,
+        "has_visible_descendant": false,
+        "width": 250,
+        "height": 44,
+        "x": 863,
+        "y": 515.84375
+      },
+      "shadow": null
+    },
+    {
+      "tag": "ion-button",
+      "text": "SIGN IN",
+      "attributes": {
+        "_ngcontent-ymk-c151": "",
+        "text": "Login",
+        "shape": "round",
+        "class": "ion-button-style md button button-round button-solid ion-activatable ion-focusable hydrated"
+      },
+      "label": "",
+      "visibility": {
+        "is_visible": true,
+        "is_in_viewport": true,
+        "is_covered": false,
+        "has_visible_descendant": false,
+        "width": 1134,
+        "height": 36,
+        "x": 393,
+        "y": 585.734375
+      },
+      "shadow": {
+        "has_shadow_root": true,
+        "has_native_control": true,
+        "text": "",
+        "icon_aria_label": "",
+        "aria_label": "",
+        "tag": "button",
+        "type": "button",
+        "disabled": false,
+        "placeholder": ""
+      }
+    },
+    {
+      "tag": "button",
+      "text": "close",
+      "attributes": {
+        "type": "button",
+        "class": "button-native"
+      },
+      "label": "",
+      "visibility": {
+        "is_visible": true,
+        "is_in_viewport": true,
+        "is_covered": false,
+        "has_visible_descendant": true,
+        "width": 40,
+        "height": 40,
+        "x": 1793.96875,
+        "y": 23
+      },
+      "shadow": null
+    }
+  ],
+  "elements": [
+    {
+      "approvedName": "home_button",
+      "type": "button",
+      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='home'] or normalize-space(.)='home']",
+      "approved": true
+    },
+    {
+      "approvedName": "arrow_back_button",
+      "type": "button",
+      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back'] or normalize-space(.)='arrow back']",
+      "approved": true
+    },
+    {
+      "approvedName": "password",
+      "type": "element",
+      "locator": "id=password",
+      "approved": true
+    },
+    {
+      "approvedName": "password_textbox",
+      "type": "textbox",
+      "locator": "xpath=//input[@placeholder='Password']",
+      "approved": true
+    },
+    {
+      "approvedName": "sign_in_button",
+      "type": "button",
+      "locator": "xpath=//ion-button[normalize-space(.)='SIGN IN']",
+      "approved": true
+    },
+    {
+      "approvedName": "close_button",
+      "type": "button",
+      "locator": "xpath=//button[normalize-space(.)='close']",
+      "approved": true
+    }
+  ]
+}
