@@ -36,7 +36,7 @@ Split To Lines
     RETURN    @{normalized_lines}
 
 Get Summary Value
-    [Arguments]    @{summary_lines}    ${prefix}
+    [Arguments]    ${prefix}    @{summary_lines}
     FOR    ${line}    IN    @{summary_lines}
         ${starts_with_prefix}=    Evaluate    $line.startswith($prefix)
         IF    ${starts_with_prefix}
