@@ -12,7 +12,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_PATH = BASE_DIR / "config" / "page_model_config.json"
-PROMPT_REGISTRY_PATH = BASE_DIR / "config" / "ai_prompt_registry.json"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -52,26 +51,6 @@ def get_ai_token(ai_cfg: dict) -> str:
 
     return ""
 
-
-def load_prompt_registry() -> dict:
-    if not PROMPT_REGISTRY_PATH.exists():
-        return {
-            "manual_generation_prompt_version": "1.0",
-            "manual_review_prompt_version": "1.0",
-            "robot_generation_prompt_version": "1.0",
-            "robot_review_prompt_version": "1.0",
-            "robot_validation_prompt_version": "1.0",
-        }
-    try:
-        return json.loads(PROMPT_REGISTRY_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        return {
-            "manual_generation_prompt_version": "1.0",
-            "manual_review_prompt_version": "1.0",
-            "robot_generation_prompt_version": "1.0",
-            "robot_review_prompt_version": "1.0",
-            "robot_validation_prompt_version": "1.0",
-        }
 
 def validate_config(config: dict) -> dict:
     config["pom_output_dir"] = str(config.get("pom_output_dir", "pom_pages"))
@@ -140,7 +119,6 @@ def parse_resource_file(resource_path: Path) -> Dict:
     }
 
 def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
-    prompt_registry = load_prompt_registry()
     prompt_manual_data = json.loads(json.dumps(manual_data))
     if isinstance(prompt_manual_data.get("fields"), list):
         prompt_manual_data["fields"] = [
@@ -156,7 +134,7 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
     }
 
     return (
-        f"You are AI Layer 3: an expert Robot Framework automation engineer working in a strict POM-based framework. Prompt version: {prompt_registry.get('robot_generation_prompt_version', '1.0')}.\n"
+        "You are AI Layer 3: an expert Robot Framework automation engineer working in a strict POM-based framework.\n"
         "Generate exactly one valid Robot Framework .robot test suite file.\n\n"
         "Framework architecture rules:\n"
         "- Page object resource files are the single source of truth for locators, reusable UI action keywords, page-open keywords, setup/teardown keywords, validation keywords, and reusable test data variables.\n"
@@ -242,9 +220,8 @@ def extract_response_text(resp: requests.Response) -> str:
 
 
 def build_manual_review_prompt(manual_data: dict) -> str:
-    prompt_registry = load_prompt_registry()
     return (
-        f"You are AI Layer 2: a senior QA review architect performing a strict review of a generated manual-test JSON artifact. Prompt version: {prompt_registry.get('manual_review_prompt_version', '1.0')}.\n"
+        "You are AI Layer 2: a senior QA review architect performing a strict review of a generated manual-test JSON artifact.\n"
         "Return only valid JSON with the same top-level structure.\n\n"
         "Review and repair goals:\n"
         "- preserve approved workflow intent while improving test quality\n"
@@ -267,7 +244,6 @@ def build_manual_review_prompt(manual_data: dict) -> str:
 
 
 def build_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
-    prompt_registry = load_prompt_registry()
     prompt_manual_data = json.loads(json.dumps(manual_data))
     if isinstance(prompt_manual_data.get("fields"), list):
         prompt_manual_data["fields"] = [
@@ -284,7 +260,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
     }
 
     return (
-        f"You are AI Layer 4: a senior Robot Framework reviewer and repair specialist. Prompt version: {prompt_registry.get('robot_review_prompt_version', '1.0')}.\n"
+        "You are AI Layer 4: a senior Robot Framework reviewer and repair specialist.\n"
         "Your task is to review an already generated Robot Framework test suite and return a corrected version of the same suite.\n\n"
         "Review objectives:\n"
         "- Preserve the intent and coverage of the approved manual tests.\n"
@@ -331,7 +307,6 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
     )
 
 def build_validation_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
-    prompt_registry = load_prompt_registry()
     prompt_manual_data = json.loads(json.dumps(manual_data))
     if isinstance(prompt_manual_data.get("fields"), list):
         prompt_manual_data["fields"] = [
@@ -348,7 +323,7 @@ def build_validation_review_prompt(manual_data: dict, resource_context: List[Dic
     }
 
     return (
-        f"You are AI Layer 5: a principal QA automation governance reviewer acting as a final AI validation gate. Prompt version: {prompt_registry.get('robot_validation_prompt_version', '1.0')}.\n"
+        "You are AI Layer 5: a principal QA automation governance reviewer acting as a final AI validation gate.\n"
         "Your job is to perform a strict policy-and-quality review of an already reviewed Robot Framework suite and return the best corrected final suite.\n\n"
         "Final-gate objectives:\n"
         "- Preserve approved manual intent and scenario coverage.\n"

@@ -1,7 +1,0 @@
-{
-  "manual_generation_prompt_version": "1.1",
-  "manual_review_prompt_version": "1.1",
-  "robot_generation_prompt_version": "1.1",
-  "robot_review_prompt_version": "1.1",
-  "robot_validation_prompt_version": "1.1"
-}

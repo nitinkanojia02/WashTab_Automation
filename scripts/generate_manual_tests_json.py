@@ -92,15 +92,6 @@ def load_config() -> Dict[str, Any]:
     return load_json(CONFIG_PATH)
 
 
-def load_prompt_registry() -> Dict[str, Any]:
-    prompt_registry_path = BASE_DIR / "config" / "ai_prompt_registry.json"
-    if not prompt_registry_path.exists():
-        return {"manual_generation_prompt_version": "1.0"}
-    try:
-        return load_json(prompt_registry_path)
-    except Exception:
-        return {"manual_generation_prompt_version": "1.0"}
-
 
 def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
     config["workflow_input_dir"] = str(config.get("workflow_input_dir", "workflow_inputs"))
@@ -135,9 +126,8 @@ def make_test_id_prefix(workflow_name: str) -> str:
 
 
 def build_prompt(workflow_input: Dict[str, Any]) -> str:
-    prompt_version = load_prompt_registry().get("manual_generation_prompt_version", "1.0")
     return f"""
-You are AI Layer 1: a senior QA test designer operating inside a multi-layer AI-assisted automation framework. Prompt version: {prompt_version}.
+You are AI Layer 1: a senior QA test designer operating inside a multi-layer AI-assisted automation framework.
 Your output is a reviewable manual-test artifact that will feed downstream Robot generation plus additional AI review and governance layers.
 
 Your goal is not just to list tests, but to produce high-signal manual tests with explicit observable outcomes so later AI layers can generate strong assertions instead of action-only automation.
