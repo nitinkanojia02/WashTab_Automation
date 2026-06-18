@@ -37,7 +37,6 @@ TESTS_DIR = BASE_DIR / "tests"
 POM_DIR = BASE_DIR / "pom_pages"
 TEMPLATES_DIR = BASE_DIR / "app" / "templates"
 CONFIG_PATH = BASE_DIR / "config" / "page_model_config.json"
-CONFIG = read_json(CONFIG_PATH) if CONFIG_PATH.exists() else {}
 
 app = FastAPI(title="WashTab Automation MVP")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -62,6 +61,9 @@ def read_json(path: Path):
 def write_json(path: Path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+CONFIG = read_json(CONFIG_PATH) if CONFIG_PATH.exists() else {}
 
 
 def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manual_data: dict) -> Path:
