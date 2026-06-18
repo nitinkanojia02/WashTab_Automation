@@ -1,0 +1,102 @@
+{
+  "pageName": "home_page",
+  "pageUrl": "http://172.21.166.115/washtabui/home",
+  "rawElements": [
+    {
+      "tag": "ion-fab-button",
+      "text": "home",
+      "attributes": {
+        "_ngcontent-jbu-c151": "",
+        "tappable": "",
+        "color": "light",
+        "tabindex": "0",
+        "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
+      },
+      "label": ""
+    },
+    {
+      "tag": "ion-fab-button",
+      "text": "notifications outline",
+      "attributes": {
+        "_ngcontent-jbu-c151": "",
+        "id": "notifications-button",
+        "tappable": "",
+        "color": "light",
+        "aria-disabled": "true",
+        "class": "ion-color ion-color-light md fab-button-in-list fab-button-disabled ion-activatable ion-focusable hydrated fab-button-show"
+      },
+      "label": ""
+    },
+    {
+      "tag": "app-main-button",
+      "text": "btn_CustomerSignup",
+      "attributes": {
+        "_ngcontent-jbu-c153": "",
+        "tappable": "",
+        "id": "btn_CustomerSignup",
+        "icsicon": "CustomerClubSignup-Bt",
+        "_nghost-jbu-c152": "",
+        "class": "ng-star-inserted"
+      },
+      "label": ""
+    },
+    {
+      "tag": "app-main-button",
+      "text": "btn_CleanSurvey",
+      "attributes": {
+        "_ngcontent-jbu-c153": "",
+        "tappable": "",
+        "id": "btn_CleanSurvey",
+        "icsicon": "Clean-Survey-Bt",
+        "_nghost-jbu-c152": "",
+        "class": "ng-star-inserted"
+      },
+      "label": ""
+    },
+    {
+      "tag": "app-main-button",
+      "text": "btn_SiteSurvey",
+      "attributes": {
+        "_ngcontent-jbu-c153": "",
+        "tappable": "",
+        "id": "btn_SiteSurvey",
+        "icsicon": "Site-Survey-Bt",
+        "_nghost-jbu-c152": "",
+        "class": "ng-star-inserted"
+      },
+      "label": ""
+    }
+  ],
+  "elements": [
+    {
+      "approvedName": "home_button",
+      "type": "button",
+      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='home'] or normalize-space(.)='home']",
+      "approved": true
+    },
+    {
+      "approvedName": "notifications_button",
+      "type": "button",
+      "locator": "id=notifications-button",
+      "approved": true
+    },
+    {
+      "approvedName": "customer_signup_button",
+      "type": "button",
+      "locator": "id=btn_CustomerSignup",
+      "approved": true
+    },
+    {
+      "approvedName": "clean_survey_button",
+      "type": "button",
+      "locator": "id=btn_CleanSurvey",
+      "approved": true
+    },
+    {
+      "approvedName": "site_survey_button",
+      "type": "button",
+      "locator": "id=btn_SiteSurvey",
+      "approved": true
+    }
+  ]
+}
