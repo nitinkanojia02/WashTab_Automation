@@ -75,6 +75,7 @@ def reset_workflow_session(workflow_name: str) -> dict:
     session = {
         "workflow": workflow_name,
         "messages": [],
+        "run_active": False,
     }
     save_workflow_session(workflow_name, session)
     return session
@@ -86,10 +87,32 @@ def load_workflow_session(workflow_name: str) -> dict:
         try:
             data = read_json(session_path)
             if isinstance(data, dict) and isinstance(data.get("messages"), list):
+                data.setdefault("workflow", workflow_name)
+                data.setdefault("run_active", False)
                 return data
         except Exception:
             pass
     return reset_workflow_session(workflow_name)
+
+
+def begin_workflow_run(workflow_name: str) -> dict:
+    session = reset_workflow_session(workflow_name)
+    session["run_active"] = True
+    save_workflow_session(workflow_name, session)
+    return session
+
+
+def ensure_workflow_run(workflow_name: str) -> dict:
+    session = load_workflow_session(workflow_name)
+    if not session.get("run_active"):
+        session = begin_workflow_run(workflow_name)
+    return session
+
+
+def complete_workflow_run(workflow_name: str):
+    session = load_workflow_session(workflow_name)
+    session["run_active"] = False
+    save_workflow_session(workflow_name, session)
 
 
 def save_workflow_session(workflow_name: str, session: dict):
@@ -102,7 +125,7 @@ def append_session_message(workflow_name: str, role: str, stage: str, content: s
     cleaned = (content or "").strip()
     if not cleaned:
         return
-    session = load_workflow_session(workflow_name)
+    session = ensure_workflow_run(workflow_name)
     session.setdefault("messages", []).append({
         "role": role,
         "stage": stage,
@@ -113,7 +136,7 @@ def append_session_message(workflow_name: str, role: str, stage: str, content: s
 
 
 def build_session_context(workflow_name: str, stage: str) -> str:
-    session = load_workflow_session(workflow_name)
+    session = ensure_workflow_run(workflow_name)
     messages = session.get("messages", [])[-8:]
     if not messages:
         return ""
@@ -1006,7 +1029,7 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
 # -------------------------------------------------------------------
 
 def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
-    reset_workflow_session(workflow_name)
+    ensure_workflow_run(workflow_name)
     workflow_input = load_workflow_or_404(workflow_name)
     config = validate_manual_config(load_manual_config())
     ai_cfg = config["ai"]
@@ -1647,6 +1670,7 @@ def generate_manual_tests_route(request: Request, workflow_name: str):
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
     manual_path = MANUAL_DIR / f"{workflow_name}.json"
     workflow = read_json(workflow_path) if workflow_path.exists() else None
+    begin_workflow_run(workflow_name)
     try:
         generated = generate_manual_tests_for_workflow(workflow_name)
         test_cases = extract_manual_test_cases(generated)
@@ -1763,6 +1787,7 @@ def automation_page(request: Request, workflow_name: str):
 @app.post("/automation/{workflow_name}/generate")
 def generate_automation_route(request: Request, workflow_name: str):
     existing_content = read_text(TESTS_DIR / f"{workflow_name}_tests.robot")
+    ensure_workflow_run(workflow_name)
     try:
         robot_content = generate_automation_for_workflow(workflow_name)
         update_workflow_status(workflow_name, automation_generated=True)
