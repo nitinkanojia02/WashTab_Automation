@@ -6,6 +6,8 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from scripts.generate_robot_from_manual import build_manual_review_prompt, validate_manual_content
+
 import requests
 
 
@@ -90,6 +92,16 @@ def load_config() -> Dict[str, Any]:
     return load_json(CONFIG_PATH)
 
 
+def load_prompt_registry() -> Dict[str, Any]:
+    prompt_registry_path = BASE_DIR / "config" / "ai_prompt_registry.json"
+    if not prompt_registry_path.exists():
+        return {"manual_generation_prompt_version": "1.0"}
+    try:
+        return load_json(prompt_registry_path)
+    except Exception:
+        return {"manual_generation_prompt_version": "1.0"}
+
+
 def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
     config["workflow_input_dir"] = str(config.get("workflow_input_dir", "workflow_inputs"))
     config["manual_tests_output_dir"] = str(config.get("manual_tests_output_dir", "manual_tests"))
@@ -123,8 +135,12 @@ def make_test_id_prefix(workflow_name: str) -> str:
 
 
 def build_prompt(workflow_input: Dict[str, Any]) -> str:
+    prompt_version = load_prompt_registry().get("manual_generation_prompt_version", "1.0")
     return f"""
-You are a senior QA test designer.
+You are AI Layer 1: a senior QA test designer operating inside a multi-layer AI-assisted automation framework. Prompt version: {prompt_version}.
+Your output is a reviewable manual-test artifact that will feed downstream Robot generation plus additional AI review and governance layers.
+
+Your goal is not just to list tests, but to produce high-signal manual tests with explicit observable outcomes so later AI layers can generate strong assertions instead of action-only automation.
 
 Analyze the workflow input and generate a practical manual test suite JSON.
 
@@ -217,6 +233,14 @@ Important behavior:
 - If the workflow is form-based, expand test cases heavily around each field.
 - If multiple fields exist, include combination-based validation scenarios where useful.
 - If observedValidations exist, transform them into concrete manual test cases, not summary text.
+- Write expectedResult values so downstream automation can create observable assertions, not vague outcomes.
+- For positive authentication/navigation cases, expectedResult should explicitly mention authenticated state, landing page, redirect, dashboard/home visibility, URL change, or equivalent observable outcome.
+- For negative authentication or validation cases, expectedResult should explicitly mention observable rejection, validation messaging, no navigation, protected-area denial, or continued presence of the login/form state where applicable.
+- For edge interaction scenarios such as Enter key, repeated clicking, whitespace handling, and long input, expectedResult should describe the exact observable behavior that automation must verify.
+- Avoid producing shallow variants that differ only in wording but not in observable intent.
+- Prefer tests whose expectedResult can be validated by visible UI state, message, field behavior, redirect behavior, enabled/disabled state, or other observable outcomes.
+- Do not write weak expected results like 'system works correctly', 'login should happen', or 'validation should appear' without specifying what exactly must be observed.
+- When generating authentication tests, ensure at least one positive case explicitly expects successful login state and at least one negative case explicitly expects failed login state with an observable rejection condition.
 
 Workflow Input:
 {pretty_json(workflow_input)}
@@ -483,7 +507,17 @@ def process_workflow_file(config: Dict[str, Any], input_path: Path) -> None:
         token=token,
         prompt=prompt,
     )
-    final_json = normalize_manual_test(generated, workflow_input)
+    reviewed = call_devex_ai(
+        endpoint=endpoint,
+        token=token,
+        prompt=build_manual_review_prompt(generated),
+    )
+    final_json = normalize_manual_test(reviewed or generated, workflow_input)
+    is_valid, validation_message = validate_manual_content(final_json)
+    if not is_valid:
+        raise ValueError(f"Generated invalid manual content for {input_path.name}: {validation_message}")
+    if validation_message:
+        logger.warning("Manual content review warnings for %s: %s", input_path.name, validation_message)
     save_json(output_path, final_json)
 
     logger.info("Manual test JSON generated: %s", output_path)

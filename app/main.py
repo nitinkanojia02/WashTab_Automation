@@ -19,13 +19,16 @@ from scripts.generate_manual_tests_json import (
     validate_config as validate_manual_config,
 )
 from scripts.generate_robot_from_manual import (
+    build_manual_review_prompt,
     build_prompt as build_robot_prompt,
     build_review_prompt,
+    build_validation_review_prompt,
     call_ai_chat,
     get_ai_token as get_robot_ai_token,
     load_json as load_robot_ai_json,
     parse_resource_file,
     validate_config as validate_robot_config,
+    validate_manual_content,
     validate_resource_content,
     validate_robot_content,
 )
@@ -1044,7 +1047,17 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
         token=token,
         prompt=prompt,
     )
-    final_json = normalize_manual_test(generated, workflow_input)
+    reviewed_manual = call_manual_ai_with_workflow_session(
+        workflow_name=workflow_name,
+        stage="manual_review",
+        endpoint=endpoint,
+        token=token,
+        prompt=build_manual_review_prompt(generated),
+    )
+    final_json = normalize_manual_test(reviewed_manual or generated, workflow_input)
+    is_valid, validation_message = validate_manual_content(final_json)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=validation_message)
     write_json(MANUAL_DIR / f"{workflow_name}.json", final_json)
     return final_json
 
@@ -1397,6 +1410,20 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
     reviewed_robot_content = normalize_robot_content(reviewed_robot_content, workflow, workflow_name)
     if reviewed_robot_content:
         robot_content = reviewed_robot_content
+
+    validation_review_prompt = build_validation_review_prompt(manual_data, resource_context, robot_content)
+    validated_robot_content = call_ai_with_workflow_session(
+        workflow_name=workflow_name,
+        stage="robot_validation_review",
+        endpoint=endpoint,
+        token=token,
+        prompt=validation_review_prompt,
+        timeout_seconds=ai_cfg.get("timeout_seconds", 120),
+        verify_ssl=ai_cfg.get("verify_ssl", False),
+    )
+    validated_robot_content = normalize_robot_content(validated_robot_content, workflow, workflow_name)
+    if validated_robot_content:
+        robot_content = validated_robot_content
 
     is_valid, validation_message = validate_robot_content(robot_content, resource_files)
     if not is_valid:

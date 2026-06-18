@@ -12,6 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_PATH = BASE_DIR / "config" / "page_model_config.json"
+PROMPT_REGISTRY_PATH = BASE_DIR / "config" / "ai_prompt_registry.json"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -50,6 +51,27 @@ def get_ai_token(ai_cfg: dict) -> str:
         return os.getenv(token_env_var, "").strip()
 
     return ""
+
+
+def load_prompt_registry() -> dict:
+    if not PROMPT_REGISTRY_PATH.exists():
+        return {
+            "manual_generation_prompt_version": "1.0",
+            "manual_review_prompt_version": "1.0",
+            "robot_generation_prompt_version": "1.0",
+            "robot_review_prompt_version": "1.0",
+            "robot_validation_prompt_version": "1.0",
+        }
+    try:
+        return json.loads(PROMPT_REGISTRY_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {
+            "manual_generation_prompt_version": "1.0",
+            "manual_review_prompt_version": "1.0",
+            "robot_generation_prompt_version": "1.0",
+            "robot_review_prompt_version": "1.0",
+            "robot_validation_prompt_version": "1.0",
+        }
 
 def validate_config(config: dict) -> dict:
     config["pom_output_dir"] = str(config.get("pom_output_dir", "pom_pages"))
@@ -118,6 +140,7 @@ def parse_resource_file(resource_path: Path) -> Dict:
     }
 
 def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
+    prompt_registry = load_prompt_registry()
     prompt_manual_data = json.loads(json.dumps(manual_data))
     if isinstance(prompt_manual_data.get("fields"), list):
         prompt_manual_data["fields"] = [
@@ -133,7 +156,7 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
     }
 
     return (
-        "You are an expert Robot Framework automation engineer working in a strict POM-based framework.\n"
+        f"You are AI Layer 3: an expert Robot Framework automation engineer working in a strict POM-based framework. Prompt version: {prompt_registry.get('robot_generation_prompt_version', '1.0')}.\n"
         "Generate exactly one valid Robot Framework .robot test suite file.\n\n"
         "Framework architecture rules:\n"
         "- Page object resource files are the single source of truth for locators, reusable UI action keywords, page-open keywords, setup/teardown keywords, validation keywords, and reusable test data variables.\n"
@@ -218,7 +241,33 @@ def extract_response_text(resp: requests.Response) -> str:
     return resp.text.strip()
 
 
+def build_manual_review_prompt(manual_data: dict) -> str:
+    prompt_registry = load_prompt_registry()
+    return (
+        f"You are AI Layer 2: a senior QA review architect performing a strict review of a generated manual-test JSON artifact. Prompt version: {prompt_registry.get('manual_review_prompt_version', '1.0')}.\n"
+        "Return only valid JSON with the same top-level structure.\n\n"
+        "Review and repair goals:\n"
+        "- preserve approved workflow intent while improving test quality\n"
+        "- remove duplicate or low-signal cases\n"
+        "- strengthen expectedResult values so downstream automation can create observable assertions\n"
+        "- ensure positive cases have explicit success outcomes\n"
+        "- ensure negative cases have explicit rejection/validation outcomes\n"
+        "- ensure edge cases describe exact observable behavior\n"
+        "- keep the artifact practical for Robot Framework generation\n\n"
+        "Rules:\n"
+        "- return only JSON\n"
+        "- keep resourceFiles intact\n"
+        "- keep testCases non-empty\n"
+        "- do not add extra top-level keys\n"
+        "- each test case must still contain only id, title, type, steps, expectedResult, fields\n"
+        "- remove shallow duplicates that differ only in wording but not observable intent\n"
+        "- repair vague expected results into observable outcomes\n\n"
+        f"Input JSON:\n{json.dumps(manual_data, indent=2)}"
+    )
+
+
 def build_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
+    prompt_registry = load_prompt_registry()
     prompt_manual_data = json.loads(json.dumps(manual_data))
     if isinstance(prompt_manual_data.get("fields"), list):
         prompt_manual_data["fields"] = [
@@ -235,7 +284,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
     }
 
     return (
-        "You are a senior Robot Framework reviewer and repair specialist.\n"
+        f"You are AI Layer 4: a senior Robot Framework reviewer and repair specialist. Prompt version: {prompt_registry.get('robot_review_prompt_version', '1.0')}.\n"
         "Your task is to review an already generated Robot Framework test suite and return a corrected version of the same suite.\n\n"
         "Review objectives:\n"
         "- Preserve the intent and coverage of the approved manual tests.\n"
@@ -280,6 +329,56 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Robot syntax correctness and maintainability\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
+
+def build_validation_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
+    prompt_registry = load_prompt_registry()
+    prompt_manual_data = json.loads(json.dumps(manual_data))
+    if isinstance(prompt_manual_data.get("fields"), list):
+        prompt_manual_data["fields"] = [
+            field for field in prompt_manual_data["fields"]
+            if isinstance(field, dict) and any(clean_text(str(field.get(k, ""))) for k in ("name", "label", "type"))
+        ]
+
+    payload = {
+        "manual_test": prompt_manual_data,
+        "resource_context": resource_context,
+        "generated_robot": generated_robot,
+        "resource_import_prefix": "../pom_pages/",
+        "common_resource_hint": "../resources/common_keywords.resource"
+    }
+
+    return (
+        f"You are AI Layer 5: a principal QA automation governance reviewer acting as a final AI validation gate. Prompt version: {prompt_registry.get('robot_validation_prompt_version', '1.0')}.\n"
+        "Your job is to perform a strict policy-and-quality review of an already reviewed Robot Framework suite and return the best corrected final suite.\n\n"
+        "Final-gate objectives:\n"
+        "- Preserve approved manual intent and scenario coverage.\n"
+        "- Reject weak or action-only tests by repairing them into assertion-complete tests when the resource context supports it.\n"
+        "- Prefer framework-safe, reusable, maintainable suite structure over ad hoc literal-driven test steps.\n"
+        "- Keep generated page resources untouched; operate only on the suite.\n\n"
+        "Final-gate enforcement rules:\n"
+        "- Return only Robot Framework code. No markdown fences. No explanation text.\n"
+        "- Keep the suite thin: only *** Settings *** and *** Test Cases *** unless a tiny local helper is absolutely unavoidable.\n"
+        "- Do not add or modify page-resource content.\n"
+        "- Use only imported resources from manual_test.resourceFiles plus ../resources/common_keywords.resource.\n"
+        "- Ensure the shared common resource is imported.\n"
+        "- Preserve compact formatting and one blank line between test cases.\n"
+        "- Use Test Setup / Test Teardown when repeated startup and cleanup behavior exists.\n"
+        "- Every test must end with an observable validation aligned to expectedResult.\n"
+        "- Positive login/navigation tests must include a post-login observable verification when such a keyword exists in resource_context. If such a success keyword does not exist, preserve the test but do not invent unsupported keywords.\n"
+        "- Negative authentication tests must include stronger rejection assertions when supported by resource_context; do not rely only on page-ready checks unless that is the only available resource validation.\n"
+        "- Preserve specialized interaction intent such as Enter key submission and repeated clicking.\n"
+        "- Reuse semantic resource variables over inline literals whenever available in resource_context.\n"
+        "- Avoid inventing unsupported keywords, unsupported assertions, or unsupported library APIs.\n"
+        "- Self-audit the final suite against the imported keyword inventory before returning it.\n\n"
+        "Special review focus for this framework maturity stage:\n"
+        "- detect false-positive positive-path tests\n"
+        "- detect weak duplicate-submission scenarios\n"
+        "- detect hardcoded edge-case literals that should be resource-driven when supported\n"
+        "- detect mismatch between manual expectedResult and final assertion strength\n"
+        "- detect repeated open/navigate/wait steps that belong in setup\n\n"
+        f"Input JSON:\n{json.dumps(payload, indent=2)}"
+    )
+
 
 def call_ai_chat(
     endpoint: str,
@@ -566,6 +665,76 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
         message_parts.append("Warnings:\n" + "\n".join(warnings))
     return is_valid, "\n\n".join(part for part in message_parts if part)
 
+
+def validate_manual_content(manual_data: dict) -> tuple[bool, str]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not isinstance(manual_data, dict):
+        return False, "Manual artifact must be a JSON object"
+
+    test_cases = manual_data.get("testCases")
+    if not isinstance(test_cases, list) or not test_cases:
+        errors.append("Manual artifact must contain a non-empty testCases array")
+        return False, "\n".join(errors)
+
+    seen_signatures = set()
+    positive_with_observable_success = False
+    negative_with_observable_failure = False
+
+    for idx, case in enumerate(test_cases, start=1):
+        if not isinstance(case, dict):
+            errors.append(f"Test case #{idx} is not an object")
+            continue
+
+        title = clean_text(str(case.get("title", "")))
+        expected = clean_text(str(case.get("expectedResult", "")))
+        case_type = clean_text(str(case.get("type", ""))).lower()
+        steps = case.get("steps", [])
+        fields = case.get("fields", [])
+
+        if not title:
+            errors.append(f"Test case #{idx} is missing title")
+        if case_type not in {"positive", "negative", "edge"}:
+            errors.append(f"Test case '{title or idx}' has unsupported type '{case_type}'")
+        if not isinstance(steps, list) or not steps:
+            errors.append(f"Test case '{title or idx}' must contain non-empty steps")
+        if not expected:
+            errors.append(f"Test case '{title or idx}' must contain expectedResult")
+        if not isinstance(fields, list):
+            errors.append(f"Test case '{title or idx}' must contain fields as a list")
+
+        signature = (
+            title.lower(),
+            case_type,
+            tuple(clean_text(str(step)).lower() for step in steps if clean_text(str(step))),
+            expected.lower(),
+        )
+        if signature in seen_signatures:
+            warnings.append(f"Potential duplicate manual test detected: {title or idx}")
+        seen_signatures.add(signature)
+
+        expected_lower = expected.lower()
+        if case_type == "positive" and any(token in expected_lower for token in ["dashboard", "home", "redirect", "landing", "url", "success", "authenticated", "logged in"]):
+            positive_with_observable_success = True
+        if case_type == "negative" and any(token in expected_lower for token in ["error", "validation", "rejected", "denied", "remains", "not navigate", "no navigation", "failed"]):
+            negative_with_observable_failure = True
+        if expected_lower in {"system behaves as expected", "workflow completes successfully", "login should happen", "system works correctly"}:
+            warnings.append(f"Weak expected result detected in manual test: {title or idx}")
+
+    if not positive_with_observable_success:
+        warnings.append("No positive manual test explicitly asserts observable success state")
+    if not negative_with_observable_failure:
+        warnings.append("No negative manual test explicitly asserts observable failure or rejection state")
+
+    is_valid = len(errors) == 0
+    message_parts = []
+    if errors:
+        message_parts.append("\n".join(errors))
+    if warnings:
+        message_parts.append("Warnings:\n" + "\n".join(warnings))
+    return is_valid, "\n\n".join(part for part in message_parts if part)
+
 def derive_module_name(manual_data: dict, manual_json_path: Path) -> str:
     if manual_data.get("workflowName"):
         return slugify(manual_data["workflowName"])
@@ -663,6 +832,19 @@ def process_manual_file(config: dict, manual_json_path: Path):
     reviewed_robot_content = re.sub(r"^```[a-zA-Z0-9_-]*\s*\n", "", reviewed_robot_content)
     reviewed_robot_content = re.sub(r"\n```$", "", reviewed_robot_content)
     robot_content = reviewed_robot_content or robot_content
+
+    validation_review_prompt = build_validation_review_prompt(manual_data, resource_context, robot_content)
+    validated_robot_content = call_ai_chat(
+        endpoint=endpoint,
+        token=token,
+        prompt=validation_review_prompt,
+        timeout_seconds=ai.get("timeout_seconds", 120),
+        verify_ssl=ai.get("verify_ssl", False),
+    )
+    validated_robot_content = validated_robot_content.strip()
+    validated_robot_content = re.sub(r"^```[a-zA-Z0-9_-]*\s*\n", "", validated_robot_content)
+    validated_robot_content = re.sub(r"\n```$", "", validated_robot_content)
+    robot_content = validated_robot_content or robot_content
 
     is_valid, validation_message = validate_robot_content(robot_content, resource_files)
     if not is_valid:
