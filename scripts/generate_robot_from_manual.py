@@ -110,10 +110,40 @@ def extract_keywords_from_resource(resource_text: str) -> List[Dict]:
 
     return keywords
 
+def extract_variables_from_resource(resource_text: str) -> List[Dict]:
+    lines = resource_text.splitlines()
+    in_variables = False
+    variables = []
+
+    for line in lines:
+        stripped = line.strip()
+
+        if stripped.lower() == "*** variables ***":
+            in_variables = True
+            continue
+
+        if stripped.startswith("***") and stripped.lower() != "*** variables ***":
+            in_variables = False
+            continue
+
+        if not in_variables or not stripped:
+            continue
+
+        parts = re.split(r"\s{2,}|\t+", stripped, maxsplit=1)
+        if len(parts) == 2 and parts[0].startswith("${") and parts[0].endswith("}"):
+            variables.append({
+                "name": parts[0][2:-1].strip(),
+                "value": parts[1].strip(),
+            })
+
+    return variables
+
+
 def parse_resource_file(resource_path: Path) -> Dict:
     text = resource_path.read_text(encoding="utf-8")
     return {
         "file": str(resource_path.relative_to(BASE_DIR)).replace("\\", "/"),
+        "variables": extract_variables_from_resource(text),
         "keywords": extract_keywords_from_resource(text),
         "source": text[:12000]
     }

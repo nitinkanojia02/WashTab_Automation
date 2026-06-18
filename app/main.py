@@ -767,15 +767,59 @@ def get_keyword_review_data(workflow: dict):
     keywords_path = get_keywords_path(page_name)
     resource_path = get_resource_path(page_name)
 
+    approved_elements = load_approved_elements_for_workflow(workflow)
+    approved_elements_by_name = {
+        clean_text(str(item.get("approvedName", ""))): item
+        for item in approved_elements
+        if clean_text(str(item.get("approvedName", "")))
+    }
+
     keywords = []
-    if keywords_path.exists():
+    if resource_path.exists():
+        try:
+            resource_context = parse_resource_file(resource_path)
+            for idx, keyword in enumerate(resource_context.get("keywords", []), start=1):
+                keyword_name = clean_text(str(keyword.get("name", "")))
+                if not keyword_name:
+                    continue
+
+                target_element = ""
+                lowered_name = keyword_name.lower()
+                for element_name in approved_elements_by_name:
+                    candidate_title = to_keyword_title(element_name).lower()
+                    if candidate_title and candidate_title in lowered_name:
+                        target_element = element_name
+                        break
+
+                action = "generic"
+                if lowered_name.startswith("click "):
+                    action = "click"
+                elif lowered_name.startswith("enter ") or lowered_name.startswith("input "):
+                    action = "input"
+                elif lowered_name.startswith("select "):
+                    action = "select"
+                elif lowered_name.startswith("verify "):
+                    action = "verify"
+
+                keywords.append({
+                    "keywordId": f"KW_{idx:03d}",
+                    "keywordName": keyword_name,
+                    "targetElement": target_element,
+                    "action": action,
+                    "arguments": [arg.replace("${", "").replace("}", "") for arg in keyword.get("args", [])],
+                    "implementation": [],
+                    "approved": True,
+                })
+        except Exception:
+            keywords = []
+
+    if not keywords and keywords_path.exists():
         try:
             payload = read_json(keywords_path)
             keywords = payload.get("keywords", [])
         except Exception:
             keywords = []
 
-    approved_elements = load_approved_elements_for_workflow(workflow)
     if not keywords:
         keywords = build_keywords_from_elements(approved_elements)
 
@@ -790,11 +834,36 @@ def get_keyword_review_data(workflow: dict):
 def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
+    existing_keywords = []
+    keywords_path = get_keywords_path(page_name)
+    if keywords_path.exists():
+        try:
+            existing_payload = read_json(keywords_path)
+            existing_keywords = existing_payload.get("keywords", [])
+        except Exception:
+            existing_keywords = []
+
+    existing_by_name = {
+        clean_text(str(item.get("keywordName", ""))): item
+        for item in existing_keywords
+        if clean_text(str(item.get("keywordName", "")))
+    }
+
+    preserved_keywords = []
+    for keyword in keywords:
+        name = clean_text(str(keyword.get("keywordName", "")))
+        existing = existing_by_name.get(name)
+        merged = dict(existing) if isinstance(existing, dict) else {}
+        merged.update(keyword)
+        if existing and existing.get("implementation") and not merged.get("implementation"):
+            merged["implementation"] = existing.get("implementation", [])
+        preserved_keywords.append(merged)
+
     payload = {
         "pageName": page_name,
-        "keywords": keywords,
+        "keywords": preserved_keywords,
     }
-    write_json(get_keywords_path(page_name), payload)
+    write_json(keywords_path, payload)
 
 # -------------------------------------------------------------------
 # AI-driven resource generation
