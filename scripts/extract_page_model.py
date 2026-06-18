@@ -32,8 +32,14 @@ def ensure_dir(path: Path):
 def clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip())
 
+def split_camel_case(text: str) -> str:
+    text = clean_text(text)
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    text = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", text)
+    return clean_text(text)
+
 def slugify(text: str) -> str:
-    text = clean_text(text).lower()
+    text = split_camel_case(text).lower()
     text = re.sub(r"[^a-z0-9]+", "_", text)
     text = re.sub(r"_+", "_", text).strip("_")
     return text or "element"
@@ -125,6 +131,9 @@ def infer_role(item: dict) -> str:
 
 def infer_label(item: dict) -> str:
     attrs = item.get("attributes", {}) or {}
+    tag = (item.get("tag") or "").lower()
+    locator_hint = build_best_locator(item).lower()
+
     candidates = [
         item.get("label", ""),
         attrs.get("aria-label", ""),
@@ -135,11 +144,31 @@ def infer_label(item: dict) -> str:
         attrs.get("icsicon", ""),
         item.get("text", "")
     ]
+
+    raw_label = ""
     for c in candidates:
         c = clean_text(c)
         if c and not is_meaningless_label(c):
-            return c
-    return clean_text(item.get("tag", "element")) or "element"
+            raw_label = c
+            break
+
+    raw_label = raw_label or clean_text(item.get("tag", "element")) or "element"
+    normalized = slugify(raw_label)
+
+    normalized = re.sub(r"^(btn|button)_", "", normalized)
+    normalized = re.sub(r"_(outline|icon)$", "", normalized)
+    if normalized in {"person", "profile", "user"}:
+        normalized = "profile"
+    if normalized == "notifications":
+        normalized = "notifications"
+
+    button_like = tag in {"button", "ion-button", "ion-fab-button", "app-main-button"}
+    button_like = button_like or "btn_" in locator_hint or "button" in locator_hint or attrs.get("tappable") is not None
+
+    if button_like and normalized and not normalized.endswith("button"):
+        normalized = f"{normalized}_button"
+
+    return normalized or "element"
 
 def best_identity(item: dict) -> Tuple[str, str, str, str]:
     attrs = item.get("attributes", {}) or {}
@@ -193,6 +222,8 @@ def build_best_locator(item: dict) -> str:
         return "xpath=//ion-input"
     if tag in {"ion-button", "ion-fab-button"}:
         if text:
+            if tag == "ion-fab-button":
+                return f"xpath=//ion-fab-button[.//ion-icon[@aria-label={xpath_literal(text)}] or normalize-space(.)={xpath_literal(text)}]"
             return f"xpath=//{tag}[normalize-space(.)={xpath_literal(text)}]"
         if aria:
             return f"xpath=//{tag}[@aria-label={xpath_literal(aria)}]"
