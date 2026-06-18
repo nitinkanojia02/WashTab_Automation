@@ -41,12 +41,12 @@ Some additional folders such as `pom_pages/`, `manual_tests/`, and `tests/` are 
 The current implementation is centered around `app/main.py`, which provides a staged UI flow.
 
 AI orchestration now uses a hybrid context model:
-- one workflow-scoped AI session per feature/workflow
+- one workflow-scoped AI session per feature/workflow run
 - separate stages inside that workflow session for manual generation, resource generation/review, and Robot generation/review
 - persisted artifacts remain the source of truth
-- lightweight session history is used only to carry forward prior AI decisions and reviewer feedback within the same workflow
+- lightweight session history is used only to carry forward prior AI decisions and reviewer feedback within the same workflow during the current run
 
-This means context is shared within a single workflow such as `login`, but isolated across different workflows so one feature does not pollute another.
+This means context is shared within a single workflow run such as `login`, but isolated across different workflows and automatically reset at the start of a new manual-generation run so stale AI memory does not pollute future executions.
 
 The staged UI flow is:
 

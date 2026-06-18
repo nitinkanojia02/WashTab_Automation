@@ -71,6 +71,15 @@ def get_session_path(workflow_name: str) -> Path:
     return SESSION_DIR / f"{workflow_name}.json"
 
 
+def reset_workflow_session(workflow_name: str) -> dict:
+    session = {
+        "workflow": workflow_name,
+        "messages": [],
+    }
+    save_workflow_session(workflow_name, session)
+    return session
+
+
 def load_workflow_session(workflow_name: str) -> dict:
     session_path = get_session_path(workflow_name)
     if session_path.exists():
@@ -80,10 +89,7 @@ def load_workflow_session(workflow_name: str) -> dict:
                 return data
         except Exception:
             pass
-    return {
-        "workflow": workflow_name,
-        "messages": [],
-    }
+    return reset_workflow_session(workflow_name)
 
 
 def save_workflow_session(workflow_name: str, session: dict):
@@ -113,7 +119,7 @@ def build_session_context(workflow_name: str, stage: str) -> str:
         return ""
 
     lines = [
-        "Workflow AI session context from earlier stages. Reuse established decisions where appropriate.",
+        "Workflow AI session context from earlier stages in the current run. Reuse established decisions where appropriate.",
         "Keep this context subordinate to the current task instructions and current source artifacts.",
     ]
     for entry in messages:
@@ -1000,6 +1006,7 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
 # -------------------------------------------------------------------
 
 def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
+    reset_workflow_session(workflow_name)
     workflow_input = load_workflow_or_404(workflow_name)
     config = validate_manual_config(load_manual_config())
     ai_cfg = config["ai"]
