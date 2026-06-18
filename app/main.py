@@ -64,6 +64,106 @@ def write_json(path: Path, data):
 
 
 CONFIG = read_json(CONFIG_PATH) if CONFIG_PATH.exists() else {}
+SESSION_DIR = BASE_DIR / "ai_sessions"
+
+
+def get_session_path(workflow_name: str) -> Path:
+    return SESSION_DIR / f"{workflow_name}.json"
+
+
+def load_workflow_session(workflow_name: str) -> dict:
+    session_path = get_session_path(workflow_name)
+    if session_path.exists():
+        try:
+            data = read_json(session_path)
+            if isinstance(data, dict) and isinstance(data.get("messages"), list):
+                return data
+        except Exception:
+            pass
+    return {
+        "workflow": workflow_name,
+        "messages": [],
+    }
+
+
+def save_workflow_session(workflow_name: str, session: dict):
+    session_path = get_session_path(workflow_name)
+    session_path.parent.mkdir(parents=True, exist_ok=True)
+    write_json(session_path, session)
+
+
+def append_session_message(workflow_name: str, role: str, stage: str, content: str):
+    cleaned = (content or "").strip()
+    if not cleaned:
+        return
+    session = load_workflow_session(workflow_name)
+    session.setdefault("messages", []).append({
+        "role": role,
+        "stage": stage,
+        "content": cleaned,
+    })
+    session["messages"] = session["messages"][-12:]
+    save_workflow_session(workflow_name, session)
+
+
+def build_session_context(workflow_name: str, stage: str) -> str:
+    session = load_workflow_session(workflow_name)
+    messages = session.get("messages", [])[-8:]
+    if not messages:
+        return ""
+
+    lines = [
+        "Workflow AI session context from earlier stages. Reuse established decisions where appropriate.",
+        "Keep this context subordinate to the current task instructions and current source artifacts.",
+    ]
+    for entry in messages:
+        role = clean_text(str(entry.get("role", "assistant"))).upper() or "ASSISTANT"
+        prior_stage = clean_text(str(entry.get("stage", "unknown"))) or "unknown"
+        content = str(entry.get("content", "")).strip()
+        if not content:
+            continue
+        lines.append(f"[{role} | {prior_stage}]\n{content}")
+
+    lines.append(f"Current stage: {stage}")
+    return "\n\n".join(lines)
+
+
+def call_ai_with_workflow_session(
+    workflow_name: str,
+    stage: str,
+    endpoint: str,
+    token: str,
+    prompt: str,
+    timeout_seconds: int = 120,
+    verify_ssl: bool = False,
+) -> str:
+    context = build_session_context(workflow_name, stage)
+    effective_prompt = prompt if not context else f"{context}\n\n{prompt}"
+    append_session_message(workflow_name, "user", stage, prompt)
+    response = call_ai_chat(
+        endpoint=endpoint,
+        token=token,
+        prompt=effective_prompt,
+        timeout_seconds=timeout_seconds,
+        verify_ssl=verify_ssl,
+    )
+    append_session_message(workflow_name, "assistant", stage, response)
+    return response
+
+
+def call_manual_ai_with_workflow_session(
+    workflow_name: str,
+    stage: str,
+    endpoint: str,
+    token: str,
+    prompt: str,
+) -> dict:
+    context = build_session_context(workflow_name, stage)
+    effective_prompt = prompt if not context else f"{context}\n\n{prompt}"
+    append_session_message(workflow_name, "user", stage, prompt)
+    response = call_devex_ai(endpoint=endpoint, token=token, prompt=effective_prompt)
+    append_session_message(workflow_name, "assistant", stage, json.dumps(response, indent=2, ensure_ascii=False))
+    return response
 
 
 def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manual_data: dict) -> Path:
@@ -857,7 +957,9 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
         common_resource_context,
         existing_page_resource,
     )
-    resource_content = call_ai_chat(
+    resource_content = call_ai_with_workflow_session(
+        workflow_name=page_name,
+        stage="resource_generation",
         endpoint=endpoint,
         token=token,
         prompt=prompt,
@@ -875,7 +977,9 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
         common_resource_context,
         resource_content,
     )
-    reviewed_resource_content = call_ai_chat(
+    reviewed_resource_content = call_ai_with_workflow_session(
+        workflow_name=page_name,
+        stage="resource_review",
         endpoint=endpoint,
         token=token,
         prompt=review_prompt,
@@ -909,7 +1013,13 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
         raise HTTPException(status_code=400, detail="Manual test AI endpoint/token missing in configuration.")
 
     prompt = build_manual_prompt(workflow_input)
-    generated = call_devex_ai(endpoint=endpoint, token=token, prompt=prompt)
+    generated = call_manual_ai_with_workflow_session(
+        workflow_name=workflow_name,
+        stage="manual_generation",
+        endpoint=endpoint,
+        token=token,
+        prompt=prompt,
+    )
     final_json = normalize_manual_test(generated, workflow_input)
     write_json(MANUAL_DIR / f"{workflow_name}.json", final_json)
     return final_json
@@ -1237,7 +1347,9 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
                 continue
 
     prompt = build_robot_prompt(manual_data, resource_context)
-    robot_content = call_ai_chat(
+    robot_content = call_ai_with_workflow_session(
+        workflow_name=workflow_name,
+        stage="robot_generation",
         endpoint=endpoint,
         token=token,
         prompt=prompt,
@@ -1249,7 +1361,9 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
     robot_content = normalize_robot_content(robot_content, workflow, workflow_name)
 
     review_prompt = build_review_prompt(manual_data, resource_context, robot_content)
-    reviewed_robot_content = call_ai_chat(
+    reviewed_robot_content = call_ai_with_workflow_session(
+        workflow_name=workflow_name,
+        stage="robot_review",
         endpoint=endpoint,
         token=token,
         prompt=review_prompt,

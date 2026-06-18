@@ -38,7 +38,17 @@ Some additional folders such as `pom_pages/`, `manual_tests/`, and `tests/` are 
 
 ## Current Architecture in Practice
 
-The current implementation is centered around `app/main.py`, which provides a staged UI flow:
+The current implementation is centered around `app/main.py`, which provides a staged UI flow.
+
+AI orchestration now uses a hybrid context model:
+- one workflow-scoped AI session per feature/workflow
+- separate stages inside that workflow session for manual generation, resource generation/review, and Robot generation/review
+- persisted artifacts remain the source of truth
+- lightweight session history is used only to carry forward prior AI decisions and reviewer feedback within the same workflow
+
+This means context is shared within a single workflow such as `login`, but isolated across different workflows so one feature does not pollute another.
+
+The staged UI flow is:
 
 1. create or edit a workflow
 2. extract page information from a live URL
