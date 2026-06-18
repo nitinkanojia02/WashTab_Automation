@@ -157,11 +157,18 @@ def infer_label(item: dict) -> str:
     ]
 
     raw_label = ""
-    for c in primary_candidates + shadow_candidates:
+    for c in primary_candidates:
         c = clean_text(c)
         if c and not is_meaningless_label(c):
             raw_label = c
             break
+
+    if not raw_label:
+        for c in shadow_candidates:
+            c = clean_text(c)
+            if c and not is_meaningless_label(c):
+                raw_label = c
+                break
 
     raw_label = raw_label or clean_text(item.get("tag", "element")) or "element"
     normalized = slugify(raw_label)
@@ -290,6 +297,11 @@ def should_skip_item(item: dict) -> bool:
 
     if shadow_disabled and tag in {"ion-button", "ion-fab-button", "app-main-button", "button"}:
         return True
+
+    if tag == "button":
+        parent_tag = clean_text(str(attrs.get("data-shadow-host-tag", ""))).lower()
+        if parent_tag in {"ion-fab-button", "ion-button", "app-main-button", "ion-input"}:
+            return True
 
     meaningful_content = any([text, label, placeholder, aria, name, el_id, formcontrolname, data_testid])
 
@@ -501,21 +513,39 @@ def collect_elements(page) -> List[dict]:
         nodes.push(node);
       };
 
-      const collectFromRoot = (root) => {
+      const collectFromRoot = (root, hostTag = '') => {
         if (!root || !root.querySelectorAll) return;
-        for (const node of root.querySelectorAll(tags.join(','))) pushNode(node);
-        for (const node of root.querySelectorAll(attrSelectors.join(','))) pushNode(node);
+        for (const node of root.querySelectorAll(tags.join(','))) {
+          if (hostTag) node.setAttribute('data-shadow-host-tag', hostTag);
+          pushNode(node);
+        }
+        for (const node of root.querySelectorAll(attrSelectors.join(','))) {
+          if (hostTag) node.setAttribute('data-shadow-host-tag', hostTag);
+          pushNode(node);
+        }
         for (const el of root.querySelectorAll('*')) {
           if (el.shadowRoot) {
             pushNode(el);
-            collectFromRoot(el.shadowRoot);
+            collectFromRoot(el.shadowRoot, (el.tagName || '').toLowerCase());
           }
         }
+      };
+
+      const isRelevantFabButton = (el) => {
+        if (!el || (el.tagName || '').toLowerCase() !== 'ion-fab-button') return true;
+        const iconLabel = (el.querySelector('ion-icon[aria-label]')?.getAttribute('aria-label') || '').trim().toLowerCase();
+        const hostText = getText(el).trim().toLowerCase();
+        const label = iconLabel || hostText;
+        return ['home', 'arrow back', 'back', 'notifications', 'person', 'profile', 'user'].includes(label);
       };
 
       collectFromRoot(document);
 
       return nodes
+        .filter(el => {
+          if (!isRelevantFabButton(el)) return false;
+          return true;
+        })
         .map(el => {
           const attrs = {};
           for (const a of el.attributes) attrs[a.name] = a.value;
