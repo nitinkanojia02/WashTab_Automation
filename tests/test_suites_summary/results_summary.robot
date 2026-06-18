@@ -13,9 +13,9 @@ Print Robot Execution Summary From Results Folder
     Should Be Equal As Integers    ${result.rc}    0    msg=${result.stderr}
 
     @{summary_lines}=    Split To Lines    ${result.stdout}
-    ${total_tests_count}=    Get Summary Value    @{summary_lines}    TOTAL=
-    ${pass_tests_count}=    Get Summary Value    @{summary_lines}    PASSED=
-    ${fail_tests_count}=    Get Summary Value    @{summary_lines}    FAILED=
+    ${total_tests_count}=    Get Summary Value    prefix=TOTAL=    @{summary_lines}
+    ${pass_tests_count}=    Get Summary Value    prefix=PASSED=    @{summary_lines}
+    ${fail_tests_count}=    Get Summary Value    prefix=FAILED=    @{summary_lines}
 
     Log To Console    Total Tests---->${total_tests_count}
     Log To Console    Passed Tests--->${pass_tests_count}
