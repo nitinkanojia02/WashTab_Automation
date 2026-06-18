@@ -244,7 +244,39 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 def get_workflow_status(workflow_name: str) -> dict:
-    return load_workflow_status(workflow_name)
+    workflow = load_workflow_or_404(workflow_name)
+    pages = workflow.get("pages", []) if isinstance(workflow, dict) else []
+    page_name = ""
+    if pages and isinstance(pages[0], dict):
+        page_name = clean_text(str(pages[0].get("name", "")))
+
+    page_dir = POM_DIR / page_name if page_name else None
+    elements_path = page_dir / f"{page_name}.elements.json" if page_dir else None
+    resource_path = page_dir / f"{page_name}.resource" if page_dir else None
+    keywords_path = page_dir / f"{page_name}.keywords.json" if page_dir else None
+    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    automation_path = TESTS_DIR / f"{workflow_name}_tests.robot"
+
+    page_reviewed = bool(elements_path and elements_path.exists())
+    keywords_reviewed = bool(resource_path and resource_path.exists() and keywords_path and keywords_path.exists())
+
+    manual_approved = False
+    if manual_path.exists():
+        try:
+            manual_data = read_json(manual_path)
+            manual_cases = extract_manual_test_cases(manual_data)
+            manual_approved = len(manual_cases) > 0
+        except Exception:
+            manual_approved = False
+
+    automation_generated = bool(automation_path.exists() and clean_text(read_text(automation_path)))
+
+    return {
+        "page_reviewed": page_reviewed,
+        "keywords_reviewed": keywords_reviewed,
+        "manual_approved": manual_approved,
+        "automation_generated": automation_generated,
+    }
 
 def slugify(value: str) -> str:
     value = (value or "").strip().lower()
