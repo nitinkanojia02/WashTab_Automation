@@ -1,0 +1,70 @@
+{
+  "pageName": "home_page",
+  "keywords": [
+    {
+      "keywordId": "KW_001",
+      "keywordName": "Open Page",
+      "targetElement": "",
+      "action": "generic",
+      "arguments": [],
+      "implementation": [],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_002",
+      "keywordName": "Open Browser To Page",
+      "targetElement": "",
+      "action": "generic",
+      "arguments": [
+        "browser=chrome"
+      ],
+      "implementation": [],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_003",
+      "keywordName": "Click Home Button",
+      "targetElement": "home_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_004",
+      "keywordName": "Click Notifications Button",
+      "targetElement": "notifications_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_005",
+      "keywordName": "Click Customer Signup Button",
+      "targetElement": "customer_signup_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_006",
+      "keywordName": "Click Clean Survey Button",
+      "targetElement": "clean_survey_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_007",
+      "keywordName": "Click Site Survey Button",
+      "targetElement": "site_survey_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [],
+      "approved": true
+    }
+  ]
+}
