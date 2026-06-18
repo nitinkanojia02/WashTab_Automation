@@ -796,17 +796,22 @@ def get_keyword_review_data(workflow: dict):
         if clean_text(str(item.get("approvedName", "")))
     }
 
+    disallowed_resource_keywords = {
+        "open page",
+        "open browser to page",
+    }
+
     keywords = []
     if resource_path.exists():
         try:
             resource_context = parse_resource_file(resource_path)
             for idx, keyword in enumerate(resource_context.get("keywords", []), start=1):
                 keyword_name = clean_text(str(keyword.get("name", "")))
-                if not keyword_name:
+                lowered_name = keyword_name.lower()
+                if not keyword_name or lowered_name in disallowed_resource_keywords:
                     continue
 
                 target_element = ""
-                lowered_name = keyword_name.lower()
                 for element_name in approved_elements_by_name:
                     candidate_title = to_keyword_title(element_name).lower()
                     if candidate_title and candidate_title in lowered_name:
@@ -839,7 +844,11 @@ def get_keyword_review_data(workflow: dict):
     if not keywords and keywords_path.exists():
         try:
             payload = read_json(keywords_path)
-            keywords = payload.get("keywords", [])
+            raw_keywords = payload.get("keywords", [])
+            keywords = [
+                item for item in raw_keywords
+                if clean_text(str(item.get("keywordName", ""))).lower() not in disallowed_resource_keywords
+            ]
         except Exception:
             keywords = []
 
@@ -859,8 +868,17 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
     page_name = pages[0].get("name") if pages else "page"
     keywords_path = get_keywords_path(page_name)
 
+    disallowed_resource_keywords = {
+        "open page",
+        "open browser to page",
+    }
+
     normalized_keywords = []
     for idx, keyword in enumerate(keywords, start=1):
+        keyword_name = clean_text(str(keyword.get("keywordName", "")))
+        if not keyword_name or keyword_name.lower() in disallowed_resource_keywords:
+            continue
+
         implementation = keyword.get("implementation", [])
         if isinstance(implementation, str):
             implementation = [line.rstrip() for line in implementation.splitlines() if line.strip()]
@@ -872,7 +890,7 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
 
         normalized_keywords.append({
             "keywordId": clean_text(str(keyword.get("keywordId", ""))) or f"KW_{idx:03d}",
-            "keywordName": clean_text(str(keyword.get("keywordName", ""))),
+            "keywordName": keyword_name,
             "targetElement": clean_text(str(keyword.get("targetElement", ""))),
             "action": clean_text(str(keyword.get("action", ""))),
             "arguments": arguments,
