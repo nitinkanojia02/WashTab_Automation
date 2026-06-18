@@ -589,6 +589,8 @@ def build_resource_generation_prompt(
         "- Page-specific action keywords should prefer shared/common helpers such as Input Text When Ready, Click When Ready, and Wait For Element To Be Ready whenever those helpers fit the action. Avoid raw SeleniumLibrary calls in page keywords when an appropriate common helper exists.\n"
         "- The page resource must import ../../resources/common_keywords.resource in *** Settings ***. Treat this import as mandatory for generated page resources in this framework.\n"
         "- If a page keyword uses a common helper or depends on a common variable, the page resource must reuse that helper or variable through the common resource import instead of inlining raw SeleniumLibrary behavior.\n"
+        "- Insert exactly one blank line between major sections such as *** Settings ***, *** Variables ***, and *** Keywords ***. Do not leave extra blank lines inside the Settings section. Do leave one blank line between the Variables section and the Keywords section.\n"
+        "- Do not leave blank lines between consecutive variable definitions.\n"
         "- Prefer atomic page-object keywords over workflow/business-flow orchestration. Good examples are Enter Username, Enter Password, Click Sign In Button, Verify Login Error Message, Verify Password Field Is Masked, Verify Login Page Loaded.\n"
         "- Avoid business-flow keywords that merely orchestrate a whole login scenario when they are not truly page-specific. Avoid keywords such as Login With Valid Credentials, Login With Credentials, Submit Login, Perform Successful Login, or other scenario wrappers unless there is a compelling page-specific reason.\n"
         "- Do not duplicate keywords that already exist in common/shared resources.\n\n"
@@ -699,6 +701,7 @@ def build_resource_review_prompt(
         "- If a variable name implies spaces, blanks, long text, invalid credentials, or another property, ensure the value really matches that meaning; otherwise repair or remove it.\n"
         "- Ensure the page resource imports ../../resources/common_keywords.resource in *** Settings ***. Treat this import as mandatory for generated page resources in this framework.\n"
         "- Use compact formatting with minimal blank lines and no blank lines between consecutive variable definitions.\n"
+        "- Keep exactly one blank line between major sections and ensure there is one blank line between *** Variables *** and *** Keywords ***. Do not leave extra blank lines inside *** Settings ***.\n"
         "- Use modern Robot Framework syntax only. Do not use deprecated ': FOR' syntax or backslash-prefixed loop bodies.\n"
         "- Prefer page-specific validation keywords for incorrect credentials, validation messages, blocked login, and password masking when approved manual tests imply them.\n"
         "- Do not allow the page resource to stop at only generic validations such as Verify Login Failed or Verify Page Loaded if approved manual tests imply richer assertions. Add more specific page validation keywords for authentication error messages, required-field validation, successful login redirect, duplicate submission prevention, or other grounded outcomes whenever feasible.\n"
@@ -907,10 +910,11 @@ def strip_markdown_fences(content: str) -> str:
 def normalize_robot_content_spacing(content: str) -> str:
     lines = content.splitlines()
 
-    cleaned = []
+    cleaned: list[str] = []
     blank_count = 0
     for line in lines:
-        if line.strip() == "":
+        stripped = line.strip()
+        if stripped == "":
             blank_count += 1
             if blank_count <= 1:
                 cleaned.append("")
@@ -918,15 +922,50 @@ def normalize_robot_content_spacing(content: str) -> str:
             blank_count = 0
             cleaned.append(line.rstrip())
 
-    section_indices = [i for i, line in enumerate(cleaned) if line.strip().startswith("*** ")]
-    result = []
-    for idx, line in enumerate(cleaned):
-        if idx in section_indices and result:
-            if result[-1] != "":
-                result.append("")
-        result.append(line)
+    result: list[str] = []
+    in_settings = False
+    in_test_cases = False
+    previous_was_test_name = False
 
-    return "\n".join(result).strip() + "\n"
+    for line in cleaned:
+        stripped = line.strip()
+        lower = stripped.lower()
+
+        if stripped.startswith("***"):
+            if result and result[-1] != "":
+                result.append("")
+            result.append(stripped)
+            in_settings = lower == "*** settings ***"
+            in_test_cases = lower == "*** test cases ***"
+            previous_was_test_name = False
+            continue
+
+        if in_settings and stripped == "":
+            continue
+
+        if in_test_cases:
+            is_test_name = bool(stripped) and not line.startswith((" ", "\t"))
+            if is_test_name:
+                if result and result[-1] != "":
+                    result.append("")
+                result.append(stripped)
+                previous_was_test_name = True
+                continue
+            if stripped == "" and previous_was_test_name:
+                continue
+            previous_was_test_name = False
+
+        if stripped == "":
+            if result and result[-1] == "":
+                continue
+            result.append("")
+            continue
+
+        result.append(line.rstrip())
+
+    normalized = "\n".join(result).strip() + "\n"
+    normalized = re.sub(r"(?m)^\*\*\* Variables \*\*\*\n(\$\{.*?\}\s{2,}.*\n)(\*\*\* Keywords \*\*\*)", r"*** Variables ***\n\1\n\2", normalized)
+    return normalized
 
 def normalize_robot_blank_and_space_arguments(content: str) -> str:
     lines = content.splitlines()
@@ -1103,7 +1142,7 @@ def save_workflow(
     valid_password: str = Form(""),
     existing_workflow_slug: str = Form(""),
 ):
-    payload = build_workflow_payload(
+    payload = clean_workflow_for_prompting(build_workflow_payload(
         workflow_name,
         module,
         feature,
@@ -1118,7 +1157,7 @@ def save_workflow(
         scenario_intent_text,
         valid_username,
         valid_password,
-    )
+    ))
 
     target_slug = existing_workflow_slug.strip() or slugify(workflow_name)
     target = WORKFLOW_DIR / f"{target_slug}.json"

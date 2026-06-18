@@ -148,6 +148,9 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Treat resource_context as including both page-specific resources and shared/common resources. Use common/shared keywords for generic browser lifecycle, navigation, and waiting behaviors, and avoid duplicating them in suite logic.\n"
         "- Include *** Settings *** and *** Test Cases *** sections.\n"
         "- Do NOT include a *** Variables *** section in the generated .robot file.\n"
+        "- Use compact formatting: no blank lines inside the Settings section, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
+        "- Every generated test case name must start with the prefix AUT.\n"
+        "- Every generated test case must include a [Tags] line immediately after the test case name. Include at least AUT, the workflow/module tag, and a scenario tag such as positive, negative, edge, ui, validation, security, or accessibility when appropriate.\n"
         "- Do NOT include a *** Keywords *** section in the generated .robot file unless a test-specific helper is absolutely unavoidable; navigation/page-open/page-ready/data keywords must never be defined in the suite.\n"
         "- Do NOT define keywords such as Open Browser To Login Page, Open Browser To Page, Open Page, Wait Until Login Page Loads, or any equivalent wrapper if the resource layer already provides page-open/navigation capability.\n"
         "- Prefer shared/common resource keywords such as Open Browser Session, Close Browser Session, Open Browser To Url, Open Login Page, Go To Url, Wait For Element To Be Ready, Click When Ready, and Input Text When Ready whenever they fit the intent. Raw SeleniumLibrary keywords in the suite should be a last resort, not the default.\n"
@@ -228,6 +231,9 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Ensure the output remains a thin suite that relies on the provided page resource files and the shared common resource layer.\n\n"
         "Mandatory repair rules:\n"
         "- Return only Robot Framework code, with no markdown fences and no explanation.\n"
+        "- Preserve compact formatting: no blank lines inside the Settings section, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
+        "- Ensure every test case name starts with AUT.\n"
+        "- Ensure every test case includes a [Tags] line immediately after the test case name. Include at least AUT, the workflow/module tag, and a scenario tag that fits the test intent.\n"
         "- Keep only the suite file; do not generate resource content.\n"
         "- Use only the provided resource files from manual_test.resourceFiles plus ../resources/common_keywords.resource as the shared common layer.\n"
         "- Ensure ../resources/common_keywords.resource is imported in the suite Settings section.\n"
@@ -238,6 +244,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Prefer common/shared resource keywords for generic browser lifecycle, page opening, navigation, waiting, clicking, and text entry when suitable. Raw SeleniumLibrary keywords in the suite should be replaced by shared/common resource keywords whenever a suitable helper exists.\n"
         "- If resource keywords suggest page lifecycle operations, use Suite/Test Setup and Teardown intelligently.\n"
         "- Every test must contain explicit validation aligned to expectedResult.\n"
+        "- Prefer page-resource validation keywords over generic visibility checks when the expected result mentions authentication errors, validation messages, redirect behavior, blocked login, duplicate submission prevention, or success outcomes.\n"
         "- If a test is about password masking, ensure there is an explicit masking verification.\n"
         "- If a test is about validation messages, blocked login, rejection behavior, or failed authentication, ensure there is an explicit assertion for that behavior and not only a page-loaded check. For negative authentication scenarios, include at least one stronger observable assertion such as an error message check, validation message check, no-navigation check, or protected-area-not-visible check.\n"
         "- If a test is about successful login or navigation, ensure there is an explicit post-condition verification such as dashboard/home visibility, URL change, success state, or a dedicated page validation keyword.\n"
@@ -409,6 +416,15 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
 
     if not re.search(r"(?im)^\s*(?:Suite Teardown|Test Teardown)\s+.+$", content):
         warnings.append("Generated suite does not include Suite Teardown or Test Teardown; prefer reusable teardown keywords when resource context supports them")
+
+    if re.search(r"(?is)\*\*\*\s*settings\s*\*\*\*.*?\n\s*\n\s*(?:Test Setup|Suite Setup|Test Teardown|Suite Teardown|Resource)", content):
+        warnings.append("Generated suite contains unnecessary blank lines inside the Settings section; keep Settings compact")
+
+    if not re.search(r"(?im)^AUT\b", content):
+        warnings.append("Generated suite test case names should start with AUT")
+
+    if re.search(r"(?im)^(AUT.*)\n(?!\s+\[Tags\])", content):
+        warnings.append("Each AUT test case should include a [Tags] line immediately after the test case name")
 
     if not re.search(r"\$\{[A-Z0-9_]+\}", content):
         warnings.append("Generated suite does not appear to use reusable resource variables; prefer resource-file test data over hardcoded inline data")
