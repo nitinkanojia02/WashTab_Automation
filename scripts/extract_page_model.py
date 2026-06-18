@@ -570,7 +570,10 @@ def process_page(playwright, config: dict, page_entry: Dict[str, str]):
     url = page_entry["url"]
 
     if page_name in set(gc.get("excluded_pom_modules", [])):
-        logger.info("Excluded POM module: %s", page_name_raw)
+        logger.warning(
+            "Page '%s' is listed in generation_control.excluded_pom_modules; extraction will be skipped.",
+            page_name_raw,
+        )
         return
 
     root_pom_dir = BASE_DIR / config["pom_output_dir"]
