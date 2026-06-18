@@ -823,13 +823,14 @@ def get_keyword_review_data(workflow: dict):
                 elif lowered_name.startswith("verify "):
                     action = "verify"
 
+                implementation_lines = [line.rstrip() for line in keyword.get("body", []) if clean_text(str(line))]
                 keywords.append({
                     "keywordId": f"KW_{idx:03d}",
                     "keywordName": keyword_name,
                     "targetElement": target_element,
                     "action": action,
                     "arguments": [arg.replace("${", "").replace("}", "") for arg in keyword.get("args", [])],
-                    "implementation": [],
+                    "implementation": implementation_lines,
                     "approved": True,
                 })
         except Exception:
