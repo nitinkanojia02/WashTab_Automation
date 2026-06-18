@@ -261,12 +261,14 @@ def should_skip_item(item: dict) -> bool:
     el_id = clean_text(attrs.get("id", ""))
     formcontrolname = clean_text(attrs.get("formcontrolname", ""))
     data_testid = clean_text(attrs.get("data-testid", ""))
+    role_attr = clean_text(attrs.get("role", ""))
     visibility = item.get("visibility", {}) or {}
 
     allowed = {
         "input", "textarea", "select", "button", "a",
         "ion-button", "ion-input", "ion-select",
-        "ion-fab-button", "app-main-button"
+        "ion-fab-button", "app-main-button",
+        "div", "span", "label", "p", "h1", "h2", "h3", "h4", "h5", "h6"
     }
     if tag not in allowed:
         return True
@@ -274,20 +276,31 @@ def should_skip_item(item: dict) -> bool:
     if not visibility.get("is_visible", False):
         return True
 
-    if visibility.get("is_covered", False):
-        return True
-
     meaningful_content = any([
         text, label, placeholder, aria, name, el_id, formcontrolname, data_testid
     ])
 
-    if not meaningful_content:
+    interactive_candidate = tag in {
+        "input", "textarea", "select", "button", "a",
+        "ion-button", "ion-input", "ion-select", "ion-fab-button", "app-main-button"
+    } or role_attr in {"button", "link", "textbox", "combobox"} or attrs.get("tappable") is not None or clean_text(attrs.get("onclick", ""))
+
+    static_candidate = tag in {"label", "p", "h1", "h2", "h3", "h4", "h5", "h6"}
+    text_container_candidate = tag in {"div", "span"} and len(text) >= 2
+
+    if not (interactive_candidate or static_candidate or text_container_candidate):
+        return True
+
+    if not meaningful_content and not static_candidate:
         return True
 
     if tag == "a" and not text and not aria:
         return True
 
-    if tag in {"ion-button", "ion-fab-button", "app-main-button"} and not text and not aria and not name and not el_id:
+    if interactive_candidate and tag in {"ion-button", "ion-fab-button", "app-main-button", "div", "span"} and not text and not aria and not name and not el_id and not label:
+        return True
+
+    if visibility.get("is_covered", False) and not (tag == "app-main-button" or attrs.get("tappable") is not None):
         return True
 
     return False
@@ -310,9 +323,19 @@ def collect_elements(page) -> List[dict]:
         if (!s) return false;
         if (s.visibility === 'hidden' || s.display === 'none') return false;
         if (Number.parseFloat(s.opacity || '1') === 0) return false;
-        if (s.pointerEvents === 'none') return false;
         if (el.hasAttribute('hidden') || el.getAttribute('aria-hidden') === 'true') return false;
         return true;
+      };
+
+      const hasVisibleDescendant = (el) => {
+        if (!el || !el.querySelectorAll) return false;
+        const descendants = el.querySelectorAll('*');
+        for (const child of descendants) {
+          if (!hasVisibleStyle(child)) continue;
+          const r = child.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) return true;
+        }
+        return false;
       };
 
       const isActuallyVisible = (el) => {
@@ -323,12 +346,15 @@ def collect_elements(page) -> List[dict]:
           current = current.parentElement;
         }
         const r = el.getBoundingClientRect();
-        if (r.width <= 0 || r.height <= 0) return false;
+        if (r.width <= 0 || r.height <= 0) {
+          return hasVisibleDescendant(el);
+        }
         return true;
       };
 
       const isCoveredAtCenter = (el) => {
         const r = el.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) return false;
         const cx = r.left + (r.width / 2);
         const cy = r.top + (r.height / 2);
         if (cx < 0 || cy < 0 || cx > window.innerWidth || cy > window.innerHeight) return false;
@@ -340,7 +366,7 @@ def collect_elements(page) -> List[dict]:
         const direct = (el.innerText || el.textContent || '').trim();
         if (direct) return direct;
 
-        const child = el.querySelector('button, span, div, label');
+        const child = el.querySelector('button, span, div, label, p, h1, h2, h3, h4, h5, h6');
         if (child) {
           const childText = (child.innerText || child.textContent || '').trim();
           if (childText) return childText;
@@ -367,6 +393,16 @@ def collect_elements(page) -> List[dict]:
         'select',
         'button',
         'a',
+        'label',
+        'p',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'div',
+        'span',
         'ion-button',
         'ion-input',
         'ion-select',
@@ -377,6 +413,7 @@ def collect_elements(page) -> List[dict]:
       const attrSelectors = [
         '[tappable]',
         '[role="button"]',
+        '[role="link"]',
         '[onclick]',
         '[tabindex]',
         '[id^="btn_"]'
@@ -408,6 +445,7 @@ def collect_elements(page) -> List[dict]:
             is_visible: isActuallyVisible(el),
             is_in_viewport: rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth,
             is_covered: isCoveredAtCenter(el),
+            has_visible_descendant: hasVisibleDescendant(el),
             width: rect.width,
             height: rect.height,
             x: rect.x,
