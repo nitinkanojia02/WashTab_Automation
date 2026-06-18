@@ -434,8 +434,8 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
     if re.search(r"(?is)\*\*\*\s*settings\s*\*\*\*.*?\n\s*\n\s*(?:Test Setup|Suite Setup|Test Teardown|Suite Teardown|Resource)", content):
         warnings.append("Generated suite contains unnecessary blank lines inside the Settings section; keep Settings compact")
 
-    if not re.search(r"(?im)^AUT\b", content):
-        warnings.append("Generated suite test case names should start with AUT")
+    if not re.search(r"(?im)^AUT-[A-Z0-9]+-[A-Z0-9]+\d{2}:\s+.+$", content):
+        warnings.append("Generated suite test case names should follow the format AUT-<APPCODE>-<FEATURECODE><NN>: <Title>")
 
     if re.search(r"(?im)^(AUT.*)\n(?!\s+\[Tags\])", content):
         warnings.append("Each generated test case should include a [Tags] line immediately after the test case name")

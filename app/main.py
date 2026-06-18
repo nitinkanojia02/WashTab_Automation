@@ -687,7 +687,7 @@ def build_resource_generation_prompt(
         "- Do not duplicate keywords that already exist in common/shared resources.\n\n"
         "Resource quality requirements:\n"
         "- The Variables section should centralize reusable page-level test data so generated .robot test suites do not hardcode those values.\n"
-        "- Create reusable page-resource variables for approved edge-case data such as invalid values, whitespace-only values, leading/trailing-space values, special-character values, case-variant values, and long-input values when those scenarios appear in approved manual tests.\n"
+        "- Create reusable page-resource variables only for semantically distinct edge-case or business data that must remain stable and reusable across multiple tests. For blank values, whitespace-only values, padded values, and other simple derived forms, prefer Robot built-ins and inline composition instead of creating dedicated page variables unless a fixed reusable boundary value is genuinely required.\n"
         "- Keep the Variables section semantically clean: variable names must accurately match the actual values. For example, a variable named WITH_SPACES must really contain spaces; otherwise do not create it.\n"
         "- Remove unnecessary, duplicate, or weak variables if they are not clearly supported by approved manual tests.\n"
         "- Do not leave reusable edge-case or credential-like values inline in test suites; define them as page-resource variables so they are easier to maintain later.\n"
