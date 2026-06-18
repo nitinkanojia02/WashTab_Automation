@@ -105,7 +105,7 @@ def infer_role(item: dict) -> str:
     attrs = item.get("attributes", {}) or {}
     input_type = (attrs.get("type") or "").lower()
 
-    if tag in {"button", "ion-button"}:
+    if tag in {"button", "ion-button", "ion-fab-button", "app-main-button"}:
         return "button"
     if tag == "a":
         return "link"
@@ -132,6 +132,7 @@ def infer_label(item: dict) -> str:
         attrs.get("name", ""),
         attrs.get("id", ""),
         attrs.get("data-testid", ""),
+        attrs.get("icsicon", ""),
         item.get("text", "")
     ]
     for c in candidates:
@@ -190,14 +191,24 @@ def build_best_locator(item: dict) -> str:
         if aria:
             return f"xpath=//input[@aria-label={xpath_literal(aria)}]"
         return "xpath=//ion-input"
-    if tag == "ion-button":
+    if tag in {"ion-button", "ion-fab-button"}:
         if text:
-            return f"xpath=//ion-button[normalize-space(.)={xpath_literal(text)}]"
+            return f"xpath=//{tag}[normalize-space(.)={xpath_literal(text)}]"
         if aria:
-            return f"xpath=//ion-button[@aria-label={xpath_literal(aria)}]"
+            return f"xpath=//{tag}[@aria-label={xpath_literal(aria)}]"
         if name:
-            return f"xpath=//ion-button[@name={xpath_literal(name)}]"
-        return "xpath=//ion-button"
+            return f"xpath=//{tag}[@name={xpath_literal(name)}]"
+        return f"xpath=//{tag}"
+    if tag == "app-main-button":
+        if el_id:
+            return f"id={el_id}"
+        if name:
+            return f"xpath=//app-main-button[@name={xpath_literal(name)}]"
+        if aria:
+            return f"xpath=//app-main-button[@aria-label={xpath_literal(aria)}]"
+        if text:
+            return f"xpath=//app-main-button[normalize-space(.)={xpath_literal(text)}]"
+        return "xpath=//app-main-button"
     if name and tag in {"input", "textarea", "select"}:
         return f"xpath=//{tag}[@name={xpath_literal(name)}]"
     if placeholder and tag in {"input", "textarea"}:
@@ -222,7 +233,8 @@ def should_skip_item(item: dict) -> bool:
 
     allowed = {
         "input", "textarea", "select", "button", "a",
-        "ion-button", "ion-input", "ion-select"
+        "ion-button", "ion-input", "ion-select",
+        "ion-fab-button", "app-main-button"
     }
     if tag not in allowed:
         return True
@@ -237,7 +249,7 @@ def should_skip_item(item: dict) -> bool:
     if tag == "a" and not text and not aria:
         return True
 
-    if tag == "ion-button" and not text and not aria and not name and not el_id:
+    if tag in {"ion-button", "ion-fab-button", "app-main-button"} and not text and not aria and not name and not el_id:
         return True
 
     return False
@@ -277,8 +289,17 @@ def collect_elements(page) -> List[dict]:
           if (childText) return childText;
         }
 
+        const icon = el.querySelector('ion-icon[aria-label]');
+        if (icon) {
+          const iconAria = (icon.getAttribute('aria-label') || '').trim();
+          if (iconAria) return iconAria;
+        }
+
         const aria = (el.getAttribute('aria-label') || '').trim();
         if (aria) return aria;
+
+        const id = (el.getAttribute('id') || '').trim();
+        if (id) return id;
 
         return '';
       };
@@ -291,10 +312,22 @@ def collect_elements(page) -> List[dict]:
         'a',
         'ion-button',
         'ion-input',
-        'ion-select'
+        'ion-select',
+        'ion-fab-button',
+        'app-main-button'
       ];
 
-      const nodes = Array.from(document.querySelectorAll(tags.join(',')));
+      const attrSelectors = [
+        '[tappable]',
+        '[role="button"]',
+        '[onclick]',
+        '[id^="btn_"]'
+      ];
+
+      const nodes = Array.from(new Set([
+        ...document.querySelectorAll(tags.join(',')),
+        ...document.querySelectorAll(attrSelectors.join(','))
+      ]));
 
       return nodes
         .filter(isVisible)
@@ -525,7 +558,11 @@ def wait_for_meaningful_page_content(page, wait_seconds: int):
         "textarea",
         "select",
         "ion-input",
-        "ion-button"
+        "ion-button",
+        "ion-fab-button",
+        "app-main-button",
+        "[tappable]",
+        "[id^='btn_']"
     ]
 
     found_selector = None
@@ -548,7 +585,7 @@ def wait_for_meaningful_page_content(page, wait_seconds: int):
         page.wait_for_function(
             """
             () => {
-              const meaningful = Array.from(document.querySelectorAll('input, textarea, select, button, a, ion-input, ion-button, ion-select'))
+              const meaningful = Array.from(document.querySelectorAll('input, textarea, select, button, a, ion-input, ion-button, ion-select, ion-fab-button, app-main-button, [tappable], [role="button"], [id^="btn_"]'))
                 .filter(el => {
                   const s = window.getComputedStyle(el);
                   const r = el.getBoundingClientRect();
