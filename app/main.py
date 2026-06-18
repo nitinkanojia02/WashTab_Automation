@@ -67,15 +67,11 @@ CONFIG = read_json(CONFIG_PATH) if CONFIG_PATH.exists() else {}
 
 
 def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manual_data: dict) -> Path:
-    app_code = derive_app_code(workflow, workflow_name)
-    feature_code = derive_feature_code(workflow, workflow_name)
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Manual Tests"
 
     headers = [
-        "Automation Test Name",
-        "Tag",
         "Manual Test ID",
         "Title",
         "Type",
@@ -89,19 +85,12 @@ def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manu
     cases = manual_data.get("testCases") or manual_data.get("manualTests") or []
     for index, case in enumerate(cases, start=1):
         case_id = str(case.get("id", "")).strip()
-        match = re.search(r"(\d+)$", case_id)
-        number = int(match.group(1)) if match else index
-        nn = f"{number:02d}"
-        aut_name = f"AUT-{feature_code}{nn}: {clean_text(str(case.get('title', f'Test Case {index}')))}"
-        tag = f"{app_code}-{feature_code}{nn}"
         preconditions = "\n".join(str(item).strip() for item in case.get("preconditions", []) if str(item).strip())
         steps = "\n".join(str(item).strip() for item in case.get("steps", []) if str(item).strip())
         expected = clean_text(str(case.get("expectedResult", "")))
         sheet.append([
-            aut_name,
-            tag,
             case_id,
-            clean_text(str(case.get("title", ""))),
+            clean_text(str(case.get("title", f"Test Case {index}"))),
             clean_text(str(case.get("type", ""))),
             clean_text(str(case.get("priority", ""))),
             preconditions,
@@ -687,7 +676,7 @@ def build_resource_generation_prompt(
         "- Page-specific action keywords should prefer shared/common helpers such as Input Text When Ready, Click When Ready, and Wait For Element To Be Ready whenever those helpers fit the action. Avoid raw SeleniumLibrary calls in page keywords when an appropriate common helper exists.\n"
         "- The page resource must import ../../resources/common_keywords.resource in *** Settings ***. Treat this import as mandatory for generated page resources in this framework.\n"
         "- If a page keyword uses a common helper or depends on a common variable, the page resource must reuse that helper or variable through the common resource import instead of inlining raw SeleniumLibrary behavior.\n"
-        "- Insert exactly one blank line between major sections such as *** Settings ***, *** Variables ***, and *** Keywords ***. Do not leave extra blank lines inside the Settings section. Do leave one blank line between the Variables section and the Keywords section.\n"
+        "- Insert exactly one blank line between major sections such as *** Settings ***, *** Variables ***, and *** Keywords ***. Do not leave extra blank lines inside the Settings section. There must be no blank line immediately before *** Keywords *** when it directly follows *** Variables ***; only a single section-separator blank line is allowed.\n"
         "- Do not leave blank lines between consecutive variable definitions.\n"
         "- Prefer atomic page-object keywords over workflow/business-flow orchestration. Good examples are Enter Username, Enter Password, Click Sign In Button, Verify Login Error Message, Verify Password Field Is Masked, Verify Login Page Loaded.\n"
         "- Avoid business-flow keywords that merely orchestrate a whole login scenario when they are not truly page-specific. Avoid keywords such as Login With Valid Credentials, Login With Credentials, Submit Login, Perform Successful Login, or other scenario wrappers unless there is a compelling page-specific reason.\n"
@@ -722,9 +711,13 @@ def normalize_resource_content(content: str) -> str:
         lower = stripped.lower()
 
         if stripped.startswith("***"):
+            while cleaned and cleaned[-1] == "":
+                cleaned.pop()
             in_variables_section = lower == "*** variables ***"
             previous_was_variable = False
             blank_count = 0
+            if cleaned:
+                cleaned.append("")
             cleaned.append(stripped)
             continue
 
@@ -799,7 +792,7 @@ def build_resource_review_prompt(
         "- If a variable name implies spaces, blanks, long text, invalid credentials, or another property, ensure the value really matches that meaning; otherwise repair or remove it.\n"
         "- Ensure the page resource imports ../../resources/common_keywords.resource in *** Settings ***. Treat this import as mandatory for generated page resources in this framework.\n"
         "- Use compact formatting with minimal blank lines and no blank lines between consecutive variable definitions.\n"
-        "- Keep exactly one blank line between major sections and ensure there is one blank line between *** Variables *** and *** Keywords ***. Do not leave extra blank lines inside *** Settings ***.\n"
+        "- Keep exactly one blank line between major sections. Do not leave extra blank lines inside *** Settings ***. There must be no extra blank line immediately before *** Keywords *** beyond the single section separator.\n"
         "- Use modern Robot Framework syntax only. Do not use deprecated ': FOR' syntax or backslash-prefixed loop bodies.\n"
         "- Prefer page-specific validation keywords for incorrect credentials, validation messages, blocked login, and password masking when approved manual tests imply them.\n"
         "- Do not allow the page resource to stop at only generic validations such as Verify Login Failed or Verify Page Loaded if approved manual tests imply richer assertions. Add more specific page validation keywords for authentication error messages, required-field validation, successful login redirect, duplicate submission prevention, or other grounded outcomes whenever feasible.\n"
@@ -1023,19 +1016,21 @@ def normalize_robot_content_spacing(content: str) -> str:
     result: list[str] = []
     in_settings = False
     in_test_cases = False
-    previous_was_test_name = False
+    first_test_case_seen = False
 
     for line in cleaned:
         stripped = line.strip()
         lower = stripped.lower()
 
         if stripped.startswith("***"):
-            if result and result[-1] != "":
+            while result and result[-1] == "":
+                result.pop()
+            if result:
                 result.append("")
             result.append(stripped)
             in_settings = lower == "*** settings ***"
             in_test_cases = lower == "*** test cases ***"
-            previous_was_test_name = False
+            first_test_case_seen = False if in_test_cases else first_test_case_seen
             continue
 
         if in_settings and stripped == "":
@@ -1044,14 +1039,12 @@ def normalize_robot_content_spacing(content: str) -> str:
         if in_test_cases:
             is_test_name = bool(stripped) and not line.startswith((" ", "\t"))
             if is_test_name:
-                if result and result[-1] != "":
-                    result.append("")
+                while result and result[-1] == "":
+                    result.pop()
+                result.append("")
                 result.append(stripped)
-                previous_was_test_name = True
+                first_test_case_seen = True
                 continue
-            if stripped == "" and previous_was_test_name:
-                continue
-            previous_was_test_name = False
 
         if stripped == "":
             if result and result[-1] == "":
@@ -1062,6 +1055,8 @@ def normalize_robot_content_spacing(content: str) -> str:
         result.append(line.rstrip())
 
     normalized = "\n".join(result).strip() + "\n"
+    normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+    normalized = re.sub(r"(?im)(\*\*\* test cases \*\*\*\n)(\n+)", r"\1\n", normalized)
     normalized = re.sub(r"(?m)^\*\*\* Variables \*\*\*\n(\$\{.*?\}\s{2,}.*\n)(\*\*\* Keywords \*\*\*)", r"*** Variables ***\n\1\n\2", normalized)
     return normalized
 
@@ -1155,6 +1150,7 @@ def apply_robot_test_naming_and_tags(content: str, workflow: dict | None, workfl
             testcase_id, primary_tag = build_codes(stripped, current_index)
             title = stripped
             title = re.sub(r"^[A-Z]+_TC_\d+\s*", "", title)
+            title = re.sub(r"^AUT-[A-Z0-9]+-[A-Z0-9]+\s*:\s*", "", title)
             title = re.sub(r"^AUT-[A-Z0-9]+\s*:\s*", "", title)
             title = re.sub(r"^[A-Z0-9]+-[A-Z0-9]+\s*:\s*", "", title)
             title = clean_text(title)
@@ -1166,7 +1162,7 @@ def apply_robot_test_naming_and_tags(content: str, workflow: dict | None, workfl
                 existing_tags = [t for t in tag_tokens[1:] if t.strip()]
 
             scenario_type = detect_scenario_type(title, existing_tags)
-            result.append(f"{testcase_id}: {title}")
+            result.append(f"AUT-{testcase_id}: {title}")
             result.append(f"    [Tags]    {primary_tag}    {scenario_type}")
 
             if existing_tags:

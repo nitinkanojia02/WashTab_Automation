@@ -152,12 +152,12 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Treat resource_context as including both page-specific resources and shared/common resources. Use common/shared keywords for generic browser lifecycle, navigation, and waiting behaviors, and avoid duplicating them in suite logic.\n"
         "- Include *** Settings *** and *** Test Cases *** sections.\n"
         "- Do NOT include a *** Variables *** section in the generated .robot file.\n"
-        "- Use compact formatting: no blank lines inside the Settings section, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
-        "- Every generated test case name must start with AUT- and follow the pattern AUT-<FEATURECODE><NN>: <Title>. Example: AUT-LOGIN01: Verify login page loads successfully.\n"
+        "- Use compact formatting: no blank lines inside the Settings section, exactly one blank line after *** Test Cases *** before the first test case, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
+        "- Every generated test case name must start with AUT- and follow the pattern AUT-<APPCODE>-<FEATURECODE><NN>: <Title>. Example: AUT-WT-LOGIN01: Verify login page loads successfully.\n"
         "- <FEATURECODE> should be derived from the feature name in the input (uppercase alphanumeric, no spaces), and <NN> should be a two-digit sequence aligned to the test order or test case id when possible.\n"
-        "- Every generated test case must include a [Tags] line immediately after the test case name. The primary tag must follow the pattern <APPCODE>-<FEATURECODE><NN>. Example: [Tags]    WT-LOGIN01.\n"
+        "- Every generated test case must include a [Tags] line immediately after the test case name. Keep tags minimal: only the testcase id tag and the scenario type tag. Example: [Tags]    WT-LOGIN01    positive.\n"
         "- <APPCODE> should be the uppercase abbreviated application code derived from the module if available, otherwise from the workflow/module context. Use a short stable abbreviation.\n"
-        "- Additional tags may include AUT, positive, negative, edge, ui, validation, security, accessibility, or the feature name when appropriate, but the primary <APPCODE>-<FEATURECODE><NN> tag is mandatory.\n"
+        "- Do not add extra tags such as AUT, ui, validation, security, accessibility, or feature-name tags.\n"
         "- Do NOT include a *** Keywords *** section in the generated .robot file unless a test-specific helper is absolutely unavoidable; navigation/page-open/page-ready/data keywords must never be defined in the suite.\n"
         "- Do NOT define keywords such as Open Browser To Login Page, Open Browser To Page, Open Page, Wait Until Login Page Loads, or any equivalent wrapper if the resource layer already provides page-open/navigation capability.\n"
         "- Prefer shared/common resource keywords such as Open Browser Session, Close Browser Session, Open Browser To Url, Open Login Page, Go To Url, Wait For Element To Be Ready, Click When Ready, and Input Text When Ready whenever they fit the intent. Raw SeleniumLibrary keywords in the suite should be a last resort, not the default.\n"
@@ -238,11 +238,11 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Ensure the output remains a thin suite that relies on the provided page resource files and the shared common resource layer.\n\n"
         "Mandatory repair rules:\n"
         "- Return only Robot Framework code, with no markdown fences and no explanation.\n"
-        "- Preserve compact formatting: no blank lines inside the Settings section, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
-        "- Ensure every test case name starts with AUT- and follows the pattern AUT-<FEATURECODE><NN>: <Title>. Example: AUT-LOGIN01: Verify login page loads successfully.\n"
-        "- Ensure every test case includes a [Tags] line immediately after the test case name. The primary tag must follow the pattern <APPCODE>-<FEATURECODE><NN>. Example: [Tags]    WT-LOGIN01.\n"
+        "- Preserve compact formatting: no blank lines inside the Settings section, exactly one blank line after *** Test Cases *** before the first test case, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
+        "- Ensure every test case name starts with AUT- and follows the pattern AUT-<APPCODE>-<FEATURECODE><NN>: <Title>. Example: AUT-WT-LOGIN01: Verify login page loads successfully.\n"
+        "- Ensure every test case includes a [Tags] line immediately after the test case name. Keep tags minimal: only the testcase id tag and the scenario type tag. Example: [Tags]    WT-LOGIN01    positive.\n"
         "- Preserve or repair the numbering so it is stable and aligned to the approved manual test order or id when possible.\n"
-        "- Additional tags may include AUT, positive, negative, edge, ui, validation, security, accessibility, or the feature name when appropriate, but the primary <APPCODE>-<FEATURECODE><NN> tag is mandatory.\n"
+        "- Do not add extra tags such as AUT, ui, validation, security, accessibility, or feature-name tags.\n"
         "- Keep only the suite file; do not generate resource content.\n"
         "- Use only the provided resource files from manual_test.resourceFiles plus ../resources/common_keywords.resource as the shared common layer.\n"
         "- Ensure ../resources/common_keywords.resource is imported in the suite Settings section.\n"
@@ -433,7 +433,7 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
         warnings.append("Generated suite test case names should start with AUT")
 
     if re.search(r"(?im)^(AUT.*)\n(?!\s+\[Tags\])", content):
-        warnings.append("Each AUT test case should include a [Tags] line immediately after the test case name")
+        warnings.append("Each generated test case should include a [Tags] line immediately after the test case name")
 
     if not re.search(r"\$\{[A-Z0-9_]+\}", content):
         warnings.append("Generated suite does not appear to use reusable resource variables; prefer resource-file test data over hardcoded inline data")
