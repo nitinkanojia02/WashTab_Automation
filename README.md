@@ -46,7 +46,7 @@ AI orchestration now uses a hybrid context model:
 - persisted artifacts remain the source of truth
 - lightweight session history is used only to carry forward prior AI decisions and reviewer feedback within the same workflow during the current run
 
-This means context is shared within a single workflow run such as `login`, but isolated across different workflows. A fresh AI session is created once at the start of a new workflow run and then reused across the actions in that run so stale AI memory does not pollute future executions.
+This means context is shared within a single workflow run such as `login`, but isolated across different workflows. In the intended flow, a fresh AI session is created once at the start of a new workflow run and then reused across the actions in that run so stale AI memory does not pollute future executions.
 
 The staged UI flow is:
 

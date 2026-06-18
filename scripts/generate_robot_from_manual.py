@@ -163,7 +163,7 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Prefer shared/common resource keywords such as Open Browser Session, Close Browser Session, Open Browser To Url, Open Login Page, Go To Url, Wait For Element To Be Ready, Click When Ready, and Input Text When Ready whenever they fit the intent. Raw SeleniumLibrary keywords in the suite should be a last resort, not the default.\n"
         "- If the resource layer provides browser/page setup or teardown keywords, use them as Test Setup, Suite Setup, Test Teardown, or Suite Teardown as appropriate.\n"
         "- Prefer reusable setup/teardown from shared/common resources for opening and closing browser or preparing generic page state.\n"
-        "- If the resource layer appears to provide page-open, page-ready, browser-open, browser-close, or cleanup keywords, use them intelligently in suite/test setup and teardown rather than repeating those actions inside every test.\n"
+        "- If the resource layer appears to provide page-open, page-ready, browser-open, browser-close, or cleanup keywords, use them intelligently in suite/test setup and teardown rather than repeating those actions inside every test. Repeated startup actions such as opening the page, opening the browser, navigating to the feature URL, or waiting for the page to be ready should be promoted into Test Setup or Suite Setup whenever that preserves test independence and intent.\n"
         "- If test data is reused across test cases, reference a variable from the resource file rather than declaring suite variables.\n"
         "- Use resource variables only for semantically meaningful reusable data such as valid credentials, one canonical invalid credential set, role-specific users, locked users, or other clearly distinct business data supported by the resource context.\n"
         "- Do not create or rely on unnecessary wrapper variables for blank, whitespace-only, padded, or trivially derived values when Robot built-ins and inline composition are sufficient.\n"
@@ -189,7 +189,8 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- If a manual test expects field-level behavior such as required validation, character masking, disabled state, visibility, duplicate submission prevention, copy-paste behavior, keyboard submission behavior, or no duplicate request behavior, include a corresponding verification step and do not stop at action steps only.\n"
         "- Preserve specialized manual intent. If the approved manual test is specifically about copy-paste, Enter key submission, repeated clicking, whitespace handling, case sensitivity, or duplicate prevention, the generated automation should reflect that interaction intent instead of collapsing it into a generic login flow.\n"
         "- Prefer business-readable test cases that call reusable resource keywords over low-level keyword chains when the resource context supports that style.\n"
-        "- Use only valid, existing Robot Framework/SeleniumLibrary/BuiltIn keywords or keywords provided by the imported resources. Do not invent unsupported keywords such as Location Should Not Contain. If a negative URL assertion is needed, use a valid existing pattern such as Should Not Contain on ${CURDIR} only when semantically correct, or prefer a valid page/resource verification keyword for no-navigation behavior.\n"
+        "- Use only valid, existing Robot Framework/SeleniumLibrary/BuiltIn keywords or keywords provided by the imported resources. Never invent unsupported keywords. If a negative URL assertion is needed, prefer a valid built-in assertion or a valid page/resource verification keyword for no-navigation behavior.\n"
+        "- Before finalizing the suite, review whether repeated opening/navigation/waiting steps are duplicated at the start of many tests. If so, move those repeated startup actions into Test Setup or Suite Setup unless a specific test intentionally requires a different startup sequence.\n"
         "- Before finalizing the suite, self-review every keyword call and remove or replace any keyword that is not part of Robot built-ins, SeleniumLibrary, or the imported resource context.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
@@ -258,7 +259,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Eliminate unnecessary dependence on noisy derived variables. If the suite uses aliases that merely duplicate ${EMPTY}, ${SPACE}, padded forms of valid credentials, duplicate invalid credential variants, or other simple compositions, rewrite the suite to use built-ins, canonical semantic variables, and inline composition instead.\n"
         "- Reuse one canonical invalid username/password pair across similar negative scenarios unless the approved manual tests clearly require distinct invalid data classes.\n"
         "- Prefer common/shared resource keywords for generic browser lifecycle, page opening, navigation, waiting, clicking, and text entry when suitable. Raw SeleniumLibrary keywords in the suite should be replaced by shared/common resource keywords whenever a suitable helper exists.\n"
-        "- If resource keywords suggest page lifecycle operations, use Suite/Test Setup and Teardown intelligently.\n"
+        "- If resource keywords suggest page lifecycle operations, use Suite/Test Setup and Teardown intelligently. Repeated startup actions such as open-page, navigate, and page-ready waits should normally be lifted into setup instead of being duplicated in every test.\n"
         "- Every test must contain explicit validation aligned to expectedResult.\n"
         "- Prefer page-resource validation keywords over generic visibility checks when the expected result mentions authentication errors, validation messages, redirect behavior, blocked login, duplicate submission prevention, or success outcomes.\n"
         "- If a test is about password masking, ensure there is an explicit masking verification.\n"
@@ -266,8 +267,9 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- If a test is about successful login or navigation, ensure there is an explicit post-condition verification such as dashboard/home visibility, URL change, success state, or a dedicated page validation keyword.\n"
         "- Preserve specialized interaction intent such as copy-paste, Enter key submission, repeated clicking, whitespace handling, or duplicate submission prevention; do not simplify these into a generic login-only sequence.\n"
         "- Prefer business-readable resource keyword calls over low-level one-off steps.\n"
-        "- Replace any unsupported or invented keyword with a valid existing Robot built-in, SeleniumLibrary keyword, or imported resource keyword. Never keep invalid calls such as Location Should Not Contain in the repaired suite.\n"
+        "- Replace any unsupported or invented keyword with a valid existing Robot built-in, SeleniumLibrary keyword, or imported resource keyword.\n"
         "- Self-audit the final suite for keyword existence: every called keyword must come from Robot built-ins, SeleniumLibrary, or the imported resource files.\n"
+        "- Review the final suite for repetitive startup sequences. If multiple tests begin with the same open-page, navigate, or page-ready steps, refactor those repeated actions into Test Setup or Suite Setup unless a specific test intentionally requires a different startup flow.\n"
         "- Do not compensate for duplicated common/page keywords by creating additional duplicates; prefer the shared/common resource keyword when the intent is generic.\n\n"
         "Repair focus areas:\n"
         "- common resource import and reuse\n"
@@ -387,6 +389,26 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
     errors: list[str] = []
     warnings: list[str] = []
 
+    builtin_keywords = {
+        "should be equal", "should not be equal", "should contain", "should not contain",
+        "should be true", "should be false", "should be empty", "should not be empty",
+        "should match", "should not match", "should match regexp", "should not match regexp",
+        "length should be", "log", "sleep", "set test variable", "set suite variable",
+        "set global variable", "run keyword if", "run keywords", "repeat keyword",
+        "wait until keyword succeeds", "create list", "create dictionary", "get length",
+    }
+    selenium_keywords = {
+        "open browser", "close browser", "close all browsers", "go to", "reload page",
+        "get location", "location should be", "title should be", "element should be visible",
+        "element should not be visible", "page should contain", "page should not contain",
+        "page should contain element", "page should not contain element", "wait until element is visible",
+        "wait until page contains", "wait until location is", "click element", "input text",
+        "clear element text", "press keys", "get text", "get value", "element text should be",
+        "textfield value should be", "capture page screenshot", "select checkbox", "unselect checkbox",
+        "select from list by label", "select from list by value", "select radio button",
+        "handle alert", "alert should be present"
+    }
+
     if "*** Settings ***" not in content:
         errors.append("Missing *** Settings *** section")
     if "*** Test Cases ***" not in content:
@@ -441,6 +463,84 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
     if re.search(r"(?im)^\*\*\* Test Cases \*\*\*\n\s*\n", content):
         errors.append("Generated suite contains a blank line after *** Test Cases ***; the first test case must start immediately on the next line")
 
+    resource_keyword_names = set()
+    for resource in allowed_resources:
+        resource_path = BASE_DIR / "pom_pages" / resource
+        if resource_path.exists():
+            try:
+                parsed = parse_resource_file(resource_path)
+                for kw in parsed.get("keywords", []):
+                    name = clean_text(str(kw.get("name", ""))).lower()
+                    if name:
+                        resource_keyword_names.add(name)
+            except Exception:
+                continue
+
+    common_resource_path = BASE_DIR / "resources" / "common_keywords.resource"
+    if common_resource_path.exists():
+        try:
+            parsed_common = parse_resource_file(common_resource_path)
+            for kw in parsed_common.get("keywords", []):
+                name = clean_text(str(kw.get("name", ""))).lower()
+                if name:
+                    resource_keyword_names.add(name)
+        except Exception:
+            pass
+
+    in_test_cases = False
+    current_test_steps: list[str] = []
+    all_test_steps: list[list[str]] = []
+    for raw_line in content.splitlines():
+        stripped = raw_line.strip()
+        lowered = stripped.lower()
+        if lowered == "*** test cases ***":
+            in_test_cases = True
+            current_test_steps = []
+            continue
+        if lowered.startswith("***") and lowered != "*** test cases ***":
+            if current_test_steps:
+                all_test_steps.append(current_test_steps)
+            in_test_cases = False
+            current_test_steps = []
+            continue
+        if not in_test_cases:
+            continue
+        if stripped and not raw_line.startswith((" ", "\t")):
+            if current_test_steps:
+                all_test_steps.append(current_test_steps)
+            current_test_steps = []
+            continue
+        if raw_line.startswith((" ", "\t")) and stripped and not stripped.startswith("["):
+            keyword_name = re.split(r"\s{2,}|\t+", stripped)[0].strip()
+            if keyword_name:
+                current_test_steps.append(keyword_name)
+                normalized_keyword = clean_text(keyword_name).lower()
+                if normalized_keyword not in builtin_keywords and normalized_keyword not in selenium_keywords and normalized_keyword not in resource_keyword_names:
+                    warnings.append(f"Generated suite may use an unknown or unsupported keyword: {keyword_name}")
+    if current_test_steps:
+        all_test_steps.append(current_test_steps)
+
+    common_prefix: list[str] = []
+    if len(all_test_steps) >= 2 and all_test_steps[0]:
+        common_prefix = list(all_test_steps[0])
+        for steps in all_test_steps[1:]:
+            prefix_len = 0
+            for left, right in zip(common_prefix, steps):
+                if clean_text(left).lower() == clean_text(right).lower():
+                    prefix_len += 1
+                else:
+                    break
+            common_prefix = common_prefix[:prefix_len]
+            if not common_prefix:
+                break
+
+    repetitive_start_keywords = {
+        "open login page", "open browser to url", "go to url", "wait for page to be ready",
+        "wait until element is visible", "wait until page contains", "open browser session"
+    }
+    if len(common_prefix) >= 2 and any(clean_text(step).lower() in repetitive_start_keywords for step in common_prefix):
+        warnings.append("Generated suite repeats the same startup steps across tests; prefer moving repeated opening/navigation/wait steps into Test Setup or Suite Setup")
+
     if not re.search(r"(?im)^AUT-[A-Z0-9]+-[A-Z0-9]+\d{2}:\s+.+$", content):
         warnings.append("Generated suite test case names should follow the format AUT-<APPCODE>-<FEATURECODE><NN>: <Title>")
 
@@ -449,9 +549,6 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
 
     if not re.search(r"\$\{[A-Z0-9_]+\}", content):
         warnings.append("Generated suite does not appear to use reusable resource variables; prefer resource-file test data over hardcoded inline data")
-
-    if re.search(r"(?im)^\s{4,}Location Should Not Contain\b", content):
-        errors.append("Generated suite uses unsupported keyword 'Location Should Not Contain'; use only valid Robot/SeleniumLibrary/imported resource keywords")
 
     likely_inline_literals = [
         r"(?im)^\s{4,}(?:Enter|Input|Type)\b.*\s{2,}(?!\$\{)(?!xpath=)(?!css=)(?!id=)(?!name=)(?!//)([^\n]+)$",

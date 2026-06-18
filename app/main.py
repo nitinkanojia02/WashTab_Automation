@@ -109,12 +109,6 @@ def ensure_workflow_run(workflow_name: str) -> dict:
     return session
 
 
-def complete_workflow_run(workflow_name: str):
-    session = load_workflow_session(workflow_name)
-    session["run_active"] = False
-    save_workflow_session(workflow_name, session)
-
-
 def save_workflow_session(workflow_name: str, session: dict):
     session_path = get_session_path(workflow_name)
     session_path.parent.mkdir(parents=True, exist_ok=True)
