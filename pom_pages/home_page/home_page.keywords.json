@@ -1,0 +1,65 @@
+{
+  "pageName": "home_page",
+  "keywords": [
+    {
+      "keywordId": "KW_001",
+      "keywordName": "Use Home",
+      "targetElement": "home",
+      "action": "generic",
+      "arguments": [],
+      "implementation": [
+        "Wait Until Element Is Visible    ${HOME}    10s",
+        "Click Element    ${HOME}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_002",
+      "keywordName": "Use Notifications Outline",
+      "targetElement": "notifications_outline",
+      "action": "generic",
+      "arguments": [],
+      "implementation": [
+        "Wait Until Element Is Visible    ${NOTIFICATIONS_OUTLINE}    10s",
+        "Click Element    ${NOTIFICATIONS_OUTLINE}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_003",
+      "keywordName": "Use Btn Customersignup",
+      "targetElement": "btn_customersignup",
+      "action": "generic",
+      "arguments": [],
+      "implementation": [
+        "Wait Until Element Is Visible    ${BTN_CUSTOMERSIGNUP}    10s",
+        "Click Element    ${BTN_CUSTOMERSIGNUP}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_004",
+      "keywordName": "Use Btn Cleansurvey",
+      "targetElement": "btn_cleansurvey",
+      "action": "generic",
+      "arguments": [],
+      "implementation": [
+        "Wait Until Element Is Visible    ${BTN_CLEANSURVEY}    10s",
+        "Click Element    ${BTN_CLEANSURVEY}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_005",
+      "keywordName": "Use Btn Sitesurvey",
+      "targetElement": "btn_sitesurvey",
+      "action": "generic",
+      "arguments": [],
+      "implementation": [
+        "Wait Until Element Is Visible    ${BTN_SITESURVEY}    10s",
+        "Click Element    ${BTN_SITESURVEY}"
+      ],
+      "approved": true
+    }
+  ]
+}

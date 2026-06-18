@@ -1,0 +1,36 @@
+{
+  "pageName": "home_page",
+  "pageUrl": "http://172.21.166.115/washtabui/home",
+  "elements": [
+    {
+      "approvedName": "home",
+      "type": "element",
+      "locator": "xpath=//ion-fab-button",
+      "approved": true
+    },
+    {
+      "approvedName": "notifications_outline",
+      "type": "element",
+      "locator": "id=notifications-button",
+      "approved": true
+    },
+    {
+      "approvedName": "btn_customersignup",
+      "type": "element",
+      "locator": "id=btn_CustomerSignup",
+      "approved": true
+    },
+    {
+      "approvedName": "btn_cleansurvey",
+      "type": "element",
+      "locator": "id=btn_CleanSurvey",
+      "approved": true
+    },
+    {
+      "approvedName": "btn_sitesurvey",
+      "type": "element",
+      "locator": "id=btn_SiteSurvey",
+      "approved": true
+    }
+  ]
+}
