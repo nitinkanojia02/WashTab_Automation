@@ -96,7 +96,7 @@ Central configuration for:
 
 Example:
 - `application_code: "WT"` ensures generated testcase IDs use the stable application abbreviation `WT`
-- generated testcase IDs follow the standard `<APPCODE>-<FEATURECODE><NN>`, for example `WT-LOGIN01`
+- generated testcase IDs follow the standard `<APPCODE>-<FEATURECODE><NN>`, for example `WT-LOGIN01`, and the same ID format is used consistently in manual test matrices, Robot tags, and related generated artifacts
 - generated Robot test case names follow the standard `AUT-<APPCODE>-<FEATURECODE><NN>: <Title>`, for example `AUT-WT-LOGIN01: Verify login page loads successfully`
 - generated Robot `[Tags]` are intentionally minimal and include only the testcase ID and the scenario type, for example `[Tags]    WT-LOGIN01    positive`
 

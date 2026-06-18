@@ -152,7 +152,7 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- Treat resource_context as including both page-specific resources and shared/common resources. Use common/shared keywords for generic browser lifecycle, navigation, and waiting behaviors, and avoid duplicating them in suite logic.\n"
         "- Include *** Settings *** and *** Test Cases *** sections.\n"
         "- Do NOT include a *** Variables *** section in the generated .robot file.\n"
-        "- Use compact formatting: no blank lines inside the Settings section, exactly one blank line after *** Test Cases *** before the first test case, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
+        "- Use compact formatting: no blank lines inside the Settings section, no blank line after *** Test Cases *** (the first test case must start immediately on the next line), exactly one blank line between major sections, and exactly one blank line between test cases.\n"
         "- Every generated test case name must start with AUT- and follow the pattern AUT-<APPCODE>-<FEATURECODE><NN>: <Title>. Example: AUT-WT-LOGIN01: Verify login page loads successfully.\n"
         "- <FEATURECODE> should be derived from the feature name in the input (uppercase alphanumeric, no spaces), and <NN> should be a two-digit sequence aligned to the test order or test case id when possible.\n"
         "- Every generated test case must include a [Tags] line immediately after the test case name. Keep tags minimal: only the testcase id tag and the scenario type tag. Example: [Tags]    WT-LOGIN01    positive.\n"
@@ -188,7 +188,9 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- If a manual test expects successful navigation or successful login, generate an explicit verification for landing page, URL change, success state, dashboard/home visibility, or another observable post-condition. Prefer page validation keywords such as Verify Successful Login Redirect when available.\n"
         "- If a manual test expects field-level behavior such as required validation, character masking, disabled state, visibility, duplicate submission prevention, copy-paste behavior, keyboard submission behavior, or no duplicate request behavior, include a corresponding verification step and do not stop at action steps only.\n"
         "- Preserve specialized manual intent. If the approved manual test is specifically about copy-paste, Enter key submission, repeated clicking, whitespace handling, case sensitivity, or duplicate prevention, the generated automation should reflect that interaction intent instead of collapsing it into a generic login flow.\n"
-        "- Prefer business-readable test cases that call reusable resource keywords over low-level keyword chains when the resource context supports that style.\n\n"
+        "- Prefer business-readable test cases that call reusable resource keywords over low-level keyword chains when the resource context supports that style.\n"
+        "- Use only valid, existing Robot Framework/SeleniumLibrary/BuiltIn keywords or keywords provided by the imported resources. Do not invent unsupported keywords such as Location Should Not Contain. If a negative URL assertion is needed, use a valid existing pattern such as Should Not Contain on ${CURDIR} only when semantically correct, or prefer a valid page/resource verification keyword for no-navigation behavior.\n"
+        "- Before finalizing the suite, self-review every keyword call and remove or replace any keyword that is not part of Robot built-ins, SeleniumLibrary, or the imported resource context.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
 
@@ -241,7 +243,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Ensure the output remains a thin suite that relies on the provided page resource files and the shared common resource layer.\n\n"
         "Mandatory repair rules:\n"
         "- Return only Robot Framework code, with no markdown fences and no explanation.\n"
-        "- Preserve compact formatting: no blank lines inside the Settings section, exactly one blank line after *** Test Cases *** before the first test case, exactly one blank line between major sections, and exactly one blank line between test cases.\n"
+        "- Preserve compact formatting: no blank lines inside the Settings section, no blank line after *** Test Cases *** (the first test case must start immediately on the next line), exactly one blank line between major sections, and exactly one blank line between test cases.\n"
         "- Ensure every test case name starts with AUT- and follows the pattern AUT-<APPCODE>-<FEATURECODE><NN>: <Title>. Example: AUT-WT-LOGIN01: Verify login page loads successfully.\n"
         "- Ensure every test case includes a [Tags] line immediately after the test case name. Keep tags minimal: only the testcase id tag and the scenario type tag. Example: [Tags]    WT-LOGIN01    positive.\n"
         "- Preserve or repair the numbering so it is stable and aligned to the approved manual test order or id when possible.\n"
@@ -264,6 +266,8 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- If a test is about successful login or navigation, ensure there is an explicit post-condition verification such as dashboard/home visibility, URL change, success state, or a dedicated page validation keyword.\n"
         "- Preserve specialized interaction intent such as copy-paste, Enter key submission, repeated clicking, whitespace handling, or duplicate submission prevention; do not simplify these into a generic login-only sequence.\n"
         "- Prefer business-readable resource keyword calls over low-level one-off steps.\n"
+        "- Replace any unsupported or invented keyword with a valid existing Robot built-in, SeleniumLibrary keyword, or imported resource keyword. Never keep invalid calls such as Location Should Not Contain in the repaired suite.\n"
+        "- Self-audit the final suite for keyword existence: every called keyword must come from Robot built-ins, SeleniumLibrary, or the imported resource files.\n"
         "- Do not compensate for duplicated common/page keywords by creating additional duplicates; prefer the shared/common resource keyword when the intent is generic.\n\n"
         "Repair focus areas:\n"
         "- common resource import and reuse\n"
@@ -434,6 +438,9 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
     if re.search(r"(?is)\*\*\*\s*settings\s*\*\*\*.*?\n\s*\n\s*(?:Test Setup|Suite Setup|Test Teardown|Suite Teardown|Resource)", content):
         warnings.append("Generated suite contains unnecessary blank lines inside the Settings section; keep Settings compact")
 
+    if re.search(r"(?im)^\*\*\* Test Cases \*\*\*\n\s*\n", content):
+        errors.append("Generated suite contains a blank line after *** Test Cases ***; the first test case must start immediately on the next line")
+
     if not re.search(r"(?im)^AUT-[A-Z0-9]+-[A-Z0-9]+\d{2}:\s+.+$", content):
         warnings.append("Generated suite test case names should follow the format AUT-<APPCODE>-<FEATURECODE><NN>: <Title>")
 
@@ -442,6 +449,9 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
 
     if not re.search(r"\$\{[A-Z0-9_]+\}", content):
         warnings.append("Generated suite does not appear to use reusable resource variables; prefer resource-file test data over hardcoded inline data")
+
+    if re.search(r"(?im)^\s{4,}Location Should Not Contain\b", content):
+        errors.append("Generated suite uses unsupported keyword 'Location Should Not Contain'; use only valid Robot/SeleniumLibrary/imported resource keywords")
 
     likely_inline_literals = [
         r"(?im)^\s{4,}(?:Enter|Input|Type)\b.*\s{2,}(?!\$\{)(?!xpath=)(?!css=)(?!id=)(?!name=)(?!//)([^\n]+)$",

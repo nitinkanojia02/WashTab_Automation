@@ -82,9 +82,12 @@ def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manu
     ]
     sheet.append(headers)
 
+    app_code = derive_app_code(workflow, workflow_name)
+    feature_code = derive_feature_code(workflow, workflow_name)
+
     cases = manual_data.get("testCases") or manual_data.get("manualTests") or []
     for index, case in enumerate(cases, start=1):
-        case_id = str(case.get("id", "")).strip()
+        case_id = f"{app_code}-{feature_code}{index:02d}"
         preconditions = "\n".join(str(item).strip() for item in case.get("preconditions", []) if str(item).strip())
         steps = "\n".join(str(item).strip() for item in case.get("steps", []) if str(item).strip())
         expected = clean_text(str(case.get("expectedResult", "")))
@@ -1049,7 +1052,8 @@ def normalize_robot_content_spacing(content: str) -> str:
             if is_test_name:
                 while result and result[-1] == "":
                     result.pop()
-                result.append("")
+                if first_test_case_seen:
+                    result.append("")
                 result.append(stripped)
                 first_test_case_seen = True
                 continue
