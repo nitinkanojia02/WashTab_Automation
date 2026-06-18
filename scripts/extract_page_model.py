@@ -109,9 +109,11 @@ def is_meaningless_label(text: str) -> bool:
 def infer_role(item: dict) -> str:
     tag = (item.get("tag") or "").lower()
     attrs = item.get("attributes", {}) or {}
-    input_type = (attrs.get("type") or "").lower()
+    shadow = item.get("shadow", {}) or {}
+    shadow_tag = clean_text(shadow.get("tag", "")).lower()
+    input_type = (attrs.get("type") or shadow.get("type") or "").lower()
 
-    if tag in {"button", "ion-button", "ion-fab-button", "app-main-button"}:
+    if tag in {"button", "ion-button", "ion-fab-button", "app-main-button"} or shadow_tag == "button":
         return "button"
     if tag == "a":
         return "link"
@@ -131,17 +133,21 @@ def infer_role(item: dict) -> str:
 
 def infer_label(item: dict) -> str:
     attrs = item.get("attributes", {}) or {}
+    shadow = item.get("shadow", {}) or {}
     tag = (item.get("tag") or "").lower()
     locator_hint = build_best_locator(item).lower()
 
     candidates = [
         item.get("label", ""),
         attrs.get("aria-label", ""),
+        shadow.get("aria_label", ""),
         attrs.get("placeholder", ""),
+        shadow.get("placeholder", ""),
         attrs.get("name", ""),
         attrs.get("id", ""),
         attrs.get("data-testid", ""),
         attrs.get("icsicon", ""),
+        shadow.get("icon_aria_label", ""),
         item.get("text", "")
     ]
 
@@ -197,10 +203,11 @@ def make_var_name(label: str, role: str, used_names: set) -> str:
 def build_best_locator(item: dict) -> str:
     tag = (item.get("tag") or "").lower()
     attrs = item.get("attributes", {}) or {}
+    shadow = item.get("shadow", {}) or {}
 
     text = clean_text(item.get("text", ""))
-    placeholder = clean_text(attrs.get("placeholder", ""))
-    aria = clean_text(attrs.get("aria-label", ""))
+    placeholder = clean_text(attrs.get("placeholder", "") or shadow.get("placeholder", ""))
+    aria = clean_text(attrs.get("aria-label", "") or shadow.get("aria_label", "") or shadow.get("icon_aria_label", ""))
     name = clean_text(attrs.get("name", ""))
     el_id = clean_text(attrs.get("id", ""))
     data_testid = clean_text(attrs.get("data-testid", "") or attrs.get("testid", ""))
@@ -323,19 +330,32 @@ def collect_elements(page) -> List[dict]:
         if (!s) return false;
         if (s.visibility === 'hidden' || s.display === 'none') return false;
         if (Number.parseFloat(s.opacity || '1') === 0) return false;
+        if (s.pointerEvents === 'none') return false;
         if (el.hasAttribute('hidden') || el.getAttribute('aria-hidden') === 'true') return false;
         return true;
       };
 
+      const getParentElement = (node) => {
+        if (!node) return null;
+        if (node.parentElement) return node.parentElement;
+        const root = node.getRootNode && node.getRootNode();
+        if (root && root.host) return root.host;
+        return null;
+      };
+
       const hasVisibleDescendant = (el) => {
-        if (!el || !el.querySelectorAll) return false;
-        const descendants = el.querySelectorAll('*');
-        for (const child of descendants) {
-          if (!hasVisibleStyle(child)) continue;
-          const r = child.getBoundingClientRect();
-          if (r.width > 0 && r.height > 0) return true;
-        }
-        return false;
+        const visit = (root) => {
+          if (!root || !root.querySelectorAll) return false;
+          const descendants = root.querySelectorAll('*');
+          for (const child of descendants) {
+            if (!hasVisibleStyle(child)) continue;
+            const r = child.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) return true;
+            if (child.shadowRoot && visit(child.shadowRoot)) return true;
+          }
+          return false;
+        };
+        return visit(el);
       };
 
       const isActuallyVisible = (el) => {
@@ -343,7 +363,7 @@ def collect_elements(page) -> List[dict]:
         let current = el;
         while (current && current.nodeType === Node.ELEMENT_NODE) {
           if (!hasVisibleStyle(current)) return false;
-          current = current.parentElement;
+          current = getParentElement(current);
         }
         const r = el.getBoundingClientRect();
         if (r.width <= 0 || r.height <= 0) {
@@ -352,30 +372,32 @@ def collect_elements(page) -> List[dict]:
         return true;
       };
 
-      const isCoveredAtCenter = (el) => {
-        const r = el.getBoundingClientRect();
-        if (r.width <= 0 || r.height <= 0) return false;
-        const cx = r.left + (r.width / 2);
-        const cy = r.top + (r.height / 2);
-        if (cx < 0 || cy < 0 || cx > window.innerWidth || cy > window.innerHeight) return false;
-        const topEl = document.elementFromPoint(cx, cy);
-        return !!topEl && topEl !== el && !el.contains(topEl) && !topEl.contains(el);
-      };
-
-      const getText = (el) => {
-        const direct = (el.innerText || el.textContent || '').trim();
+      const getTextFromRoot = (root) => {
+        if (!root) return '';
+        const direct = (root.innerText || root.textContent || '').trim();
         if (direct) return direct;
 
-        const child = el.querySelector('button, span, div, label, p, h1, h2, h3, h4, h5, h6');
+        const child = root.querySelector && root.querySelector('button, span, div, label, p, h1, h2, h3, h4, h5, h6, slot');
         if (child) {
           const childText = (child.innerText || child.textContent || '').trim();
           if (childText) return childText;
         }
 
-        const icon = el.querySelector('ion-icon[aria-label]');
+        const icon = root.querySelector && root.querySelector('ion-icon[aria-label]');
         if (icon) {
           const iconAria = (icon.getAttribute('aria-label') || '').trim();
           if (iconAria) return iconAria;
+        }
+
+        return '';
+      };
+
+      const getText = (el) => {
+        const hostText = getTextFromRoot(el);
+        if (hostText) return hostText;
+        if (el.shadowRoot) {
+          const shadowText = getTextFromRoot(el.shadowRoot);
+          if (shadowText) return shadowText;
         }
 
         const aria = (el.getAttribute('aria-label') || '').trim();
@@ -385,6 +407,36 @@ def collect_elements(page) -> List[dict]:
         if (id) return id;
 
         return '';
+      };
+
+      const getShadowInfo = (el) => {
+        const shadow = el.shadowRoot;
+        if (!shadow) return null;
+        const nativeControl = shadow.querySelector('button, input, textarea, select, a, [role="button"], [role="link"]');
+        const icon = shadow.querySelector('ion-icon[aria-label], [aria-label]');
+        const control = nativeControl || icon;
+        if (!control) return {
+          has_shadow_root: true,
+          has_native_control: false,
+          text: getTextFromRoot(shadow),
+          icon_aria_label: '',
+          aria_label: '',
+          tag: '',
+          type: '',
+          disabled: false,
+          placeholder: ''
+        };
+        return {
+          has_shadow_root: true,
+          has_native_control: !!nativeControl,
+          text: getTextFromRoot(control) || getTextFromRoot(shadow),
+          icon_aria_label: (shadow.querySelector('ion-icon[aria-label]')?.getAttribute('aria-label') || '').trim(),
+          aria_label: (control.getAttribute('aria-label') || '').trim(),
+          tag: (control.tagName || '').toLowerCase(),
+          type: (control.getAttribute('type') || '').trim(),
+          disabled: control.hasAttribute('disabled') || !!control.disabled,
+          placeholder: (control.getAttribute('placeholder') || '').trim()
+        };
       };
 
       const tags = [
@@ -419,10 +471,28 @@ def collect_elements(page) -> List[dict]:
         '[id^="btn_"]'
       ];
 
-      const nodes = Array.from(new Set([
-        ...document.querySelectorAll(tags.join(',')),
-        ...document.querySelectorAll(attrSelectors.join(','))
-      ]));
+      const nodes = [];
+      const seen = new Set();
+
+      const pushNode = (node) => {
+        if (!node || seen.has(node)) return;
+        seen.add(node);
+        nodes.push(node);
+      };
+
+      const collectFromRoot = (root) => {
+        if (!root || !root.querySelectorAll) return;
+        for (const node of root.querySelectorAll(tags.join(','))) pushNode(node);
+        for (const node of root.querySelectorAll(attrSelectors.join(','))) pushNode(node);
+        for (const el of root.querySelectorAll('*')) {
+          if (el.shadowRoot) {
+            pushNode(el);
+            collectFromRoot(el.shadowRoot);
+          }
+        }
+      };
+
+      collectFromRoot(document);
 
       return nodes
         .map(el => {
@@ -436,15 +506,16 @@ def collect_elements(page) -> List[dict]:
             if (linked) label = (linked.innerText || linked.textContent || '').trim();
           }
           if (!label) {
-            const parent = el.closest('label');
+            const parent = el.closest && el.closest('label');
             if (parent) label = (parent.innerText || parent.textContent || '').trim();
           }
 
           const rect = el.getBoundingClientRect();
+          const shadow = getShadowInfo(el);
           const visibility = {
             is_visible: isActuallyVisible(el),
             is_in_viewport: rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth,
-            is_covered: isCoveredAtCenter(el),
+            is_covered: false,
             has_visible_descendant: hasVisibleDescendant(el),
             width: rect.width,
             height: rect.height,
@@ -457,7 +528,8 @@ def collect_elements(page) -> List[dict]:
             text: getText(el),
             attributes: attrs,
             label: label,
-            visibility: visibility
+            visibility: visibility,
+            shadow: shadow
           };
         })
         .filter(item => item.visibility && item.visibility.is_visible);
