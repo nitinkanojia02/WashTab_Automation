@@ -474,11 +474,18 @@ def run_page_extraction(page_name: str, page_url: str):
         text=True
     )
 
+    stdout_text = (result.stdout or "").strip()
+    stderr_text = (result.stderr or "").strip()
+    combined_output = "\n".join(part for part in [stdout_text, stderr_text] if part).strip()
+
     if result.returncode != 0:
-        error_message = result.stderr.strip() or result.stdout.strip() or "Unknown extraction error."
+        error_message = combined_output or "Unknown extraction error."
         raise HTTPException(status_code=500, detail=f"Page extraction failed: {error_message}")
 
-    return result.stdout.strip()
+    if "extraction will be skipped" in combined_output.lower():
+        raise HTTPException(status_code=400, detail=combined_output)
+
+    return combined_output
 
 def infer_type_from_raw_item(item: dict) -> str:
     tag = (item.get("tag") or "").lower()
