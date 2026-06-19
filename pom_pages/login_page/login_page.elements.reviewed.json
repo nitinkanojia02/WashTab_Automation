@@ -184,31 +184,36 @@
       "approvedName": "username_textbox",
       "type": "textbox",
       "locator": "xpath=//input[@name='ion-input-0']",
-      "approved": true
+      "approved": true,
+      "description": "Textbox where the user enters their username for authentication."
     },
     {
       "approvedName": "password_textbox",
       "type": "password",
       "locator": "id=password",
-      "approved": true
+      "approved": true,
+      "description": "Password field where the user enters their account password."
     },
     {
       "approvedName": "sign_in_button",
       "type": "button",
       "locator": "xpath=//ion-button[normalize-space()='SIGN IN']",
-      "approved": true
+      "approved": true,
+      "description": "Primary action button used to submit the login form and initiate authentication."
     },
     {
       "approvedName": "back_navigation_button",
       "type": "button",
       "locator": "xpath=(//ion-fab-button)[1]",
-      "approved": true
+      "approved": true,
+      "description": "Navigation control that returns the user from the login page to the previous or home page."
     },
     {
       "approvedName": "home_navigation_button",
       "type": "button",
       "locator": "xpath=(//ion-fab-button)[last()]",
-      "approved": true
+      "approved": true,
+      "description": "Navigation control that redirects the user directly to the application home page."
     }
   ]
 }

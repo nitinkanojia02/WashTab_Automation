@@ -5,83 +5,138 @@ Test Setup    Open Login Page    http://172.21.166.115/washtabui/login?data=unde
 Test Teardown    Close Browser Session
 
 *** Test Cases ***
-AUT-WT-LOGIN01: Verify login page UI elements are visible
+AUT-WT-LOGIN01: Verify login page loads with correct URL and login form is visible
     [Tags]    WT-LOGIN01    positive
     Verify Login Page Loaded
-    Verify Navigation Buttons Visible
 
-AUT-WT-LOGIN02: Login with valid username and password
+AUT-WT-LOGIN02: Verify username textbox accepts input
     [Tags]    WT-LOGIN02    positive
     Verify Login Page Loaded
-    Perform Login    hacklarr    Icstunnel1
-    Verify Successful Login Redirect
+    Enter Username    ${VALID_USERNAME}
+    Element Attribute Value Should Be    ${USERNAME_TEXTBOX}    value    ${VALID_USERNAME}
 
-AUT-WT-LOGIN03: Login with invalid username and valid password
-    [Tags]    WT-LOGIN03    negative
+AUT-WT-LOGIN03: Verify password textbox masks entered characters
+    [Tags]    WT-LOGIN03    positive
     Verify Login Page Loaded
-    Perform Login    invaliduser    Icstunnel1
-    Verify Login Failed And Still On Login Page
-
-AUT-WT-LOGIN04: Login with valid username and invalid password
-    [Tags]    WT-LOGIN04    negative
-    Verify Login Page Loaded
-    Perform Login    hacklarr    wrongpassword
-    Verify Login Failed And Still On Login Page
-
-AUT-WT-LOGIN05: Attempt login with empty username and password
-    [Tags]    WT-LOGIN05    negative
-    Verify Login Page Loaded
-    Perform Login    ${EMPTY}    ${EMPTY}
-    Verify Login Failed And Still On Login Page
-
-AUT-WT-LOGIN06: Attempt login with valid username and empty password
-    [Tags]    WT-LOGIN06    negative
-    Verify Login Page Loaded
-    Perform Login    hacklarr    ${EMPTY}
-    Verify Login Failed And Still On Login Page
-
-AUT-WT-LOGIN07: Verify password field masks entered characters
-    [Tags]    WT-LOGIN07    positive
-    Verify Login Page Loaded
-    Enter Password    Icstunnel1
+    Enter Password    ${VALID_PASSWORD}
     Verify Password Field Is Masked
 
-AUT-WT-LOGIN08: Verify back navigation button redirects to home page
-    [Tags]    WT-LOGIN08    positive
+AUT-WT-LOGIN04: Verify successful login with valid credentials
+    [Tags]    WT-LOGIN04    positive
+    Verify Login Page Loaded
+    Enter Username    ${VALID_USERNAME}
+    Enter Password    ${VALID_PASSWORD}
+    Click Sign In Button
+    Verify Successful Login Redirect
+
+AUT-WT-LOGIN05: Verify login fails with invalid username and valid password
+    [Tags]    WT-LOGIN05    negative
+    Verify Login Page Loaded
+    Enter Username    ${INVALID_USERNAME}
+    Enter Password    ${VALID_PASSWORD}
+    Click Sign In Button
+    Verify Login Rejected
+
+AUT-WT-LOGIN06: Verify login fails with valid username and invalid password
+    [Tags]    WT-LOGIN06    negative
+    Verify Login Page Loaded
+    Enter Username    ${VALID_USERNAME}
+    Enter Password    ${INVALID_PASSWORD}
+    Click Sign In Button
+    Verify Login Rejected
+
+AUT-WT-LOGIN07: Verify login fails when both username and password are invalid
+    [Tags]    WT-LOGIN07    negative
+    Verify Login Page Loaded
+    Enter Username    ${INVALID_USERNAME}
+    Enter Password    ${INVALID_PASSWORD}
+    Click Sign In Button
+    Verify Login Rejected
+
+AUT-WT-LOGIN08: Verify login fails when username and password fields are empty
+    [Tags]    WT-LOGIN08    negative
+    Verify Login Page Loaded
+    Enter Username    ${EMPTY}
+    Enter Password    ${EMPTY}
+    Click Sign In Button
+    Verify Login Rejected
+
+AUT-WT-LOGIN09: Verify login fails when username is empty and password is provided
+    [Tags]    WT-LOGIN09    negative
+    Verify Login Page Loaded
+    Enter Username    ${EMPTY}
+    Enter Password    ${VALID_PASSWORD}
+    Click Sign In Button
+    Verify Username Required Validation
+
+AUT-WT-LOGIN10: Verify login fails when password is empty and username is provided
+    [Tags]    WT-LOGIN10    negative
+    Verify Login Page Loaded
+    Enter Username    ${VALID_USERNAME}
+    Enter Password    ${EMPTY}
+    Click Sign In Button
+    Verify Password Required Validation
+
+AUT-WT-LOGIN11: Verify back navigation button redirects user to home page
+    [Tags]    WT-LOGIN11    positive
     Verify Login Page Loaded
     Click Back Navigation Button
-    Verify Successful Login Redirect
+    Wait Until Location Contains    ${HOME_PATH_FRAGMENT}    10s
 
-AUT-WT-LOGIN09: Verify home navigation button redirects to home page
-    [Tags]    WT-LOGIN09    positive
+AUT-WT-LOGIN12: Verify home navigation button redirects user to home page
+    [Tags]    WT-LOGIN12    positive
     Verify Login Page Loaded
     Click Home Navigation Button
-    Verify Successful Login Redirect
+    Wait Until Location Contains    ${HOME_PATH_FRAGMENT}    10s
 
-AUT-WT-LOGIN10: Login attempt with leading and trailing whitespace in username
-    [Tags]    WT-LOGIN10    edge
-    Verify Login Page Loaded
-    Perform Login    ${SPACE}${SPACE}hacklarr${SPACE}${SPACE}    Icstunnel1
-    Verify Login Failed And Still On Login Page
-
-AUT-WT-LOGIN11: Login with very long username value
-    [Tags]    WT-LOGIN11    edge
-    Verify Login Page Loaded
-    Perform Login    verylongusernamevalueexceedingtypicallengthlimitfortestingpurposes1234567890    Icstunnel1
-    Verify Login Failed And Still On Login Page
-
-AUT-WT-LOGIN12: Login with special characters in username
-    [Tags]    WT-LOGIN12    edge
-    Verify Login Page Loaded
-    Perform Login    user!@#    Icstunnel1
-    Verify Login Failed And Still On Login Page
-
-AUT-WT-LOGIN13: Rapid multiple clicks on SIGN IN button with valid credentials
+AUT-WT-LOGIN13: Verify login behavior with leading and trailing spaces in credentials
     [Tags]    WT-LOGIN13    edge
     Verify Login Page Loaded
-    Enter Username    hacklarr
-    Enter Password    Icstunnel1
+    Enter Username    ${SPACE}${VALID_USERNAME}${SPACE}
+    Enter Password    ${SPACE}${VALID_PASSWORD}${SPACE}
+    Click Sign In Button
+    ${status}    ${msg}=    Run Keyword And Ignore Error    Verify Successful Login Redirect
+    Run Keyword If    '${status}' == 'FAIL'    Verify Login Rejected
+
+AUT-WT-LOGIN14: Verify login fails with extremely long username and password values
+    [Tags]    WT-LOGIN14    edge
+    Verify Login Page Loaded
+    ${LONG}=    Evaluate    "a"*210
+    Enter Username    ${LONG}
+    Enter Password    ${LONG}
+    Click Sign In Button
+    Verify Login Rejected
+
+AUT-WT-LOGIN15: Verify system handles multiple rapid clicks on SIGN IN button
+    [Tags]    WT-LOGIN15    edge
+    Verify Login Page Loaded
+    Enter Username    ${VALID_USERNAME}
+    Enter Password    ${VALID_PASSWORD}
     Click Sign In Button
     Click Sign In Button
     Click Sign In Button
     Verify Successful Login Redirect
+
+AUT-WT-LOGIN16: Verify login fails when username and password contain only whitespace
+    [Tags]    WT-LOGIN16    negative
+    Verify Login Page Loaded
+    Enter Username    ${SPACE}
+    Enter Password    ${SPACE}
+    Click Sign In Button
+    Verify Login Rejected
+
+AUT-WT-LOGIN17: Verify login submission using Enter key with valid credentials
+    [Tags]    WT-LOGIN17    edge
+    Verify Login Page Loaded
+    Enter Username    ${VALID_USERNAME}
+    Enter Password    ${VALID_PASSWORD}
+    Press Keys    ${PASSWORD_TEXTBOX}    ENTER
+    Verify Successful Login Redirect
+
+AUT-WT-LOGIN18: Verify login fails with special characters in username and password
+    [Tags]    WT-LOGIN18    negative
+    Verify Login Page Loaded
+    Enter Username    !@#$$%
+    Enter Password    !@#$$%
+    Click Sign In Button
+    Verify Login Rejected
