@@ -282,11 +282,22 @@ def get_workflow_status(workflow_name: str) -> dict:
 
     automation_generated = bool(automation_path.exists() and clean_text(read_text(automation_path)))
 
+    next_action = "Page Review"
+    if page_reviewed and not manual_approved:
+        next_action = "Manual Tests"
+    elif page_reviewed and manual_approved and not keywords_reviewed:
+        next_action = "Keywords"
+    elif page_reviewed and manual_approved and keywords_reviewed and not automation_generated:
+        next_action = "Automation"
+    elif page_reviewed and manual_approved and keywords_reviewed and automation_generated:
+        next_action = "Review / Regenerate"
+
     return {
         "page_reviewed": page_reviewed,
         "manual_approved": manual_approved,
         "keywords_reviewed": keywords_reviewed,
         "automation_generated": automation_generated,
+        "next_action": next_action,
     }
 
 def slugify(value: str) -> str:

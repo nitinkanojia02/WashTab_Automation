@@ -20,6 +20,22 @@
         color: #664d03;
         border: 1px solid #ffecb5;
     }
+
+    .next-action-pill {
+        font-size: 0.85rem;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+        font-weight: 700;
+        display: inline-block;
+        background: #cfe2ff;
+        color: #084298;
+        border: 1px solid #b6d4fe;
+    }
+
+    .action-disabled {
+        pointer-events: none;
+        opacity: 0.5;
+    }
 </style>
 
 <div class="row g-4">
@@ -55,6 +71,9 @@
                             <tr>
                                 <td><strong>{{ row.name }}</strong></td>
                                 <td>
+                                    <div class="d-flex gap-2 flex-wrap mb-2">
+                                        <span class="next-action-pill">Next Recommended Action: {{ row.status.next_action }}</span>
+                                    </div>
                                     <div class="d-flex gap-2 flex-wrap">
                                         <span class="status-pill {% if row.status.page_reviewed %}status-done{% else %}status-pending{% endif %}">
                                             Page Reviewed: {% if row.status.page_reviewed %}Yes{% else %}No{% endif %}
@@ -73,9 +92,9 @@
                                 <td>
                                     <div class="d-flex gap-2 flex-wrap align-items-center">
                                         <a href="/page-review/{{ row.name }}" class="btn btn-outline-primary btn-sm">Page Review</a>
-                                        <a href="/manual-tests/{{ row.name }}" class="btn btn-outline-secondary btn-sm">Manual Tests</a>
-                                        <a href="/keywords/{{ row.name }}" class="btn btn-outline-info btn-sm">Keywords</a>
-                                        <a href="/automation/{{ row.name }}" class="btn btn-outline-dark btn-sm">Automation</a>
+                                        <a href="/manual-tests/{{ row.name }}" class="btn btn-outline-secondary btn-sm {% if not row.status.page_reviewed %}disabled action-disabled{% endif %}" aria-disabled="{% if not row.status.page_reviewed %}true{% else %}false{% endif %}">Manual Tests</a>
+                                        <a href="/keywords/{{ row.name }}" class="btn btn-outline-info btn-sm {% if not row.status.manual_approved %}disabled action-disabled{% endif %}" aria-disabled="{% if not row.status.manual_approved %}true{% else %}false{% endif %}">Keywords</a>
+                                        <a href="/automation/{{ row.name }}" class="btn btn-outline-dark btn-sm {% if not row.status.keywords_reviewed %}disabled action-disabled{% endif %}" aria-disabled="{% if not row.status.keywords_reviewed %}true{% else %}false{% endif %}">Automation</a>
                                         <a href="/workflow/edit/{{ row.name }}" class="btn btn-outline-warning btn-sm">Edit Workflow</a>
                                         <form method="post" action="/workflow/delete/{{ row.name }}" class="d-inline" onsubmit="return confirm('Delete workflow {{ row.name }} and all related generated artifacts? This cannot be undone.');">
                                             <button type="submit" class="btn btn-outline-danger btn-sm">Delete Workflow</button>
