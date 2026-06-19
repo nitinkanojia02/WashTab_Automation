@@ -620,9 +620,15 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
         signature = keyword_signature_map.get(normalized_keyword)
         if signature:
             required_count = len(signature.get("required_args", []))
-            if len(arguments) < required_count:
+            total_count = len(signature.get("args", []))
+            actual_count = len(arguments)
+            if actual_count < required_count:
                 errors.append(
-                    f"Keyword '{signature.get('name', keyword_name)}' requires {required_count} argument(s) but was called with {len(arguments)} in {source_label}. Source: {signature.get('source', 'unknown')}"
+                    f"Keyword '{signature.get('name', keyword_name)}' requires {required_count} argument(s) but was called with {actual_count} in {source_label}. Source: {signature.get('source', 'unknown')}"
+                )
+            elif actual_count > total_count:
+                errors.append(
+                    f"Keyword '{signature.get('name', keyword_name)}' accepts {total_count} argument(s) but was called with {actual_count} in {source_label}. Source: {signature.get('source', 'unknown')}"
                 )
 
     builtin_keywords = {

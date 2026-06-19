@@ -921,6 +921,7 @@ def sync_page_variables_from_approved_elements(workflow: dict, approved_elements
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
     page_url = pages[0].get("url") if pages and isinstance(pages[0], dict) else ""
+    page_url = normalize_url_value(str(page_url))
 
     canonical_elements = load_approved_elements_for_workflow(workflow) if workflow else []
     if not canonical_elements:
@@ -929,10 +930,10 @@ def sync_page_variables_from_approved_elements(workflow: dict, approved_elements
     variables = []
     seen_names: set[str] = set()
 
-    if clean_text(page_url):
+    if page_url:
         variables.append({
             "variableName": "PAGE_URL",
-            "value": clean_text(page_url),
+            "value": page_url,
             "source": "approved_page",
             "kind": "page_url",
         })
@@ -960,7 +961,7 @@ def sync_page_variables_from_approved_elements(workflow: dict, approved_elements
 
     payload = {
         "pageName": page_name,
-        "pageUrl": clean_text(page_url),
+        "pageUrl": page_url,
         "variables": variables,
     }
     write_json(get_page_variables_path(page_name), payload)
@@ -1595,6 +1596,7 @@ def build_resource_generation_prompt(
         "- Use SeleniumLibrary in Settings only if truly needed in this page resource.\n"
         "- Use the approved elements to create locator variables.\n"
         "- If metadata variable context is present, treat it as the primary canonical source for locator-variable names and page-url variable naming. Preserve those names in the generated resource whenever feasible.\n"
+        "- Use the approved keywords as the canonical source for keyword naming. Preserve approved keyword names exactly in the generated resource whenever feasible; do not silently rename approved keywords into alternate wording.\n"
         "- Use the approved keywords as the foundation for reusable keyword implementations.\n"
         "- Treat empty placeholder rows in workflow.fields as noise and ignore them.\n"
         "- Create reusable test-data variables based on approved manual tests, not just workflow.testData.\n"
