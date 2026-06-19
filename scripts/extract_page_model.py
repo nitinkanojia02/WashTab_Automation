@@ -872,12 +872,14 @@ def process_page(playwright, config: dict, page_entry: Dict[str, str]):
 
     root_pom_dir = BASE_DIR / config["pom_output_dir"]
     page_output_dir = root_pom_dir / page_name
+    metadata_dir = page_output_dir / "metadata"
     ensure_dir(page_output_dir)
+    ensure_dir(metadata_dir)
 
-    json_path = page_output_dir / f"{page_name}.elements.json"
+    json_path = metadata_dir / f"{page_name}.elements.json"
     resource_path = page_output_dir / f"{page_name}.resource"
-    screenshot_path = page_output_dir / f"{page_name}.png"
-    html_path = page_output_dir / f"{page_name}.debug.html"
+    screenshot_path = metadata_dir / f"{page_name}.png"
+    html_path = metadata_dir / f"{page_name}.debug.html"
 
     if resource_path.exists() and not gc.get("overwrite_pom_pages", False):
         logger.info("Skipped existing POM resource (overwrite disabled): %s", resource_path)
