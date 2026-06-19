@@ -40,6 +40,32 @@ WORKFLOW_DIR = BASE_DIR / "workflow_inputs"
 MANUAL_DIR = BASE_DIR / "manual_tests"
 TESTS_DIR = BASE_DIR / "tests"
 POM_DIR = BASE_DIR / "pom_pages"
+
+
+def get_page_dir(page_name: str) -> Path:
+    return POM_DIR / page_name
+
+
+def get_page_metadata_dir(page_name: str) -> Path:
+    return get_page_dir(page_name) / "metadata"
+
+
+def get_manual_workflow_dir(workflow_name: str) -> Path:
+    return MANUAL_DIR / workflow_name
+
+
+def get_manual_json_path(workflow_name: str) -> Path:
+    workflow_dir = get_manual_workflow_dir(workflow_name)
+    return workflow_dir / f"{workflow_name}.json"
+
+
+def get_manual_excel_path(workflow_name: str) -> Path:
+    workflow_dir = get_manual_workflow_dir(workflow_name)
+    return workflow_dir / f"{workflow_name}_approved_manual_tests.xlsx"
+
+
+def get_automation_path(workflow_name: str) -> Path:
+    return TESTS_DIR / f"{workflow_name}_tests.robot"
 TEMPLATES_DIR = BASE_DIR / "app" / "templates"
 CONFIG_PATH = BASE_DIR / "config" / "page_model_config.json"
 
@@ -199,6 +225,21 @@ def call_manual_ai_with_workflow_session(
     return response
 
 
+def migrate_manual_artifacts_to_feature_dir(workflow_name: str):
+    feature_dir = get_manual_workflow_dir(workflow_name)
+    feature_dir.mkdir(parents=True, exist_ok=True)
+
+    legacy_json = get_manual_legacy_json_path(workflow_name)
+    feature_json = get_manual_json_path(workflow_name)
+    if legacy_json.exists() and not feature_json.exists():
+        shutil.move(str(legacy_json), str(feature_json))
+
+    legacy_excel = get_manual_legacy_excel_path(workflow_name)
+    feature_excel = get_manual_excel_path(workflow_name)
+    if legacy_excel.exists() and not feature_excel.exists():
+        shutil.move(str(legacy_excel), str(feature_excel))
+
+
 def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manual_data: dict) -> Path:
     workbook = Workbook()
     sheet = workbook.active
@@ -242,7 +283,7 @@ def export_manual_tests_to_excel(workflow_name: str, workflow: dict | None, manu
             max_length = max(max_length, len(value))
         sheet.column_dimensions[column_letter].width = min(max(max_length + 2, 14), 60)
 
-    output_path = MANUAL_DIR / f"{workflow_name}_approved_manual_tests.xlsx"
+    output_path = get_manual_excel_path(workflow_name)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     workbook.save(output_path)
     return output_path
@@ -257,12 +298,13 @@ def get_workflow_status(workflow_name: str) -> dict:
     if pages and isinstance(pages[0], dict):
         page_name = clean_text(str(pages[0].get("name", "")))
 
-    page_dir = POM_DIR / page_name if page_name else None
-    elements_path = page_dir / f"{page_name}.elements.json" if page_dir else None
+    page_dir = get_page_dir(page_name) if page_name else None
+    metadata_dir = get_page_metadata_dir(page_name) if page_name else None
+    elements_path = metadata_dir / f"{page_name}.elements.json" if metadata_dir else None
     resource_path = page_dir / f"{page_name}.resource" if page_dir else None
-    keywords_path = page_dir / f"{page_name}.keywords.json" if page_dir else None
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
-    automation_path = TESTS_DIR / f"{workflow_name}_tests.robot"
+    keywords_path = metadata_dir / f"{page_name}.keywords.json" if metadata_dir else None
+    manual_path = get_manual_json_path(workflow_name)
+    automation_path = get_automation_path(workflow_name)
 
     page_reviewed = bool(elements_path and elements_path.exists())
 
@@ -403,6 +445,7 @@ def load_workflow_or_404(workflow_name: str) -> dict:
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
     if not workflow_path.exists():
         raise HTTPException(status_code=404, detail=f"Workflow not found: {workflow_name}")
+    migrate_manual_artifacts_to_feature_dir(workflow_name)
     return read_json(workflow_path)
 
 def clean_workflow_for_prompting(workflow: dict) -> dict:
@@ -661,19 +704,27 @@ def normalize_extracted_element(item: dict, index: int) -> dict:
     }
 
 def get_page_reviewed_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.elements.reviewed.json"
+    return get_page_metadata_dir(page_name) / f"{page_name}.elements.reviewed.json"
 
 
 def get_page_variables_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.variables.json"
+    return get_page_metadata_dir(page_name) / f"{page_name}.variables.json"
 
 
 def get_keywords_reviewed_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.keywords.reviewed.json"
+    return get_page_metadata_dir(page_name) / f"{page_name}.keywords.reviewed.json"
 
 
 def get_manual_reviewed_path(workflow_name: str) -> Path:
-    return MANUAL_DIR / f"{workflow_name}.reviewed.json"
+    return get_manual_workflow_dir(workflow_name) / f"{workflow_name}.reviewed.json"
+
+
+def get_manual_legacy_json_path(workflow_name: str) -> Path:
+    return MANUAL_DIR / f"{workflow_name}.json"
+
+
+def get_manual_legacy_excel_path(workflow_name: str) -> Path:
+    return MANUAL_DIR / f"{workflow_name}_approved_manual_tests.xlsx"
 
 
 def get_automation_reviewed_path(workflow_name: str) -> Path:
@@ -685,10 +736,11 @@ def get_page_review_data(workflow: dict):
     page_name = pages[0].get("name") if pages else "page"
     page_url = pages[0].get("url") if pages else ""
 
-    page_dir = POM_DIR / page_name
-    elements_path = page_dir / f"{page_name}.elements.json"
+    page_dir = get_page_dir(page_name)
+    metadata_dir = get_page_metadata_dir(page_name)
+    elements_path = metadata_dir / f"{page_name}.elements.json"
     reviewed_elements_path = get_page_reviewed_path(page_name)
-    screenshot_path = page_dir / f"{page_name}.png"
+    screenshot_path = metadata_dir / f"{page_name}.png"
 
     extracted_elements_data = []
     approved_elements_data = []
@@ -748,7 +800,7 @@ def get_page_review_data(workflow: dict):
 
     screenshot_web_path = None
     if screenshot_path.exists():
-        screenshot_web_path = f"/static-artifacts/{page_name}/{page_name}.png"
+        screenshot_web_path = f"/static-artifacts/{page_name}/metadata/{page_name}.png"
 
     return {
         "page_name": page_name,
@@ -767,10 +819,10 @@ def get_page_review_data(workflow: dict):
 # -------------------------------------------------------------------
 
 def get_keywords_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.keywords.json"
+    return get_page_metadata_dir(page_name) / f"{page_name}.keywords.json"
 
 def get_resource_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.resource"
+    return get_page_dir(page_name) / f"{page_name}.resource"
 
 
 def get_effective_resource_path(page_name: str) -> Path:
@@ -821,7 +873,7 @@ def get_manual_tests_variable_enrichment_prompt(
 def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
-    elements_path = POM_DIR / page_name / f"{page_name}.elements.json"
+    elements_path = get_page_metadata_dir(page_name) / f"{page_name}.elements.json"
 
     approved = []
     if elements_path.exists():
@@ -969,7 +1021,7 @@ def get_manual_tests_for_workflow(workflow: dict) -> list[dict]:
     workflow_name = slugify(str(workflow.get("workflowName", "")))
     if not workflow_name:
         return []
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_path = get_manual_json_path(workflow_name)
     if not manual_path.exists():
         return []
     try:
@@ -1371,7 +1423,7 @@ def enrich_resource_with_manual_test_variables(workflow: dict, approved_keywords
         return ""
 
     workflow_name = clean_text(str(workflow.get("workflowName", ""))) or page_name
-    manual_path = MANUAL_DIR / f"{slugify(workflow_name)}.json"
+    manual_path = get_manual_json_path(slugify(workflow_name))
     if not manual_path.exists():
         return read_text(resource_path)
 
@@ -1687,7 +1739,7 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
 
     approved_manual_tests = []
     workflow_name = slugify(str(workflow.get("workflowName", "")))
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_path = get_manual_json_path(workflow_name)
     if manual_path.exists():
         try:
             approved_manual_tests = extract_manual_test_cases(read_json(manual_path))
@@ -1857,7 +1909,7 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
         raise HTTPException(status_code=400, detail=validation_message)
     reviewed_path = get_manual_reviewed_path(workflow_name)
     write_json(reviewed_path, final_json)
-    write_json(MANUAL_DIR / f"{workflow_name}.json", final_json)
+    write_json(get_manual_json_path(workflow_name), final_json)
     return final_json
 
 def extract_manual_test_cases(manual: dict) -> list[dict]:
@@ -2147,7 +2199,7 @@ def normalize_robot_content(content: str, workflow: dict | None = None, workflow
 
 
 def generate_automation_for_workflow(workflow_name: str) -> str:
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_path = get_manual_json_path(workflow_name)
     if not manual_path.exists():
         raise HTTPException(status_code=404, detail=f"Manual tests not found for workflow: {workflow_name}")
 
@@ -2232,7 +2284,7 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
     reviewed_target.parent.mkdir(parents=True, exist_ok=True)
     reviewed_target.write_text(robot_content, encoding="utf-8")
 
-    target = TESTS_DIR / f"{workflow_name}_tests.robot"
+    target = get_automation_path(workflow_name)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(robot_content, encoding="utf-8")
     return robot_content
@@ -2272,15 +2324,21 @@ def delete_workflow(workflow_name: str):
     if session_path.exists():
         session_path.unlink()
 
-    manual_json_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_json_path = get_manual_json_path(workflow_name)
     if manual_json_path.exists():
         manual_json_path.unlink()
+    legacy_manual_json_path = get_manual_legacy_json_path(workflow_name)
+    if legacy_manual_json_path.exists():
+        legacy_manual_json_path.unlink()
 
-    manual_excel_path = MANUAL_DIR / f"{workflow_name}_approved_manual_tests.xlsx"
+    manual_excel_path = get_manual_excel_path(workflow_name)
     if manual_excel_path.exists():
         manual_excel_path.unlink()
+    legacy_manual_excel_path = get_manual_legacy_excel_path(workflow_name)
+    if legacy_manual_excel_path.exists():
+        legacy_manual_excel_path.unlink()
 
-    automation_path = TESTS_DIR / f"{workflow_name}_tests.robot"
+    automation_path = get_automation_path(workflow_name)
     if automation_path.exists():
         automation_path.unlink()
 
@@ -2290,9 +2348,13 @@ def delete_workflow(workflow_name: str):
         page_name = clean_text(str(pages[0].get("name", "")))
 
     if page_name:
-        page_dir = POM_DIR / page_name
+        page_dir = get_page_dir(page_name)
         if page_dir.exists() and page_dir.is_dir():
             shutil.rmtree(page_dir, ignore_errors=True)
+
+    manual_dir = get_manual_workflow_dir(workflow_name)
+    if manual_dir.exists() and manual_dir.is_dir():
+        shutil.rmtree(manual_dir, ignore_errors=True)
 
     return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
 
@@ -2316,6 +2378,22 @@ def edit_workflow(request: Request, workflow_name: str):
     })
 
 @app.post("/workflow/save")
+def normalize_resource_file_path(page_name: str, resource_file: str) -> str:
+    page_name = clean_text(page_name)
+    if not page_name:
+        return clean_text(resource_file)
+    expected = f"{page_name}/{page_name}.resource"
+    raw = clean_text(resource_file).replace("\\", "/")
+    if not raw:
+        return expected
+    if raw.endswith(f"/{page_name}.resource"):
+        return raw
+    if raw.endswith(".resource") and "/" in raw:
+        return raw
+    return expected
+
+
+
 def save_workflow(
     workflow_name: str = Form(...),
     module: str = Form("Authentication"),
@@ -2354,6 +2432,15 @@ def save_workflow(
     target_slug = existing_workflow_slug.strip() or slugify(workflow_name)
     target = WORKFLOW_DIR / f"{target_slug}.json"
     write_json(target, payload)
+
+    normalized_page_name = clean_text(page_name)
+    normalized_resource = normalize_resource_file_path(normalized_page_name, resource_file)
+    if normalized_page_name:
+        metadata_dir = get_page_metadata_dir(normalized_page_name)
+        metadata_dir.mkdir(parents=True, exist_ok=True)
+        if isinstance(payload.get("resourceFiles"), list):
+            payload["resourceFiles"] = [normalized_resource]
+            write_json(target, payload)
 
     return RedirectResponse(url=f"/page-review/{target_slug}", status_code=303)
 
@@ -2501,7 +2588,7 @@ async def save_keyword_review(request: Request, workflow_name: str):
             "approved": True,
         })
 
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_path = get_manual_json_path(workflow_name)
     if not manual_path.exists():
         return render_template(request, "keyword_review.html", {
             "workflow_name": workflow_name,
@@ -2529,7 +2616,7 @@ async def save_keyword_review(request: Request, workflow_name: str):
 @app.get("/manual-tests/{workflow_name}")
 def manual_tests_page(request: Request, workflow_name: str):
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_path = get_manual_json_path(workflow_name)
     reviewed_manual_path = get_manual_reviewed_path(workflow_name)
     workflow = read_json(workflow_path) if workflow_path.exists() else None
     effective_manual_path = reviewed_manual_path if reviewed_manual_path.exists() else manual_path
@@ -2546,7 +2633,7 @@ def manual_tests_page(request: Request, workflow_name: str):
 @app.post("/manual-tests/{workflow_name}/generate")
 def generate_manual_tests_route(request: Request, workflow_name: str):
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_path = get_manual_json_path(workflow_name)
     workflow = read_json(workflow_path) if workflow_path.exists() else None
     begin_workflow_run(workflow_name)
     try:
@@ -2573,7 +2660,7 @@ def generate_manual_tests_route(request: Request, workflow_name: str):
 async def save_manual_tests(request: Request, workflow_name: str):
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
     workflow = read_json(workflow_path) if workflow_path.exists() else None
-    manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    manual_path = get_manual_json_path(workflow_name)
 
     try:
         form = await request.form()
@@ -2663,7 +2750,7 @@ async def save_manual_tests(request: Request, workflow_name: str):
 
 @app.get("/automation/{workflow_name}")
 def automation_page(request: Request, workflow_name: str):
-    robot_path = TESTS_DIR / f"{workflow_name}_tests.robot"
+    robot_path = get_automation_path(workflow_name)
     reviewed_robot_path = get_automation_reviewed_path(workflow_name)
     effective_robot_path = reviewed_robot_path if reviewed_robot_path.exists() else robot_path
     robot_content = read_text(effective_robot_path)
@@ -2674,7 +2761,7 @@ def automation_page(request: Request, workflow_name: str):
 
 @app.post("/automation/{workflow_name}/generate")
 def generate_automation_route(request: Request, workflow_name: str):
-    existing_content = read_text(TESTS_DIR / f"{workflow_name}_tests.robot")
+    existing_content = read_text(get_automation_path(workflow_name))
     ensure_workflow_run(workflow_name)
     try:
         robot_content = generate_automation_for_workflow(workflow_name)
@@ -2693,7 +2780,7 @@ def generate_automation_route(request: Request, workflow_name: str):
 @app.post("/automation/{workflow_name}/save")
 def save_automation(request: Request, workflow_name: str, robot_content: str = Form(...)):
     try:
-        target = TESTS_DIR / f"{workflow_name}_tests.robot"
+        target = get_automation_path(workflow_name)
         target.parent.mkdir(parents=True, exist_ok=True)
         workflow = read_json(WORKFLOW_DIR / f"{workflow_name}.json") if (WORKFLOW_DIR / f"{workflow_name}.json").exists() else None
         robot_content = normalize_robot_content(robot_content, workflow, workflow_name)
@@ -2713,7 +2800,7 @@ def save_automation(request: Request, workflow_name: str, robot_content: str = F
 @app.get("/static-artifacts/{page_name}/{file_name}")
 def static_artifact(page_name: str, file_name: str):
     from fastapi.responses import FileResponse
-    target = POM_DIR / page_name / file_name
+    target = get_page_metadata_dir(page_name) / file_name
     if not target.exists():
         raise HTTPException(status_code=404, detail="Artifact not found")
     return FileResponse(target)

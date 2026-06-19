@@ -30,6 +30,7 @@
                 <div class="col-md-12">
                     <label class="form-label">Resource File</label>
                     <input class="form-control" name="resource_file" value="{{ data.resourceFiles[0] if data and data.resourceFiles else 'login_page/login_page.resource' }}" required>
+                    <div class="form-text">Page resource stays directly under the page folder, for example <code>login_page/login_page.resource</code>. Other page artifacts are stored under <code>pom_pages/&lt;page&gt;/metadata</code>.</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Observed Preconditions (one per line)</label>
