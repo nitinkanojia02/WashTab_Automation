@@ -735,38 +735,36 @@ def get_resource_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.resource"
 
 
+def get_internal_artifacts_dir(page_name: str) -> Path:
+    return POM_DIR / page_name / ".internal"
+
+
 def get_effective_resource_path(page_name: str) -> Path:
-    refined_path = get_resource_refined_path(page_name)
-    if refined_path.exists() and clean_text(read_text(refined_path)):
-        return refined_path
-    draft_path = get_resource_draft_path(page_name)
-    if draft_path.exists() and clean_text(read_text(draft_path)):
-        return draft_path
     return get_resource_path(page_name)
 
 
 def get_elements_draft_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.elements.draft.json"
+    return get_internal_artifacts_dir(page_name) / f"{page_name}.elements.draft.json"
 
 
 def get_elements_review_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.elements.review.json"
+    return get_internal_artifacts_dir(page_name) / f"{page_name}.elements.review.json"
 
 
 def get_elements_refined_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.elements.refined.json"
+    return get_internal_artifacts_dir(page_name) / f"{page_name}.elements.refined.json"
 
 
 def get_resource_draft_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.resource.draft"
+    return get_internal_artifacts_dir(page_name) / f"{page_name}.resource.draft"
 
 
 def get_resource_review_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.resource.review.json"
+    return get_internal_artifacts_dir(page_name) / f"{page_name}.resource.review.json"
 
 
 def get_resource_refined_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.resource.refined"
+    return get_internal_artifacts_dir(page_name) / f"{page_name}.resource.refined"
 
 def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
     pages = workflow.get("pages", [])
@@ -982,12 +980,14 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
                 })
             if normalized:
                 refined_elements = normalized
-                write_json(review_data["elements_refined_path"], {
+                refined_payload_to_store = {
                     "pageName": review_data["page_name"],
                     "pageUrl": review_data["page_url"],
                     "rawElements": raw_elements,
                     "elements": refined_elements,
-                })
+                }
+                write_json(review_data["elements_refined_path"], refined_payload_to_store)
+                write_json(review_data["elements_path"], refined_payload_to_store)
     except Exception as exc:
         review_result = {
             "overall_quality": "low",
@@ -996,6 +996,7 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
         }
         write_json(review_data["elements_review_path"], review_result)
         write_json(review_data["elements_refined_path"], draft_payload)
+        write_json(review_data["elements_path"], draft_payload)
 
     return refined_elements, review_result
 
@@ -1240,6 +1241,7 @@ def review_and_refine_resource_artifact(workflow: dict, page_name: str, elements
         write_json(review_path, review_result)
 
     write_text_file(refined_path, refined_resource)
+    write_text_file(get_resource_path(page_name), refined_resource)
     return refined_resource, review_result
 
 
