@@ -619,6 +619,43 @@ def build_keyword_signature_map(allowed_resources: list[str]) -> dict[str, dict]
     return signature_map
 
 
+def validate_robot_alignment_with_resource_context(content: str, resource_context: list[dict]) -> tuple[bool, str]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    approved_resource_keyword_names = {
+        clean_text(str(keyword.get("name", ""))).lower()
+        for resource in resource_context
+        for keyword in resource.get("keywords", [])
+        if clean_text(str(keyword.get("name", "")))
+    }
+
+    suite_called_keywords: list[str] = []
+    in_test_cases = False
+    for raw_line in content.splitlines():
+        stripped = raw_line.strip()
+        lowered = stripped.lower()
+        if lowered == "*** test cases ***":
+            in_test_cases = True
+            continue
+        if lowered.startswith("***") and lowered != "*** test cases ***":
+            in_test_cases = False
+            continue
+        if not in_test_cases:
+            continue
+        if raw_line.startswith((" ", "\t")) and stripped and not stripped.startswith("["):
+            parts = [part.strip() for part in re.split(r"\s{2,}|\t+", stripped) if part.strip()]
+            if parts:
+                suite_called_keywords.append(clean_text(parts[0]).lower())
+
+    if approved_resource_keyword_names:
+        called_approved_keywords = [name for name in suite_called_keywords if name in approved_resource_keyword_names]
+        if not called_approved_keywords:
+            warnings.append("Generated suite does not appear to reuse approved page/common resource keywords from the provided resource context")
+
+    return len(errors) == 0, ("Warnings:\n" + "\n".join(warnings)) if warnings else ""
+
+
 def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[bool, str]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -1034,10 +1071,13 @@ def process_manual_file(config: dict, manual_json_path: Path):
     robot_content = validated_robot_content or robot_content
 
     is_valid, validation_message = validate_robot_content(robot_content, resource_files)
+    alignment_valid, alignment_message = validate_robot_alignment_with_resource_context(robot_content, resource_context)
     if not is_valid:
         raise ValueError(
             f"Generated invalid robot content for {manual_json_path.name}: {validation_message}"
         )
+    if alignment_message:
+        logger.warning("Robot alignment review for %s: %s", manual_json_path.name, alignment_message)
     
     ensure_dir(tests_output_dir)
     output_path.write_text(robot_content, encoding="utf-8")

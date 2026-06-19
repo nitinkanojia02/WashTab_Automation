@@ -1816,6 +1816,61 @@ def validate_review_artifact_consistency(workflow: dict, approved_keywords: list
     return True, ""
 
 
+def validate_generated_resource_against_approved_artifacts(
+    workflow: dict,
+    approved_keywords: list[dict],
+    resource_content: str,
+) -> tuple[bool, str]:
+    approved_elements = load_approved_elements_for_workflow(workflow)
+    approved_variable_names = {
+        to_robot_variable_name(clean_text(str(item.get("approvedName", ""))))
+        for item in approved_elements
+        if clean_text(str(item.get("approvedName", "")))
+    }
+    approved_keyword_names = {
+        clean_text(str(item.get("keywordName", ""))).lower()
+        for item in approved_keywords
+        if isinstance(item, dict) and clean_text(str(item.get("keywordName", ""))) and bool(item.get("approved", True))
+    }
+
+    parsed_keywords = extract_keywords_from_resource(resource_content)
+    parsed_variables = extract_variables_from_resource(resource_content)
+    resource_keyword_names = {
+        clean_text(str(item.get("name", ""))).lower()
+        for item in parsed_keywords
+        if clean_text(str(item.get("name", "")))
+    }
+    resource_variable_names = {
+        clean_text(str(item.get("name", ""))).upper()
+        for item in parsed_variables
+        if clean_text(str(item.get("name", "")))
+    }
+
+    missing_keywords = sorted(name for name in approved_keyword_names if name not in resource_keyword_names)
+    missing_variables = sorted(name for name in approved_variable_names if name and name not in resource_variable_names)
+
+    errors = []
+    warnings = []
+    if missing_keywords:
+        errors.append(
+            "Generated page resource is missing approved keywords: "
+            + ", ".join(missing_keywords)
+        )
+    if missing_variables:
+        warnings.append(
+            "Generated page resource is missing approved locator variables: "
+            + ", ".join(missing_variables)
+        )
+
+    is_valid = len(errors) == 0
+    message_parts = []
+    if errors:
+        message_parts.append("\n".join(errors))
+    if warnings:
+        message_parts.append("Warnings:\n" + "\n".join(warnings))
+    return is_valid, "\n\n".join(part for part in message_parts if part)
+
+
 def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]):
     review_data = get_page_review_data(workflow)
     page_name = review_data["page_name"]
@@ -1900,8 +1955,15 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
         resource_content = reviewed_resource_content
 
     is_valid, validation_message = validate_resource_content(resource_content, common_resource_context)
+    artifact_valid, artifact_message = validate_generated_resource_against_approved_artifacts(
+        workflow,
+        approved_keywords,
+        resource_content,
+    )
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
+    if not artifact_valid:
+        raise HTTPException(status_code=400, detail=artifact_message)
     resource_path.write_text(resource_content, encoding="utf-8")
     enrich_resource_with_manual_test_variables(workflow, approved_keywords)
 
