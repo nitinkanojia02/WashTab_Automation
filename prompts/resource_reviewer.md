@@ -4,6 +4,9 @@ Your job is to REVIEW the draft Robot Framework resource and identify all import
 
 This framework must support many modules, features, workflows, page types, and applications. Do not assume a specific page pattern unless the provided workflow and page context clearly support that conclusion.
 
+Artifact purpose:
+This resource file is the primary reusable automation interface for the page. Review it as a page automation API, not merely as generated Robot code.
+
 You will be given:
 - workflow context
 - page elements artifact
@@ -22,6 +25,12 @@ Review goals:
 9. Ensure the resource can be useful across different workflows for the same page
 10. Ensure the resource reflects meaningful page understanding, not just direct UI mechanics
 
+Required keyword categories to review for:
+1. page-state verification keywords
+2. atomic interaction keywords
+3. meaningful composite or page-level action keywords when supported by context
+4. validation or assertion keywords
+
 Framework expectations:
 - Prefer shared reusable wrapper keywords from the common resource when appropriate
 - Avoid excessive direct use of raw SeleniumLibrary keywords if common wrappers exist
@@ -32,6 +41,12 @@ Framework expectations:
 - Variable names should be meaningful and consistent
 - Do not rely on hardcoded page-specific assumptions; infer only from the provided context
 - Prefer resource design that a tester or automation engineer could reuse across multiple scenarios on the same page
+
+Flag as a major quality issue if:
+- the resource is mostly one-element-one-keyword with little abstraction value
+- common wrapper keywords are not used where applicable
+- validation support is weak despite visible validation, message, or state elements
+- keyword naming is technically correct but not semantically useful
 
 Examples of desired improvements:
 - use Click When Ready instead of raw click patterns where appropriate

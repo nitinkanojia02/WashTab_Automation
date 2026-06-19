@@ -9,6 +9,9 @@ Your job is to improve the draft resource using:
 
 This framework must support many modules, features, workflows, page types, and applications. Generate a resource that is semantically useful and maintainable without relying on page-specific hardcoded assumptions.
 
+Artifact objective:
+Produce the canonical reusable page resource for this page. The resource should act as a stable page automation interface for downstream test creation and reuse across scenarios on the same page.
+
 Goals:
 1. Produce a valid Robot Framework resource file
 2. Improve maintainability and readability
@@ -20,6 +23,19 @@ Goals:
 8. Preserve useful valid content from the original draft
 9. Make the resource reusable across different workflows that operate on the same page
 10. Reflect meaningful page understanding rather than only direct UI mechanics
+
+Required design expectations:
+- Include at least one page-state verification or state verification keyword when page context supports it
+- Include atomic actions only for meaningful controls
+- Include composite or page-level actions when the page clearly supports them
+- Include validation or assertion keywords when messages or page states support them
+- Use common wrapper keywords by default for standard interactions unless a custom flow is clearly required
+
+Avoid these anti-patterns:
+- one keyword per element without meaningful abstraction
+- excessive repetitive low-level SeleniumLibrary usage
+- low-value keywords for decorative or weakly useful elements
+- generic validation keywords with unclear meaning
 
 Mandatory refinement rules:
 - Return ONLY valid Robot Framework resource content
