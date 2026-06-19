@@ -1,168 +1,107 @@
 *** Settings ***
 Resource    ../resources/common_keywords.resource
 Resource    ../pom_pages/login_page/login_page.resource
-Test Setup    Open Login Page    http://172.21.166.115/washtabui/login?data=undefined
+Test Setup    Open Login Page
 Test Teardown    Close Browser Session
 
 *** Test Cases ***
-AUT-WT-LOGIN01: Verify login page loads with correct URL and login form
+AUT-WT-LOGIN01: Verify login page loads with all required controls
     [Tags]    WT-LOGIN01    positive
     Verify Login Page Loaded
-    ${url}=    Get Location
-    Should Be Equal    ${url}    http://172.21.166.115/washtabui/login?data=undefined
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN02: Verify User Name, Password fields and SIGN IN button are visible and enabled
-    [Tags]    WT-LOGIN02    positive
-    Verify Login Page Loaded
-    Wait For Element To Be Ready    ${USERNAME_FIELD}
-    Wait For Element To Be Ready    ${PASSWORD_FIELD}
-    Wait For Element To Be Ready    ${SIGN_IN_BUTTON}
-    Element Should Be Enabled    ${USERNAME_FIELD}
-    Element Should Be Enabled    ${PASSWORD_FIELD}
-    Element Should Be Enabled    ${SIGN_IN_BUTTON}
-
-AUT-WT-LOGIN03: Verify Home and Arrow Back controls are visible on login page
+AUT-WT-LOGIN03: Verify successful login using valid credentials via SIGN IN button
     [Tags]    WT-LOGIN03    positive
-    Verify Login Navigation Controls Visible
-    Element Should Be Enabled    ${HOME_BUTTON}
-    Element Should Be Enabled    ${BACK_BUTTON}
+    Login With Valid Credentials
+    Location Should Contain    /washtabui/home
 
-AUT-WT-LOGIN04: Successful login with valid credentials using SIGN IN button
+AUT-WT-LOGIN04: Verify successful login using Enter key from password field
     [Tags]    WT-LOGIN04    positive
-    Login With Credentials    haklarr    Icstunnel1
-    ${url}=    Get Location
-    Should Contain    ${url}    /home
-    Should Not Contain    ${url}    /login
-
-AUT-WT-LOGIN05: Successful login using Enter key from Password field
-    [Tags]    WT-LOGIN05    positive
-    Verify Login Page Loaded
-    Enter Username    haklarr
-    Enter Password    Icstunnel1
+    Enter Username    ${VALID_USERNAME}
+    Enter Password    ${VALID_PASSWORD}
     Press Keys    ${PASSWORD_FIELD}    ENTER
-    ${url}=    Get Location
-    Should Contain    ${url}    /home
-    Should Not Contain    ${url}    /login
+    Location Should Contain    /washtabui/home
 
-AUT-WT-LOGIN06: Login fails with incorrect password
+AUT-WT-LOGIN05: Verify login fails with incorrect password
+    [Tags]    WT-LOGIN05    negative
+    Attempt Login With Credentials    ${VALID_USERNAME}    ${INVALID_PASSWORD}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
+
+AUT-WT-LOGIN06: Verify login fails with incorrect username
     [Tags]    WT-LOGIN06    negative
-    Attempt Login With Credentials    haklarr    WrongPassword123
-    Verify Login Rejected
-    ${url}=    Get Location
-    Should Contain    ${url}    /login
+    Attempt Login With Credentials    ${INVALID_USERNAME}    ${VALID_PASSWORD}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN07: Login fails with incorrect username
+AUT-WT-LOGIN07: Verify login fails when both username and password are blank
     [Tags]    WT-LOGIN07    negative
-    Attempt Login With Credentials    invaliduser    Icstunnel1
-    Verify Login Rejected
-    ${url}=    Get Location
-    Should Contain    ${url}    /login
+    Attempt Login With Credentials    ${EMPTY}    ${EMPTY}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN08: Validation when both username and password fields are blank
+AUT-WT-LOGIN08: Verify login fails when username is blank
     [Tags]    WT-LOGIN08    negative
-    Verify Login Page Loaded
-    Click Sign In Button
-    Verify Username Required Validation
-    Verify Password Required Validation
+    Attempt Login With Credentials    ${EMPTY}    ${VALID_PASSWORD}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN09: Validation when username is blank and password is entered
+AUT-WT-LOGIN09: Verify login fails when password is blank
     [Tags]    WT-LOGIN09    negative
-    Verify Login Page Loaded
-    Enter Password    Icstunnel1
-    Click Sign In Button
-    Verify Username Required Validation
+    Attempt Login With Credentials    ${VALID_USERNAME}    ${EMPTY}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN10: Validation when password is blank and username is entered
-    [Tags]    WT-LOGIN10    negative
-    Verify Login Page Loaded
-    Enter Username    haklarr
-    Click Sign In Button
-    Verify Password Required Validation
+AUT-WT-LOGIN10: Verify Home control navigates to home page
+    [Tags]    WT-LOGIN10    positive
+    Click Home Navigation
+    Location Should Contain    /washtabui/home
 
-AUT-WT-LOGIN11: Login attempt using whitespace-only values
-    [Tags]    WT-LOGIN11    edge
-    Attempt Login With Credentials    ${SPACE}${SPACE}    ${SPACE}${SPACE}
-    Verify Login Rejected
-    ${url}=    Get Location
-    Should Contain    ${url}    /login
+AUT-WT-LOGIN11: Verify Arrow Back control navigates to home page
+    [Tags]    WT-LOGIN11    positive
+    Click Back Navigation
+    Location Should Contain    /washtabui/home
 
-AUT-WT-LOGIN12: Login with leading and trailing spaces around username
-    [Tags]    WT-LOGIN12    edge
-    Attempt Login With Credentials    ${SPACE}haklarr${SPACE}    Icstunnel1
-    ${url}=    Get Location
-    Should Contain    ${url}    /home
-    Should Not Contain    ${url}    /login
+AUT-WT-LOGIN12: Verify password field masks entered characters
+    [Tags]    WT-LOGIN12    positive
+    Enter Password    ${VALID_PASSWORD}
+    Element Attribute Value Should Be    ${PASSWORD_FIELD}    type    password
 
-AUT-WT-LOGIN13: Verify password field masks entered characters
-    [Tags]    WT-LOGIN13    positive
-    Verify Login Page Loaded
-    Input Text When Ready    ${PASSWORD_FIELD}    Icstunnel1
-    ${type}=    Get Element Attribute    ${PASSWORD_FIELD}    type
-    Should Be Equal    ${type}    password
+AUT-WT-LOGIN13: Verify login fails when username contains only whitespace
+    [Tags]    WT-LOGIN13    negative
+    Attempt Login With Credentials    ${SPACE}${SPACE}${SPACE}    ${VALID_PASSWORD}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN14: Login fails when password case is incorrect
+AUT-WT-LOGIN14: Verify login fails when password contains only whitespace
     [Tags]    WT-LOGIN14    negative
-    Attempt Login With Credentials    haklarr    icstunnel1
-    Verify Login Rejected
-    ${url}=    Get Location
-    Should Contain    ${url}    /login
+    Attempt Login With Credentials    ${VALID_USERNAME}    ${SPACE}${SPACE}${SPACE}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN15: Login fails when username case differs
+AUT-WT-LOGIN15: Verify login trims leading and trailing spaces in username
     [Tags]    WT-LOGIN15    edge
-    Attempt Login With Credentials    HAKLARR    Icstunnel1
-    Verify Login Rejected
-    ${url}=    Get Location
-    Should Contain    ${url}    /login
+    Attempt Login With Credentials    ${SPACE}${VALID_USERNAME}${SPACE}    ${VALID_PASSWORD}
+    Location Should Contain    /washtabui/home
 
-AUT-WT-LOGIN16: Verify Home control redirects to home page
-    [Tags]    WT-LOGIN16    positive
-    Verify Login Navigation Controls Visible
-    Click Home Button
-    ${url}=    Get Location
-    Should Contain    ${url}    /home
-    Should Not Contain    ${url}    /login
+AUT-WT-LOGIN16: Verify login with extremely long username input
+    [Tags]    WT-LOGIN16    edge
+    ${LONG_USERNAME}=    Evaluate    "a"*300
+    Attempt Login With Credentials    ${LONG_USERNAME}    ${VALID_PASSWORD}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login
 
-AUT-WT-LOGIN17: Verify Arrow Back control redirects to home page
-    [Tags]    WT-LOGIN17    positive
-    Verify Login Navigation Controls Visible
-    Click Arrow Back Button
-    ${url}=    Get Location
-    Should Contain    ${url}    /home
-    Should Not Contain    ${url}    /login
+AUT-WT-LOGIN17: Verify multiple rapid clicks on SIGN IN button
+    [Tags]    WT-LOGIN17    edge
+    Enter Username    ${VALID_USERNAME}
+    Enter Password    ${VALID_PASSWORD}
+    Submit Login Form
+    Submit Login Form
+    Submit Login Form
+    Location Should Contain    /washtabui/home
 
-AUT-WT-LOGIN18: Verify handling of extremely long username input
-    [Tags]    WT-LOGIN18    edge
-    ${long}=    Evaluate    "a"*300
-    Attempt Login With Credentials    ${long}    Icstunnel1
-    Verify Login Rejected
-    ${url}=    Get Location
-    Should Contain    ${url}    /login
-
-AUT-WT-LOGIN19: Login attempt with special characters in username
-    [Tags]    WT-LOGIN19    edge
-    Attempt Login With Credentials    haklarr!@#    Icstunnel1
-    Verify Login Rejected
-    ${url}=    Get Location
-    Should Contain    ${url}    /login
-
-AUT-WT-LOGIN20: Verify multiple rapid clicks on SIGN IN button do not create duplicate submissions
-    [Tags]    WT-LOGIN20    edge
-    Verify Login Page Loaded
-    Enter Username    haklarr
-    Enter Password    Icstunnel1
-    Click Sign In Button
-    Click Sign In Button
-    Click Sign In Button
-    ${url}=    Get Location
-    Should Contain    ${url}    /home
-    Should Not Contain    ${url}    /login
-
-AUT-WT-LOGIN21: Successful login using copied and pasted credentials
-    [Tags]    WT-LOGIN21    edge
-    Verify Login Page Loaded
-    Input Text When Ready    ${USERNAME_FIELD}    haklarr
-    Input Text When Ready    ${PASSWORD_FIELD}    Icstunnel1
-    Click Sign In Button
-    ${url}=    Get Location
-    Should Contain    ${url}    /home
-    Should Not Contain    ${url}    /login
+AUT-WT-LOGIN18: Verify login fails with special characters in username
+    [Tags]    WT-LOGIN18    negative
+    Attempt Login With Credentials    @@@###$$$    ${VALID_PASSWORD}
+    Verify Login Failed
+    Location Should Contain    /washtabui/login

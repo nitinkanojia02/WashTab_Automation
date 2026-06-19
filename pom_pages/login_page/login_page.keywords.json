@@ -12,30 +12,6 @@
         "    Click When Ready    ${SIGN_IN_BUTTON}"
       ],
       "approved": true
-    },
-    {
-      "keywordId": "KW_006",
-      "keywordName": "Click Home Button",
-      "targetElement": "home_button",
-      "action": "click",
-      "arguments": [],
-      "implementation": [
-        "    [Documentation]    Navigate to the home page using the Home navigation button.",
-        "    Click When Ready    ${HOME_BUTTON}"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_007",
-      "keywordName": "Click Arrow Back Button",
-      "targetElement": "back_button",
-      "action": "click",
-      "arguments": [],
-      "implementation": [
-        "    [Documentation]    Navigate using the Arrow Back navigation button.",
-        "    Click When Ready    ${BACK_BUTTON}"
-      ],
-      "approved": true
     }
   ]
 }
