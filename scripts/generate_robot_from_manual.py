@@ -601,6 +601,30 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
     errors: list[str] = []
     warnings: list[str] = []
 
+    def normalize_keyword_token(value: str) -> str:
+        return clean_text(value).lower()
+
+    def scan_keyword_invocation(raw_text: str) -> tuple[str, list[str]]:
+        stripped = raw_text.strip()
+        parts = [part.strip() for part in re.split(r"\s{2,}|\t+", stripped) if part.strip()]
+        if not parts:
+            return "", []
+        return parts[0], parts[1:]
+
+    def validate_keyword_call(keyword_name: str, arguments: list[str], source_label: str):
+        normalized_keyword = normalize_keyword_token(keyword_name)
+        if not normalized_keyword:
+            return
+        if normalized_keyword not in builtin_keywords and normalized_keyword not in selenium_keywords and normalized_keyword not in resource_keyword_names:
+            warnings.append(f"Generated suite may use an unknown or unsupported keyword: {keyword_name}")
+        signature = keyword_signature_map.get(normalized_keyword)
+        if signature:
+            required_count = len(signature.get("required_args", []))
+            if len(arguments) < required_count:
+                errors.append(
+                    f"Keyword '{signature.get('name', keyword_name)}' requires {required_count} argument(s) but was called with {len(arguments)} in {source_label}. Source: {signature.get('source', 'unknown')}"
+                )
+
     builtin_keywords = {
         "should be equal", "should not be equal", "should contain", "should not contain",
         "should be true", "should be false", "should be empty", "should not be empty",
@@ -678,6 +702,15 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
     keyword_signature_map = build_keyword_signature_map(allowed_resources)
     resource_keyword_names = set(keyword_signature_map.keys())
 
+    for raw_line in content.splitlines():
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+        setup_match = re.match(r"(?im)^\s*(Suite Setup|Test Setup|Suite Teardown|Test Teardown)\s{2,}(.+)$", raw_line)
+        if setup_match:
+            keyword_name, arguments = scan_keyword_invocation(setup_match.group(2))
+            validate_keyword_call(keyword_name, arguments, setup_match.group(1))
+
     in_test_cases = False
     current_test_steps: list[str] = []
     all_test_steps: list[list[str]] = []
@@ -702,21 +735,10 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
             current_test_steps = []
             continue
         if raw_line.startswith((" ", "\t")) and stripped and not stripped.startswith("["):
-            parts = re.split(r"\s{2,}|\t+", stripped)
-            keyword_name = parts[0].strip() if parts else ""
-            arguments = [part.strip() for part in parts[1:] if part.strip()]
+            keyword_name, arguments = scan_keyword_invocation(stripped)
             if keyword_name:
                 current_test_steps.append(keyword_name)
-                normalized_keyword = clean_text(keyword_name).lower()
-                if normalized_keyword not in builtin_keywords and normalized_keyword not in selenium_keywords and normalized_keyword not in resource_keyword_names:
-                    warnings.append(f"Generated suite may use an unknown or unsupported keyword: {keyword_name}")
-                signature = keyword_signature_map.get(normalized_keyword)
-                if signature:
-                    required_count = len(signature.get("required_args", []))
-                    if len(arguments) < required_count:
-                        errors.append(
-                            f"Keyword '{signature.get('name', keyword_name)}' requires {required_count} argument(s) but was called with {len(arguments)} in the suite. Source: {signature.get('source', 'unknown')}"
-                        )
+                validate_keyword_call(keyword_name, arguments, "the suite")
     if current_test_steps:
         all_test_steps.append(current_test_steps)
 
