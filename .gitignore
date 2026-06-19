@@ -1,3 +1,11 @@
-__pycache__/
 *.pyc
+__pycache__/
+ai_sessions/
+manual_tests/
+pom_pages/*/*.debug.html
+pom_pages/*/*.elements.json
+pom_pages/*/*.keywords.json
+pom_pages/*/*.png
+pom_pages/*/*.resource
 results/
+tests/*_tests.robot
