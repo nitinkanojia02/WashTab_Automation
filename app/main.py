@@ -660,6 +660,14 @@ def normalize_extracted_element(item: dict, index: int) -> dict:
         "approved": True,
     }
 
+def get_page_reviewed_path(page_name: str) -> Path:
+    return POM_DIR / page_name / f"{page_name}.elements.reviewed.json"
+
+
+def get_keywords_reviewed_path(page_name: str) -> Path:
+    return POM_DIR / page_name / f"{page_name}.keywords.reviewed.json"
+
+
 def get_page_review_data(workflow: dict):
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
@@ -667,6 +675,7 @@ def get_page_review_data(workflow: dict):
 
     page_dir = POM_DIR / page_name
     elements_path = page_dir / f"{page_name}.elements.json"
+    reviewed_elements_path = get_page_reviewed_path(page_name)
     screenshot_path = page_dir / f"{page_name}.png"
 
     extracted_elements_data = []
@@ -674,7 +683,7 @@ def get_page_review_data(workflow: dict):
     refined_elements_data = []
     review_summary = None
 
-    source_path = elements_path
+    source_path = reviewed_elements_path if reviewed_elements_path.exists() else elements_path
 
     if source_path.exists():
         try:
@@ -1043,14 +1052,14 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
                     "rawElements": raw_elements,
                     "elements": refined_elements,
                 }
-                write_json(review_data["elements_path"], refined_payload_to_store)
+                write_json(get_page_reviewed_path(review_data["page_name"]), refined_payload_to_store)
     except Exception as exc:
         review_result = {
             "overall_quality": "low",
             "summary": f"AI refinement failed: {str(exc)}",
             "issues": [],
         }
-        write_json(review_data["elements_path"], draft_payload)
+        write_json(get_page_reviewed_path(review_data["page_name"]), draft_payload)
 
     return refined_elements, review_result
 
@@ -1059,6 +1068,7 @@ def get_keyword_review_data(workflow: dict):
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
     keywords_path = get_keywords_path(page_name)
+    reviewed_keywords_path = get_keywords_reviewed_path(page_name)
     resource_path = get_resource_path(page_name)
 
     approved_elements = load_approved_elements_for_workflow(workflow)
@@ -1086,9 +1096,10 @@ def get_keyword_review_data(workflow: dict):
         return ""
 
     keywords = []
-    if keywords_path.exists() and approved_elements_by_name:
+    source_keywords_path = reviewed_keywords_path if reviewed_keywords_path.exists() else keywords_path
+    if source_keywords_path.exists() and approved_elements_by_name:
         try:
-            payload = read_json(keywords_path)
+            payload = read_json(source_keywords_path)
             raw_keywords = payload.get("keywords", [])
             filtered_keywords = []
             for item in raw_keywords:
@@ -1208,12 +1219,17 @@ def get_keyword_review_data(workflow: dict):
                             })
                         if normalized_reviewed:
                             keywords = normalized_reviewed
+                            write_json(reviewed_keywords_path, {
+                                "pageName": page_name,
+                                "keywords": normalized_reviewed,
+                            })
         except Exception:
             pass
 
     return {
         "page_name": page_name,
         "keywords_path": keywords_path,
+        "reviewed_keywords_path": reviewed_keywords_path,
         "resource_path": resource_path,
         "keywords": keywords,
         "approved_elements": approved_elements,
@@ -1349,7 +1365,6 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
     keywords_path = get_keywords_path(page_name)
-    resource_path = get_resource_path(page_name)
 
     approved_elements = load_approved_elements_for_workflow(workflow)
     approved_elements_by_name = {
@@ -1377,17 +1392,6 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
                 return element_name
         return ""
 
-    resource_keywords_by_name = {}
-    if resource_path.exists():
-        try:
-            resource_context = parse_resource_file(resource_path)
-            for resource_keyword in resource_context.get("keywords", []):
-                resource_keyword_name = clean_text(str(resource_keyword.get("name", "")))
-                if resource_keyword_name:
-                    resource_keywords_by_name[resource_keyword_name.lower()] = resource_keyword
-        except Exception:
-            resource_keywords_by_name = {}
-
     approved_keywords_by_name = {
         clean_text(str(item.get("keywordName", ""))).lower(): item
         for item in keywords
@@ -1395,90 +1399,37 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
     }
 
     normalized_keywords = []
-    if resource_keywords_by_name and approved_elements_by_name:
-        for idx, (keyword_name_lower, resource_keyword) in enumerate(resource_keywords_by_name.items(), start=1):
-            if keyword_name_lower in disallowed_resource_keywords:
-                continue
+    for idx, keyword in enumerate(keywords, start=1):
+        keyword_name = clean_text(str(keyword.get("keywordName", "")))
+        if not keyword_name or keyword_name.lower() in disallowed_resource_keywords:
+            continue
 
-            resource_keyword_name = clean_text(str(resource_keyword.get("name", "")))
-            approved_keyword = approved_keywords_by_name.get(keyword_name_lower, {})
-            target_element = resolve_target_element(resource_keyword_name, str(approved_keyword.get("targetElement", "")))
-            if not target_element:
-                continue
+        target_element = resolve_target_element(keyword_name, str(keyword.get("targetElement", "")))
+        implementation = keyword.get("implementation", [])
+        if isinstance(implementation, str):
+            implementation = [line.rstrip() for line in implementation.splitlines() if line.strip()]
+        implementation = [str(line).rstrip() for line in implementation if clean_text(str(line))]
 
-            implementation = resource_keyword.get("body") or []
-            implementation = [str(line).rstrip() for line in implementation if clean_text(str(line))]
+        arguments = keyword.get("arguments", [])
+        if isinstance(arguments, str):
+            arguments = [arg.strip() for arg in arguments.split(",") if arg.strip()]
+        arguments = [str(arg).replace("${", "").replace("}", "").strip() for arg in arguments if clean_text(str(arg))]
 
-            arguments = resource_keyword.get("args") or []
-            arguments = [str(arg).replace("${", "").replace("}", "").strip() for arg in arguments if clean_text(str(arg))]
-
-            action = clean_text(str(approved_keyword.get("action", "")))
-            if not action:
-                lowered_name = resource_keyword_name.lower()
-                if lowered_name.startswith("click "):
-                    action = "click"
-                elif lowered_name.startswith("enter ") or lowered_name.startswith("input "):
-                    action = "input"
-                elif lowered_name.startswith("select "):
-                    action = "select"
-                elif lowered_name.startswith("verify "):
-                    action = "verify"
-                else:
-                    action = "generic"
-
-            normalized_keywords.append({
-                "keywordId": clean_text(str(approved_keyword.get("keywordId", ""))) or f"KW_{idx:03d}",
-                "keywordName": resource_keyword_name,
-                "targetElement": target_element,
-                "action": action,
-                "arguments": arguments,
-                "implementation": implementation,
-                "approved": bool(approved_keyword.get("approved", True)),
-            })
-    else:
-        for idx, keyword in enumerate(keywords, start=1):
-            keyword_name = clean_text(str(keyword.get("keywordName", "")))
-            if not keyword_name or keyword_name.lower() in disallowed_resource_keywords:
-                continue
-
-            target_element = resolve_target_element(keyword_name, str(keyword.get("targetElement", "")))
-            if not target_element:
-                continue
-
-            implementation = keyword.get("implementation", [])
-            if isinstance(implementation, str):
-                implementation = [line.rstrip() for line in implementation.splitlines() if line.strip()]
-            implementation = [str(line).rstrip() for line in implementation if clean_text(str(line))]
-
-            arguments = keyword.get("arguments", [])
-            if isinstance(arguments, str):
-                arguments = [arg.strip() for arg in arguments.split(",") if arg.strip()]
-            arguments = [str(arg).replace("${", "").replace("}", "").strip() for arg in arguments if clean_text(str(arg))]
-
-            normalized_keywords.append({
-                "keywordId": clean_text(str(keyword.get("keywordId", ""))) or f"KW_{idx:03d}",
-                "keywordName": keyword_name,
-                "targetElement": target_element,
-                "action": clean_text(str(keyword.get("action", ""))) or "generic",
-                "arguments": arguments,
-                "implementation": implementation,
-                "approved": bool(keyword.get("approved", True)),
-            })
+        normalized_keywords.append({
+            "keywordId": clean_text(str(keyword.get("keywordId", ""))) or f"KW_{idx:03d}",
+            "keywordName": keyword_name,
+            "targetElement": target_element,
+            "action": clean_text(str(keyword.get("action", ""))) or "generic",
+            "arguments": arguments,
+            "implementation": implementation,
+            "approved": bool(keyword.get("approved", True)),
+        })
 
     payload = {
         "pageName": page_name,
         "keywords": normalized_keywords,
     }
     write_json(keywords_path, payload)
-
-    if resource_path.exists():
-        try:
-            draft_resource = read_text(resource_path)
-            refined_resource, _ = review_and_refine_resource_artifact(workflow, page_name, approved_elements, draft_resource)
-            if refined_resource.strip():
-                write_text_file(resource_path, refined_resource)
-        except Exception:
-            pass
 
 # -------------------------------------------------------------------
 # AI-driven resource generation
@@ -1753,40 +1704,6 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
     resource_path.write_text(resource_content, encoding="utf-8")
-
-    refreshed_resource_context = parse_resource_file(resource_path)
-    refreshed_keywords = []
-    seen_keyword_names = set()
-    for idx, resource_keyword in enumerate(refreshed_resource_context.get("keywords", []), start=1):
-        resource_keyword_name = clean_text(str(resource_keyword.get("name", "")))
-        if not resource_keyword_name:
-            continue
-        lowered_name = resource_keyword_name.lower()
-        if lowered_name in seen_keyword_names:
-            continue
-        seen_keyword_names.add(lowered_name)
-
-        action = "generic"
-        if lowered_name.startswith("click "):
-            action = "click"
-        elif lowered_name.startswith("enter ") or lowered_name.startswith("input "):
-            action = "input"
-        elif lowered_name.startswith("select "):
-            action = "select"
-        elif lowered_name.startswith("verify "):
-            action = "verify"
-
-        refreshed_keywords.append({
-            "keywordId": f"KW_{idx:03d}",
-            "keywordName": resource_keyword_name,
-            "targetElement": "",
-            "action": action,
-            "arguments": [arg.replace("${", "").replace("}", "") for arg in resource_keyword.get("args", [])],
-            "implementation": [str(line).rstrip() for line in resource_keyword.get("body", []) if clean_text(str(line))],
-            "approved": True,
-        })
-
-    save_keywords_for_workflow(workflow, refreshed_keywords)
 
 # -------------------------------------------------------------------
 # Manual tests handling
