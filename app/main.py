@@ -722,6 +722,16 @@ def get_resource_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.resource"
 
 
+def get_effective_resource_path(page_name: str) -> Path:
+    refined_path = get_resource_refined_path(page_name)
+    if refined_path.exists() and clean_text(read_text(refined_path)):
+        return refined_path
+    draft_path = get_resource_draft_path(page_name)
+    if draft_path.exists() and clean_text(read_text(draft_path)):
+        return draft_path
+    return get_resource_path(page_name)
+
+
 def get_elements_draft_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.elements.draft.json"
 
