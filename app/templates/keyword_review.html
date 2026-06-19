@@ -109,6 +109,7 @@
                             <input type="checkbox" checked onclick="toggleAllKeywordRows(this)">
                         </th>
                         <th>Keyword Name</th>
+                        <th>Target Element</th>
                         <th class="action-col">Action</th>
                         <th class="args-col">Arguments</th>
                         <th class="implementation-col">Implementation</th>
@@ -120,10 +121,12 @@
                         <td class="checkbox-col">
                             <input type="checkbox" class="keyword-checkbox" name="keyword_{{ loop.index0 }}_approved" checked>
                             <input type="hidden" name="keyword_{{ loop.index0 }}_id" value="{{ keyword.keywordId }}">
-                            <input type="hidden" name="keyword_{{ loop.index0 }}_target" value="{{ keyword.targetElement }}">
                         </td>
                         <td>
                             <textarea class="form-control auto-fit" name="keyword_{{ loop.index0 }}_name">{{ keyword.keywordName }}</textarea>
+                        </td>
+                        <td>
+                            <textarea class="form-control auto-fit" name="keyword_{{ loop.index0 }}_target">{{ keyword.targetElement }}</textarea>
                         </td>
                         <td>
                             <textarea class="form-control auto-fit" name="keyword_{{ loop.index0 }}_action">{{ keyword.action }}</textarea>
@@ -189,10 +192,12 @@ function addMissingKeyword() {
         <td class="checkbox-col">
             <input type="checkbox" class="keyword-checkbox" name="keyword_${keywordRowCount}_approved" checked>
             <input type="hidden" name="keyword_${keywordRowCount}_id" value="KW_${String(keywordRowCount + 1).padStart(3, '0')}">
-            <input type="hidden" name="keyword_${keywordRowCount}_target" value="">
         </td>
         <td>
             <textarea class="form-control auto-fit" name="keyword_${keywordRowCount}_name" placeholder="Enter keyword name"></textarea>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" name="keyword_${keywordRowCount}_target" placeholder="Approved target element name"></textarea>
         </td>
         <td>
             <textarea class="form-control auto-fit" name="keyword_${keywordRowCount}_action" placeholder="e.g. click"></textarea>

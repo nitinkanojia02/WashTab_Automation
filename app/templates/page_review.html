@@ -86,6 +86,7 @@
                     <p><strong>Page Name:</strong> {{ page_name }}</p>
                     <p><strong>Page URL:</strong> {{ page_url }}</p>
                     <p><strong>Total Extracted Elements:</strong> {{ raw_elements_count }}</p>
+                    <p><strong>Review Source:</strong> {{ source_artifact|title }}</p>
 
                     {% if review_summary %}
                     <div class="alert alert-light border small">
@@ -148,6 +149,7 @@
                                 <th>Approved Name</th>
                                 <th class="type-col">Type</th>
                                 <th>Locator</th>
+                                <th>AI Notes</th>
                             </tr>
                         </thead>
                         <tbody id="review-table-body">
@@ -164,6 +166,9 @@
                                 </td>
                                 <td>
                                     <textarea class="form-control auto-fit" name="element_{{ loop.index0 }}_locator">{{ element.locator }}</textarea>
+                                </td>
+                                <td>
+                                    <textarea class="form-control auto-fit" readonly>{{ element.description or '' }}</textarea>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -227,6 +232,9 @@ function addManualRow() {
         </td>
         <td>
             <textarea class="form-control auto-fit" name="manual_${manualRowCount}_locator" placeholder="Enter locator"></textarea>
+        </td>
+        <td>
+            <textarea class="form-control auto-fit" readonly placeholder="Optional AI notes"></textarea>
         </td>
     `;
 

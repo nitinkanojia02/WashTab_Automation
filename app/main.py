@@ -738,24 +738,33 @@ def get_page_review_data(workflow: dict):
     approved_elements_data = []
     refined_elements_data = []
     review_summary = None
+    source_artifact = "raw"
 
-    source_path = reviewed_elements_path if reviewed_elements_path.exists() else elements_path
-
-    if source_path.exists():
+    if elements_path.exists():
         try:
-            data = read_json(source_path)
+            data = read_json(elements_path)
             if isinstance(data, list):
                 extracted_elements_data = data
             elif isinstance(data, dict):
+                extracted_elements_data = data.get("rawElements", []) or data.get("elements", [])
                 approved_elements_data = data.get("elements", [])
-                extracted_elements_data = data.get("rawElements", approved_elements_data)
-                refined_elements_data = data.get("elements", [])
         except Exception:
             extracted_elements_data = []
             approved_elements_data = []
+
+    if reviewed_elements_path.exists():
+        try:
+            reviewed_data = read_json(reviewed_elements_path)
+            if isinstance(reviewed_data, dict):
+                refined_elements_data = reviewed_data.get("elements", [])
+                if reviewed_data.get("reviewSummary"):
+                    review_summary = reviewed_data.get("reviewSummary")
+                source_artifact = "refined"
+        except Exception:
             refined_elements_data = []
 
-    review_summary = None
+    if approved_elements_data and source_artifact != "refined":
+        source_artifact = "approved"
 
     source_elements = refined_elements_data or approved_elements_data or extracted_elements_data
     normalized_elements = []
@@ -801,9 +810,12 @@ def get_page_review_data(workflow: dict):
         "screenshot_web_path": screenshot_web_path,
         "raw_elements_count": len(extracted_elements_data or normalized_elements),
         "elements_path": elements_path,
+        "reviewed_elements_path": reviewed_elements_path,
         "raw_elements": extracted_elements_data,
         "approved_elements": approved_elements_data,
+        "refined_elements": refined_elements_data,
         "review_summary": review_summary,
+        "source_artifact": source_artifact,
     }
 
 # -------------------------------------------------------------------
@@ -1180,6 +1192,7 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
                     "pageUrl": review_data["page_url"],
                     "rawElements": raw_elements,
                     "elements": refined_elements,
+                    "reviewSummary": review_result,
                 }
                 write_json(get_page_reviewed_path(review_data["page_name"]), refined_payload_to_store)
     except Exception as exc:
@@ -1188,6 +1201,7 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
             "summary": f"AI refinement failed: {str(exc)}",
             "issues": [],
         }
+        draft_payload["reviewSummary"] = review_result
         write_json(get_page_reviewed_path(review_data["page_name"]), draft_payload)
 
     return refined_elements, review_result
@@ -1494,6 +1508,7 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
     keywords_path = get_keywords_path(page_name)
+    reviewed_keywords_path = get_keywords_reviewed_path(page_name)
 
     approved_elements = load_approved_elements_for_workflow(workflow)
     approved_elements_by_name = {
@@ -1559,6 +1574,7 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
         "keywords": normalized_keywords,
     }
     write_json(keywords_path, payload)
+    write_json(reviewed_keywords_path, payload)
 
 # -------------------------------------------------------------------
 # AI-driven resource generation
@@ -1753,10 +1769,44 @@ def build_resource_review_prompt(
     )
 
 
+def validate_review_artifact_consistency(workflow: dict, approved_keywords: list[dict]) -> tuple[bool, str]:
+    review_data = get_page_review_data(workflow)
+    approved_elements = load_approved_elements_for_workflow(workflow)
+
+    if not approved_elements:
+        return False, "Approved page elements are required before resource generation."
+    if not approved_keywords:
+        return False, "Approved keywords are required before resource generation."
+
+    approved_element_names = {
+        clean_text(str(item.get("approvedName", "")))
+        for item in approved_elements
+        if clean_text(str(item.get("approvedName", "")))
+    }
+    missing_targets = []
+    for item in approved_keywords:
+        if not isinstance(item, dict) or not bool(item.get("approved", True)):
+            continue
+        target = clean_text(str(item.get("targetElement", "")))
+        if target and target not in approved_element_names:
+            missing_targets.append(f"{clean_text(str(item.get('keywordName', 'Unnamed Keyword')))} -> {target}")
+
+    if missing_targets:
+        return False, "Approved keyword target elements do not match approved reviewed elements: " + "; ".join(missing_targets)
+
+    if review_data.get("source_artifact") == "raw":
+        return False, "Resource generation requires reviewed or approved page elements. Run extraction/refinement and approve the refined artifact first."
+
+    return True, ""
+
+
 def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]):
     review_data = get_page_review_data(workflow)
     page_name = review_data["page_name"]
     approved_elements = load_approved_elements_for_workflow(workflow)
+    is_consistent, consistency_message = validate_review_artifact_consistency(workflow, approved_keywords)
+    if not is_consistent:
+        raise HTTPException(status_code=400, detail=consistency_message)
     variables_payload = sync_page_variables_from_approved_elements(workflow, approved_elements)
 
     approved_manual_tests = []
@@ -2500,6 +2550,7 @@ def page_review(request: Request, workflow_name: str):
         "screenshot_web_path": review_data["screenshot_web_path"],
         "raw_elements_count": review_data["raw_elements_count"],
         "review_summary": review_data.get("review_summary"),
+        "source_artifact": review_data.get("source_artifact", "raw"),
     })
 
 @app.post("/page-review/{workflow_name}/extract")
@@ -2520,6 +2571,7 @@ def run_page_review_extraction(request: Request, workflow_name: str):
             "screenshot_web_path": updated_review_data["screenshot_web_path"],
             "raw_elements_count": updated_review_data["raw_elements_count"],
             "review_summary": review_summary,
+            "source_artifact": "refined",
             "success_message": "Page extraction completed and AI review/refinement has been applied. Review the refined elements below.",
         })
     except Exception as exc:
@@ -2533,6 +2585,7 @@ def run_page_review_extraction(request: Request, workflow_name: str):
             "screenshot_web_path": updated_review_data["screenshot_web_path"],
             "raw_elements_count": updated_review_data["raw_elements_count"],
             "review_summary": updated_review_data.get("review_summary"),
+            "source_artifact": updated_review_data.get("source_artifact", "raw"),
             "error_message": f"Page extraction failed: {str(exc)}",
         }, status_code=400)
 
@@ -2586,8 +2639,10 @@ async def save_page_review(request: Request, workflow_name: str):
         "pageUrl": review_data["page_url"],
         "rawElements": review_data.get("raw_elements", []),
         "elements": approved_elements,
+        "reviewSummary": review_data.get("review_summary"),
     }
     write_json(review_data["elements_path"], payload)
+    write_json(review_data["reviewed_elements_path"], payload)
     sync_page_variables_from_approved_elements(workflow, approved_elements)
 
     return RedirectResponse(url=f"/manual-tests/{workflow_name}", status_code=HTTP_303_SEE_OTHER)
