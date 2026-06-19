@@ -20,6 +20,7 @@ from scripts.generate_manual_tests_json import (
     validate_config as validate_manual_config,
 )
 from scripts.generate_robot_from_manual import (
+    build_manual_refiner_prompt,
     build_manual_review_prompt,
     build_prompt as build_robot_prompt,
     build_review_prompt,
@@ -1827,7 +1828,14 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
         token=token,
         prompt=build_manual_review_prompt(generated),
     )
-    final_json = normalize_manual_test(reviewed_manual or generated, workflow_input)
+    refined_manual = call_manual_ai_with_workflow_session(
+        workflow_name=workflow_name,
+        stage="manual_refinement",
+        endpoint=endpoint,
+        token=token,
+        prompt=build_manual_refiner_prompt(generated, reviewed_manual or generated),
+    )
+    final_json = normalize_manual_test(refined_manual or reviewed_manual or generated, workflow_input)
     is_valid, validation_message = validate_manual_content(final_json)
 
     if is_valid and validation_message and (
@@ -1855,7 +1863,14 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
             token=token,
             prompt=build_manual_review_prompt(expanded),
         )
-        expanded_json = normalize_manual_test(expanded_reviewed or expanded, workflow_input)
+        expanded_refined = call_manual_ai_with_workflow_session(
+            workflow_name=workflow_name,
+            stage="manual_expansion_refinement",
+            endpoint=endpoint,
+            token=token,
+            prompt=build_manual_refiner_prompt(expanded, expanded_reviewed or expanded),
+        )
+        expanded_json = normalize_manual_test(expanded_refined or expanded_reviewed or expanded, workflow_input)
         expanded_valid, expanded_message = validate_manual_content(expanded_json)
         if expanded_valid and len(extract_manual_test_cases(expanded_json)) >= len(extract_manual_test_cases(final_json)):
             final_json = expanded_json

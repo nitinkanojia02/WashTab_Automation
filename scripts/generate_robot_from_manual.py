@@ -313,6 +313,28 @@ def build_manual_review_prompt(manual_data: dict) -> str:
     )
 
 
+def build_manual_refiner_prompt(original_manual_data: dict, reviewed_manual_data: dict) -> str:
+    refiner_md = load_prompt_markdown("manual_tests_refiner.md")
+    payload = {
+        "original_manual": original_manual_data,
+        "reviewed_manual": reviewed_manual_data,
+    }
+    if refiner_md:
+        return f"{refiner_md}\n\nInput JSON:\n{json.dumps(payload, indent=2)}"
+    return (
+        "You are AI Layer 2B: a senior QA manual-test refinement specialist.\n"
+        "Return only valid JSON with the same top-level manual-test structure.\n\n"
+        "Your task is to refine the reviewed manual-test artifact without shrinking meaningful coverage.\n"
+        "Preserve workflow intent, preserve distinct scenario categories, improve wording and observability, and repair any weak expected results.\n"
+        "Do not reduce the suite to a small representative subset.\n"
+        "Keep resourceFiles intact and keep testCases non-empty.\n"
+        "Each test case must still contain only id, title, type, steps, expectedResult, fields.\n"
+        "Remove only true duplicates that do not add distinct observable behavior.\n"
+        "If obvious category gaps remain for a form workflow, expand the suite while staying grounded in the original_manual context.\n\n"
+        f"Input JSON:\n{json.dumps(payload, indent=2)}"
+    )
+
+
 def build_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
     prompt_manual_data = json.loads(json.dumps(manual_data))
     reviewer_md = load_prompt_markdown("robot_tests_reviewer.md")
