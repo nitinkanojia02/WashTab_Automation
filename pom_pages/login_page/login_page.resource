@@ -7,8 +7,15 @@ ${PASSWORD_TEXTBOX}    id=password
 ${SIGN_IN_BUTTON}    xpath=//ion-button[normalize-space()='SIGN IN']
 ${BACK_NAVIGATION_BUTTON}    xpath=(//ion-fab-button)[1]
 ${HOME_NAVIGATION_BUTTON}    xpath=(//ion-fab-button)[last()]
+${LOGIN_PAGE_URL}    http://172.21.166.115/washtabui/login?data=undefined
 ${LOGIN_PATH_FRAGMENT}    /washtabui/login
 ${HOME_PATH_FRAGMENT}    /washtabui/home
+${VALID_USERNAME}    hacklarr
+${VALID_PASSWORD}    Icstunnel1
+${INVALID_USERNAME}    invaliduser
+${INVALID_PASSWORD}    wrongpassword
+${SPECIAL_CHARACTER_USERNAME}    user!@#
+${LONG_USERNAME}    verylongusernamevalueexceedingtypicallengthlimitfortestingpurposes1234567890
 
 *** Keywords ***
 Verify Login Page Loaded

@@ -274,11 +274,25 @@ def get_workflow_status(workflow_name: str) -> dict:
         except Exception:
             manual_approved = False
 
-    keywords_reviewed = bool(
-        manual_approved
-        and resource_path and resource_path.exists()
-        and keywords_path and keywords_path.exists()
-    )
+    keywords_reviewed = False
+    if manual_approved and resource_path and resource_path.exists() and keywords_path and keywords_path.exists():
+        try:
+            keywords_payload = read_json(keywords_path)
+            stored_keywords = keywords_payload.get("keywords", []) if isinstance(keywords_payload, dict) else []
+            valid_stored_keywords = [
+                item for item in stored_keywords
+                if isinstance(item, dict)
+                and clean_text(str(item.get("keywordName", "")))
+                and bool(item.get("approved", True))
+            ]
+            resource_context = parse_resource_file(resource_path)
+            resource_keywords = [
+                kw for kw in resource_context.get("keywords", [])
+                if clean_text(str(kw.get("name", "")))
+            ]
+            keywords_reviewed = bool(valid_stored_keywords and resource_keywords)
+        except Exception:
+            keywords_reviewed = False
 
     automation_generated = bool(automation_path.exists() and clean_text(read_text(automation_path)))
 
@@ -2219,6 +2233,10 @@ def delete_workflow(workflow_name: str):
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
     if workflow_path.exists():
         workflow_path.unlink()
+
+    status_path = get_status_path(workflow_name)
+    if status_path.exists():
+        status_path.unlink()
 
     session_path = get_session_path(workflow_name)
     if session_path.exists():
