@@ -5,6 +5,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Set
 
+PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
+
 import requests
 import urllib3
 
@@ -18,6 +20,12 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s"
 )
 logger = logging.getLogger("generate_robot_from_manual")
+
+def load_prompt_markdown(filename: str) -> str:
+    path = PROMPTS_DIR / filename
+    if not path.exists():
+        return ""
+    return path.read_text(encoding="utf-8").strip()
 
 def load_json(path: Path) -> dict:
     if not path.exists():
@@ -270,6 +278,9 @@ def extract_response_text(resp: requests.Response) -> str:
 
 
 def build_manual_review_prompt(manual_data: dict) -> str:
+    reviewer_md = load_prompt_markdown("manual_tests_reviewer.md")
+    if reviewer_md:
+        return f"{reviewer_md}\n\nInput JSON:\n{json.dumps(manual_data, indent=2)}"
     return (
         "You are AI Layer 2: a senior QA review architect performing a strict review of a generated manual-test JSON artifact.\n"
         "Return only valid JSON with the same top-level structure.\n\n"
@@ -304,6 +315,7 @@ def build_manual_review_prompt(manual_data: dict) -> str:
 
 def build_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
     prompt_manual_data = json.loads(json.dumps(manual_data))
+    reviewer_md = load_prompt_markdown("robot_tests_reviewer.md")
     if isinstance(prompt_manual_data.get("fields"), list):
         prompt_manual_data["fields"] = [
             field for field in prompt_manual_data["fields"]
@@ -317,6 +329,9 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "resource_import_prefix": "../pom_pages/",
         "common_resource_hint": "../resources/common_keywords.resource"
     }
+
+    if reviewer_md:
+        return f"{reviewer_md}\n\nInput JSON:\n{json.dumps(payload, indent=2)}"
 
     return (
         "You are AI Layer 4: a senior Robot Framework reviewer and repair specialist.\n"
@@ -367,6 +382,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
 
 def build_validation_review_prompt(manual_data: dict, resource_context: List[Dict], generated_robot: str) -> str:
     prompt_manual_data = json.loads(json.dumps(manual_data))
+    refiner_md = load_prompt_markdown("robot_tests_refiner.md")
     if isinstance(prompt_manual_data.get("fields"), list):
         prompt_manual_data["fields"] = [
             field for field in prompt_manual_data["fields"]
@@ -380,6 +396,9 @@ def build_validation_review_prompt(manual_data: dict, resource_context: List[Dic
         "resource_import_prefix": "../pom_pages/",
         "common_resource_hint": "../resources/common_keywords.resource"
     }
+
+    if refiner_md:
+        return f"{refiner_md}\n\nInput JSON:\n{json.dumps(payload, indent=2)}"
 
     return (
         "You are AI Layer 5: a principal QA automation governance reviewer acting as a final AI validation gate.\n"
