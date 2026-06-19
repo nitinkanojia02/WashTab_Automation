@@ -715,20 +715,12 @@ def get_keywords_reviewed_path(page_name: str) -> Path:
     return get_page_metadata_dir(page_name) / f"{page_name}.keywords.reviewed.json"
 
 
-def get_manual_reviewed_path(workflow_name: str) -> Path:
-    return get_manual_workflow_dir(workflow_name) / f"{workflow_name}.reviewed.json"
-
-
 def get_manual_legacy_json_path(workflow_name: str) -> Path:
     return MANUAL_DIR / f"{workflow_name}.json"
 
 
 def get_manual_legacy_excel_path(workflow_name: str) -> Path:
     return MANUAL_DIR / f"{workflow_name}_approved_manual_tests.xlsx"
-
-
-def get_automation_reviewed_path(workflow_name: str) -> Path:
-    return TESTS_DIR / f"{workflow_name}_tests.reviewed.robot"
 
 
 def get_page_review_data(workflow: dict):
@@ -886,27 +878,53 @@ def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
         except Exception:
             approved = []
 
-    canonical_elements = []
+    grouped: dict[tuple[str, str], dict] = {}
+    locator_priority_patterns = [
+        (re.compile(r"^id=", re.IGNORECASE), 1),
+        (re.compile(r"@data-testid|@testid", re.IGNORECASE), 2),
+        (re.compile(r"@formcontrolname", re.IGNORECASE), 3),
+        (re.compile(r"@name=", re.IGNORECASE), 4),
+        (re.compile(r"@placeholder=", re.IGNORECASE), 5),
+        (re.compile(r"@aria-label=", re.IGNORECASE), 6),
+        (re.compile(r"^xpath=", re.IGNORECASE), 7),
+    ]
+
+    def locator_rank(locator: str) -> int:
+        for pattern, rank in locator_priority_patterns:
+            if pattern.search(locator):
+                return rank
+        return 99
+
     for item in approved:
         if not isinstance(item, dict):
             continue
         approved_name = clean_text(str(item.get("approvedName", "")))
         locator = clean_text(str(item.get("locator", "")))
+        element_type = clean_text(str(item.get("type", "element"))).lower() or "element"
         if not approved_name or not locator or not bool(item.get("approved", True)):
             continue
-        canonical_elements.append({
+        key = (approved_name.lower(), element_type)
+        candidate = {
             "approvedName": approved_name,
-            "type": clean_text(str(item.get("type", "element"))).lower() or "element",
+            "type": element_type,
             "locator": locator,
             "approved": True,
-        })
-    return canonical_elements
+        }
+        existing = grouped.get(key)
+        if not existing or locator_rank(locator) < locator_rank(existing.get("locator", "")):
+            grouped[key] = candidate
+
+    return list(grouped.values())
 
 
 def sync_page_variables_from_approved_elements(workflow: dict, approved_elements: list[dict]) -> dict:
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
     page_url = pages[0].get("url") if pages and isinstance(pages[0], dict) else ""
+
+    canonical_elements = load_approved_elements_for_workflow(workflow) if workflow else []
+    if not canonical_elements:
+        canonical_elements = approved_elements
 
     variables = []
     seen_names: set[str] = set()
@@ -920,7 +938,7 @@ def sync_page_variables_from_approved_elements(workflow: dict, approved_elements
         })
         seen_names.add("PAGE_URL")
 
-    for item in approved_elements:
+    for item in canonical_elements:
         if not isinstance(item, dict):
             continue
         approved_name = clean_text(str(item.get("approvedName", "")))
@@ -942,6 +960,7 @@ def sync_page_variables_from_approved_elements(workflow: dict, approved_elements
 
     payload = {
         "pageName": page_name,
+        "pageUrl": clean_text(page_url),
         "variables": variables,
     }
     write_json(get_page_variables_path(page_name), payload)
@@ -1575,6 +1594,7 @@ def build_resource_generation_prompt(
         "- Include only these sections if needed: *** Settings ***, *** Variables ***, *** Keywords ***.\n"
         "- Use SeleniumLibrary in Settings only if truly needed in this page resource.\n"
         "- Use the approved elements to create locator variables.\n"
+        "- If metadata variable context is present, treat it as the primary canonical source for locator-variable names and page-url variable naming. Preserve those names in the generated resource whenever feasible.\n"
         "- Use the approved keywords as the foundation for reusable keyword implementations.\n"
         "- Treat empty placeholder rows in workflow.fields as noise and ignore them.\n"
         "- Create reusable test-data variables based on approved manual tests, not just workflow.testData.\n"
@@ -1735,7 +1755,7 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     review_data = get_page_review_data(workflow)
     page_name = review_data["page_name"]
     approved_elements = load_approved_elements_for_workflow(workflow)
-    sync_page_variables_from_approved_elements(workflow, approved_elements)
+    variables_payload = sync_page_variables_from_approved_elements(workflow, approved_elements)
 
     approved_manual_tests = []
     workflow_name = slugify(str(workflow.get("workflowName", "")))
@@ -1769,13 +1789,14 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     resource_path = get_resource_path(page_name)
     existing_page_resource = read_text(resource_path)
 
+    metadata_variable_context = variables_payload.get("variables", []) if isinstance(variables_payload, dict) else []
     prompt = build_resource_generation_prompt(
         workflow,
         approved_elements,
         approved_keywords,
         approved_manual_tests,
         common_resource_context,
-        existing_page_resource,
+        existing_page_resource + ("\n\n# METADATA_VARIABLE_CONTEXT\n" + json.dumps(metadata_variable_context, indent=2) if metadata_variable_context else ""),
     )
     resource_content = call_ai_with_workflow_session(
         workflow_name=page_name,
@@ -1907,8 +1928,6 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
 
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
-    reviewed_path = get_manual_reviewed_path(workflow_name)
-    write_json(reviewed_path, final_json)
     write_json(get_manual_json_path(workflow_name), final_json)
     return final_json
 
@@ -2280,10 +2299,6 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
 
-    reviewed_target = get_automation_reviewed_path(workflow_name)
-    reviewed_target.parent.mkdir(parents=True, exist_ok=True)
-    reviewed_target.write_text(robot_content, encoding="utf-8")
-
     target = get_automation_path(workflow_name)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(robot_content, encoding="utf-8")
@@ -2393,6 +2408,11 @@ def normalize_resource_file_path(page_name: str, resource_file: str) -> str:
     return expected
 
 
+def normalize_url_value(value: str) -> str:
+    value = clean_text(value)
+    return value.strip()
+
+
 
 def save_workflow(
     workflow_name: str = Form(...),
@@ -2411,6 +2431,7 @@ def save_workflow(
     valid_password: str = Form(""),
     existing_workflow_slug: str = Form(""),
 ):
+    page_url = normalize_url_value(page_url)
     payload = clean_workflow_for_prompting(build_workflow_payload(
         workflow_name,
         module,
@@ -2617,10 +2638,8 @@ async def save_keyword_review(request: Request, workflow_name: str):
 def manual_tests_page(request: Request, workflow_name: str):
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
     manual_path = get_manual_json_path(workflow_name)
-    reviewed_manual_path = get_manual_reviewed_path(workflow_name)
     workflow = read_json(workflow_path) if workflow_path.exists() else None
-    effective_manual_path = reviewed_manual_path if reviewed_manual_path.exists() else manual_path
-    manual = read_json(effective_manual_path) if effective_manual_path.exists() else None
+    manual = read_json(manual_path) if manual_path.exists() else None
     test_cases = extract_manual_test_cases(manual) if manual else []
 
     return render_template(request, "manual_tests.html", {
@@ -2718,7 +2737,6 @@ async def save_manual_tests(request: Request, workflow_name: str):
 
         updated = update_manual_with_ui_cases(original, cases)
         write_json(manual_path, updated)
-        write_json(get_manual_reviewed_path(workflow_name), updated)
         export_manual_tests_to_excel(workflow_name, workflow, updated)
 
         page_name = ""
@@ -2751,9 +2769,7 @@ async def save_manual_tests(request: Request, workflow_name: str):
 @app.get("/automation/{workflow_name}")
 def automation_page(request: Request, workflow_name: str):
     robot_path = get_automation_path(workflow_name)
-    reviewed_robot_path = get_automation_reviewed_path(workflow_name)
-    effective_robot_path = reviewed_robot_path if reviewed_robot_path.exists() else robot_path
-    robot_content = read_text(effective_robot_path)
+    robot_content = read_text(robot_path)
     return render_template(request, "automation.html", {
         "workflow_name": workflow_name,
         "robot_content": robot_content,
