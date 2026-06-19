@@ -714,13 +714,23 @@ def get_resource_path(page_name: str) -> Path:
 
 def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
     review_data = get_page_review_data(workflow)
-    if review_data.get("approved_elements"):
-        return review_data.get("approved_elements", [])
-    return review_data.get("elements", [])
+    approved = review_data.get("approved_elements") or []
+    if approved:
+        return [
+            item for item in approved
+            if isinstance(item, dict)
+            and clean_text(str(item.get("approvedName", "")))
+            and clean_text(str(item.get("locator", "")))
+            and bool(item.get("approved", True))
+        ]
+    return []
 
 def build_keywords_from_elements(elements: list[dict]) -> list[dict]:
     keywords = []
     for idx, element in enumerate(elements, start=1):
+        if not isinstance(element, dict) or not bool(element.get("approved", True)):
+            continue
+
         element_name = clean_text(element.get("approvedName", ""))
         locator = clean_text(element.get("locator", ""))
         element_type = clean_text(element.get("type", "element")).lower()
@@ -795,14 +805,25 @@ def get_keyword_review_data(workflow: dict):
         for item in approved_elements
         if clean_text(str(item.get("approvedName", "")))
     }
+    approved_titles_to_name = {
+        to_keyword_title(name).lower(): name
+        for name in approved_elements_by_name
+    }
 
     disallowed_resource_keywords = {
         "open page",
         "open browser to page",
     }
 
+    def resolve_target_element(keyword_name: str) -> str:
+        lowered_name = clean_text(keyword_name).lower()
+        for candidate_title, element_name in approved_titles_to_name.items():
+            if candidate_title and candidate_title in lowered_name:
+                return element_name
+        return ""
+
     keywords = []
-    if resource_path.exists():
+    if resource_path.exists() and approved_elements_by_name:
         try:
             resource_context = parse_resource_file(resource_path)
             for idx, keyword in enumerate(resource_context.get("keywords", []), start=1):
@@ -811,12 +832,9 @@ def get_keyword_review_data(workflow: dict):
                 if not keyword_name or lowered_name in disallowed_resource_keywords:
                     continue
 
-                target_element = ""
-                for element_name in approved_elements_by_name:
-                    candidate_title = to_keyword_title(element_name).lower()
-                    if candidate_title and candidate_title in lowered_name:
-                        target_element = element_name
-                        break
+                target_element = resolve_target_element(keyword_name)
+                if not target_element:
+                    continue
 
                 action = "generic"
                 if lowered_name.startswith("click "):
@@ -841,14 +859,22 @@ def get_keyword_review_data(workflow: dict):
         except Exception:
             keywords = []
 
-    if not keywords and keywords_path.exists():
+    if not keywords and keywords_path.exists() and approved_elements_by_name:
         try:
             payload = read_json(keywords_path)
             raw_keywords = payload.get("keywords", [])
-            keywords = [
-                item for item in raw_keywords
-                if clean_text(str(item.get("keywordName", ""))).lower() not in disallowed_resource_keywords
-            ]
+            filtered_keywords = []
+            for item in raw_keywords:
+                keyword_name = clean_text(str(item.get("keywordName", "")))
+                if not keyword_name or keyword_name.lower() in disallowed_resource_keywords:
+                    continue
+                target_element = clean_text(str(item.get("targetElement", ""))) or resolve_target_element(keyword_name)
+                if target_element not in approved_elements_by_name:
+                    continue
+                normalized_item = dict(item)
+                normalized_item["targetElement"] = target_element
+                filtered_keywords.append(normalized_item)
+            keywords = filtered_keywords
         except Exception:
             keywords = []
 
@@ -869,10 +895,31 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
     keywords_path = get_keywords_path(page_name)
     resource_path = get_resource_path(page_name)
 
+    approved_elements = load_approved_elements_for_workflow(workflow)
+    approved_elements_by_name = {
+        clean_text(str(item.get("approvedName", ""))): item
+        for item in approved_elements
+        if clean_text(str(item.get("approvedName", "")))
+    }
+    approved_titles_to_name = {
+        to_keyword_title(name).lower(): name
+        for name in approved_elements_by_name
+    }
+
     disallowed_resource_keywords = {
         "open page",
         "open browser to page",
     }
+
+    def resolve_target_element(keyword_name: str, provided_target: str = "") -> str:
+        target = clean_text(provided_target)
+        if target in approved_elements_by_name:
+            return target
+        lowered_name = clean_text(keyword_name).lower()
+        for candidate_title, element_name in approved_titles_to_name.items():
+            if candidate_title and candidate_title in lowered_name:
+                return element_name
+        return ""
 
     resource_keywords_by_name = {}
     if resource_path.exists():
@@ -886,7 +933,7 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
             resource_keywords_by_name = {}
 
     normalized_keywords = []
-    if resource_keywords_by_name:
+    if resource_keywords_by_name and approved_elements_by_name:
         approved_keywords_by_name = {
             clean_text(str(item.get("keywordName", ""))).lower(): item
             for item in keywords
@@ -899,19 +946,15 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
 
             resource_keyword_name = clean_text(str(resource_keyword.get("name", "")))
             approved_keyword = approved_keywords_by_name.get(keyword_name_lower, {})
+            target_element = resolve_target_element(resource_keyword_name, str(approved_keyword.get("targetElement", "")))
+            if not target_element:
+                continue
+
             implementation = resource_keyword.get("body") or []
             implementation = [str(line).rstrip() for line in implementation if clean_text(str(line))]
 
             arguments = resource_keyword.get("args") or []
             arguments = [str(arg).replace("${", "").replace("}", "").strip() for arg in arguments if clean_text(str(arg))]
-
-            target_element = clean_text(str(approved_keyword.get("targetElement", "")))
-            if not target_element:
-                lowered_name = resource_keyword_name.lower()
-                for suffix in ("click ", "enter ", "select ", "verify "):
-                    if lowered_name.startswith(suffix):
-                        target_element = slugify(resource_keyword_name[len(suffix):])
-                        break
 
             action = clean_text(str(approved_keyword.get("action", "")))
             if not action:
@@ -942,6 +985,10 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
             if not keyword_name or keyword_name.lower() in disallowed_resource_keywords:
                 continue
 
+            target_element = resolve_target_element(keyword_name, str(keyword.get("targetElement", "")))
+            if not target_element:
+                continue
+
             implementation = keyword.get("implementation", [])
             if isinstance(implementation, str):
                 implementation = [line.rstrip() for line in implementation.splitlines() if line.strip()]
@@ -955,7 +1002,7 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
             normalized_keywords.append({
                 "keywordId": clean_text(str(keyword.get("keywordId", ""))) or f"KW_{idx:03d}",
                 "keywordName": keyword_name,
-                "targetElement": clean_text(str(keyword.get("targetElement", ""))),
+                "targetElement": target_element,
                 "action": clean_text(str(keyword.get("action", ""))),
                 "arguments": arguments,
                 "implementation": implementation,
