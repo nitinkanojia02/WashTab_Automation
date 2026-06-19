@@ -1,14 +1,15 @@
 {
-  "pageName": "login_page",
-  "pageUrl": "http://172.21.166.115/washtabui/login?data=undefined",
+  "pageName": "home_page",
+  "pageUrl": "http://172.21.166.115/washtabui/home",
   "rawElements": [
     {
       "tag": "ion-fab-button",
       "text": "home",
       "attributes": {
-        "_ngcontent-ymk-c151": "",
+        "_ngcontent-pcr-c151": "",
         "tappable": "",
         "color": "light",
+        "tabindex": "0",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
       },
       "label": "",
@@ -19,8 +20,8 @@
         "has_visible_descendant": true,
         "width": 40,
         "height": 40,
-        "x": 1793.96875,
-        "y": 23
+        "x": 1845,
+        "y": 27.484375
       },
       "shadow": {
         "has_shadow_root": true,
@@ -28,17 +29,18 @@
         "text": "close",
         "icon_aria_label": "close",
         "aria_label": "",
-        "tag": "button",
-        "type": "button",
+        "tag": "a",
+        "type": "",
         "disabled": false,
         "placeholder": ""
       }
     },
     {
       "tag": "ion-fab-button",
-      "text": "arrow back",
+      "text": "person",
       "attributes": {
-        "_ngcontent-ymk-c151": "",
+        "_ngcontent-pcr-c151": "",
+        "id": "notifications-button",
         "tappable": "",
         "color": "light",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
@@ -51,8 +53,8 @@
         "has_visible_descendant": true,
         "width": 40,
         "height": 40,
-        "x": 1743.96875,
-        "y": 23
+        "x": 1671,
+        "y": 27.484375
       },
       "shadow": {
         "has_shadow_root": true,
@@ -67,16 +69,15 @@
       }
     },
     {
-      "tag": "ion-input",
-      "text": "password",
+      "tag": "app-main-button",
+      "text": "btn_CustomerSignup",
       "attributes": {
-        "_ngcontent-ymk-c151": "",
-        "type": "password",
-        "id": "password",
-        "clearonedit": "true",
-        "autocomplete": "off",
-        "class": "login-class ng-untouched ng-pristine ng-valid ion-untouched ion-pristine ion-valid sc-ion-input-md-h sc-ion-input-md-s md hydrated",
-        "style": "-webkit-text-security: disc;"
+        "_ngcontent-pcr-c153": "",
+        "tappable": "",
+        "id": "btn_CustomerSignup",
+        "icsicon": "CustomerClubSignup-Bt",
+        "_nghost-pcr-c152": "",
+        "class": "ng-star-inserted"
       },
       "label": "",
       "visibility": {
@@ -84,78 +85,68 @@
         "is_in_viewport": true,
         "is_covered": false,
         "has_visible_descendant": true,
-        "width": 250,
-        "height": 44,
-        "x": 863,
-        "y": 515.84375
+        "width": 547.1875,
+        "height": 17,
+        "x": 0,
+        "y": 338.671875
       },
       "shadow": null
     },
     {
-      "tag": "input",
-      "text": "Password",
+      "tag": "app-main-button",
+      "text": "btn_CleanSurvey",
       "attributes": {
-        "class": "native-input sc-ion-input-md",
-        "aria-labelledby": "ion-input-1-lbl",
-        "autocapitalize": "off",
-        "autocomplete": "off",
-        "autocorrect": "off",
-        "name": "ion-input-1",
-        "placeholder": "Password",
-        "type": "password",
-        "style": ""
+        "_ngcontent-pcr-c153": "",
+        "tappable": "",
+        "id": "btn_CleanSurvey",
+        "icsicon": "Clean-Survey-Bt",
+        "_nghost-pcr-c152": "",
+        "class": "ng-star-inserted"
       },
       "label": "",
       "visibility": {
         "is_visible": true,
         "is_in_viewport": true,
         "is_covered": false,
-        "has_visible_descendant": false,
-        "width": 250,
-        "height": 44,
-        "x": 863,
-        "y": 515.84375
+        "has_visible_descendant": true,
+        "width": 547.1875,
+        "height": 17,
+        "x": 547.1875,
+        "y": 338.671875
       },
       "shadow": null
     },
     {
-      "tag": "ion-button",
-      "text": "SIGN IN",
+      "tag": "app-main-button",
+      "text": "btn_SiteSurvey",
       "attributes": {
-        "_ngcontent-ymk-c151": "",
-        "text": "Login",
-        "shape": "round",
-        "class": "ion-button-style md button button-round button-solid ion-activatable ion-focusable hydrated"
+        "_ngcontent-pcr-c153": "",
+        "tappable": "",
+        "id": "btn_SiteSurvey",
+        "icsicon": "Site-Survey-Bt",
+        "_nghost-pcr-c152": "",
+        "class": "ng-star-inserted"
       },
       "label": "",
       "visibility": {
         "is_visible": true,
         "is_in_viewport": true,
         "is_covered": false,
-        "has_visible_descendant": false,
-        "width": 1134,
-        "height": 36,
-        "x": 393,
-        "y": 585.734375
+        "has_visible_descendant": true,
+        "width": 547.1875,
+        "height": 17,
+        "x": 1094.375,
+        "y": 338.671875
       },
-      "shadow": {
-        "has_shadow_root": true,
-        "has_native_control": true,
-        "text": "",
-        "icon_aria_label": "",
-        "aria_label": "",
-        "tag": "button",
-        "type": "button",
-        "disabled": false,
-        "placeholder": ""
-      }
+      "shadow": null
     },
     {
-      "tag": "button",
+      "tag": "a",
       "text": "close",
       "attributes": {
-        "type": "button",
-        "class": "button-native"
+        "href": "/washtabui/home",
+        "class": "button-native",
+        "data-shadow-host-tag": "ion-fab-button"
       },
       "label": "",
       "visibility": {
@@ -165,8 +156,8 @@
         "has_visible_descendant": true,
         "width": 40,
         "height": 40,
-        "x": 1793.96875,
-        "y": 23
+        "x": 1845,
+        "y": 27.484375
       },
       "shadow": null
     }
@@ -179,33 +170,27 @@
       "approved": true
     },
     {
-      "approvedName": "arrow_back_button",
+      "approvedName": "notifications_button",
       "type": "button",
-      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back'] or normalize-space(.)='arrow back']",
+      "locator": "id=notifications-button",
       "approved": true
     },
     {
-      "approvedName": "password",
-      "type": "element",
-      "locator": "id=password",
-      "approved": true
-    },
-    {
-      "approvedName": "password_textbox",
-      "type": "textbox",
-      "locator": "xpath=//input[@placeholder='Password']",
-      "approved": true
-    },
-    {
-      "approvedName": "sign_in_button",
+      "approvedName": "customer_signup_button",
       "type": "button",
-      "locator": "xpath=//ion-button[normalize-space(.)='SIGN IN']",
+      "locator": "id=btn_CustomerSignup",
       "approved": true
     },
     {
-      "approvedName": "close_button",
+      "approvedName": "clean_survey_button",
       "type": "button",
-      "locator": "xpath=//button[normalize-space(.)='close']",
+      "locator": "id=btn_CleanSurvey",
+      "approved": true
+    },
+    {
+      "approvedName": "site_survey_button",
+      "type": "button",
+      "locator": "id=btn_SiteSurvey",
       "approved": true
     }
   ]
