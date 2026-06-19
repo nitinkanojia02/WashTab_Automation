@@ -1,107 +1,104 @@
 *** Settings ***
 Resource    ../resources/common_keywords.resource
 Resource    ../pom_pages/login_page/login_page.resource
-Test Setup    Open Login Page
+Test Setup    Run Keywords    Open Login Page    AND    Verify Login Page Ready
 Test Teardown    Close Browser Session
 
 *** Test Cases ***
-AUT-WT-LOGIN01: Verify login page loads with all required controls
+AUT-WT-LOGIN01: Verify login page loads and UI elements are visible
     [Tags]    WT-LOGIN01    positive
-    Verify Login Page Loaded
-    Location Should Contain    /washtabui/login
+    Verify Login Form Loaded
+    Verify Login Navigation Controls Visible
+    Verify Login Page Url
+    Verify Password Field Is Masked
 
-AUT-WT-LOGIN03: Verify successful login using valid credentials via SIGN IN button
-    [Tags]    WT-LOGIN03    positive
+AUT-WT-LOGIN02: Successful login using valid credentials with SIGN IN button
+    [Tags]    WT-LOGIN02    positive
     Login With Valid Credentials
-    Location Should Contain    /washtabui/home
+    Verify Successful Login Redirect
 
-AUT-WT-LOGIN04: Verify successful login using Enter key from password field
-    [Tags]    WT-LOGIN04    positive
+AUT-WT-LOGIN03: Successful login using Enter key from password field
+    [Tags]    WT-LOGIN03    positive
     Enter Username    ${VALID_USERNAME}
     Enter Password    ${VALID_PASSWORD}
     Press Keys    ${PASSWORD_FIELD}    ENTER
-    Location Should Contain    /washtabui/home
+    Verify Successful Login Redirect
 
-AUT-WT-LOGIN05: Verify login fails with incorrect password
+AUT-WT-LOGIN04: Login fails with incorrect password
+    [Tags]    WT-LOGIN04    negative
+    Login With Credentials    ${VALID_USERNAME}    ${INVALID_PASSWORD}
+    Verify Login Failed And Still On Login Page
+
+AUT-WT-LOGIN05: Login fails with incorrect username
     [Tags]    WT-LOGIN05    negative
-    Attempt Login With Credentials    ${VALID_USERNAME}    ${INVALID_PASSWORD}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${INVALID_USERNAME}    ${VALID_PASSWORD}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN06: Verify login fails with incorrect username
+AUT-WT-LOGIN06: Login fails when both username and password are blank
     [Tags]    WT-LOGIN06    negative
-    Attempt Login With Credentials    ${INVALID_USERNAME}    ${VALID_PASSWORD}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${EMPTY}    ${EMPTY}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN07: Verify login fails when both username and password are blank
+AUT-WT-LOGIN07: Login fails when username is blank
     [Tags]    WT-LOGIN07    negative
-    Attempt Login With Credentials    ${EMPTY}    ${EMPTY}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${EMPTY}    ${VALID_PASSWORD}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN08: Verify login fails when username is blank
+AUT-WT-LOGIN08: Login fails when password is blank
     [Tags]    WT-LOGIN08    negative
-    Attempt Login With Credentials    ${EMPTY}    ${VALID_PASSWORD}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${VALID_USERNAME}    ${EMPTY}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN09: Verify login fails when password is blank
-    [Tags]    WT-LOGIN09    negative
-    Attempt Login With Credentials    ${VALID_USERNAME}    ${EMPTY}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
-
-AUT-WT-LOGIN10: Verify Home control navigates to home page
-    [Tags]    WT-LOGIN10    positive
-    Click Home Navigation
-    Location Should Contain    /washtabui/home
-
-AUT-WT-LOGIN11: Verify Arrow Back control navigates to home page
-    [Tags]    WT-LOGIN11    positive
-    Click Back Navigation
-    Location Should Contain    /washtabui/home
-
-AUT-WT-LOGIN12: Verify password field masks entered characters
-    [Tags]    WT-LOGIN12    positive
+AUT-WT-LOGIN09: Password field masks entered characters
+    [Tags]    WT-LOGIN09    positive
     Enter Password    ${VALID_PASSWORD}
-    Element Attribute Value Should Be    ${PASSWORD_FIELD}    type    password
+    Verify Password Field Is Masked
 
-AUT-WT-LOGIN13: Verify login fails when username contains only whitespace
+AUT-WT-LOGIN10: Navigation using Home control from login page
+    [Tags]    WT-LOGIN10    positive
+    Click Home Navigation Button
+    Verify Successful Login Redirect
+
+AUT-WT-LOGIN11: Navigation using Arrow Back control from login page
+    [Tags]    WT-LOGIN11    positive
+    Click Back Navigation Button
+    Verify Successful Login Redirect
+
+AUT-WT-LOGIN12: Login with leading and trailing spaces in username
+    [Tags]    WT-LOGIN12    edge
+    Login With Credentials    ${SPACE}${VALID_USERNAME}${SPACE}    ${VALID_PASSWORD}
+    Verify Successful Login Redirect
+
+AUT-WT-LOGIN13: Login attempt with whitespace-only username
     [Tags]    WT-LOGIN13    negative
-    Attempt Login With Credentials    ${SPACE}${SPACE}${SPACE}    ${VALID_PASSWORD}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${SPACE}${SPACE}    ${VALID_PASSWORD}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN14: Verify login fails when password contains only whitespace
+AUT-WT-LOGIN14: Login attempt with whitespace-only password
     [Tags]    WT-LOGIN14    negative
-    Attempt Login With Credentials    ${VALID_USERNAME}    ${SPACE}${SPACE}${SPACE}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${VALID_USERNAME}    ${SPACE}${SPACE}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN15: Verify login trims leading and trailing spaces in username
+AUT-WT-LOGIN15: Login attempt with excessively long username input
     [Tags]    WT-LOGIN15    edge
-    Attempt Login With Credentials    ${SPACE}${VALID_USERNAME}${SPACE}    ${VALID_PASSWORD}
-    Location Should Contain    /washtabui/home
+    Login With Credentials    ${LONG_USERNAME_SAMPLE}    ${VALID_PASSWORD}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN16: Verify login with extremely long username input
+AUT-WT-LOGIN16: Login attempt with special characters in username
     [Tags]    WT-LOGIN16    edge
-    ${LONG_USERNAME}=    Evaluate    "a"*300
-    Attempt Login With Credentials    ${LONG_USERNAME}    ${VALID_PASSWORD}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${SPECIAL_CHAR_USERNAME}    ${VALID_PASSWORD}
+    Verify Login Failed And Still On Login Page
 
-AUT-WT-LOGIN17: Verify multiple rapid clicks on SIGN IN button
+AUT-WT-LOGIN17: Repeated clicking of SIGN IN button during login attempt
     [Tags]    WT-LOGIN17    edge
     Enter Username    ${VALID_USERNAME}
     Enter Password    ${VALID_PASSWORD}
-    Submit Login Form
-    Submit Login Form
-    Submit Login Form
-    Location Should Contain    /washtabui/home
+    Click When Ready    ${SIGN_IN_BUTTON}
+    Click When Ready    ${SIGN_IN_BUTTON}
+    Click When Ready    ${SIGN_IN_BUTTON}
+    Verify Successful Login Redirect
 
-AUT-WT-LOGIN18: Verify login fails with special characters in username
+AUT-WT-LOGIN18: Login attempt with correct username but wrong case password
     [Tags]    WT-LOGIN18    negative
-    Attempt Login With Credentials    @@@###$$$    ${VALID_PASSWORD}
-    Verify Login Failed
-    Location Should Contain    /washtabui/login
+    Login With Credentials    ${VALID_USERNAME}    ${INVALID_PASSWORD_CASE}
+    Verify Login Failed And Still On Login Page

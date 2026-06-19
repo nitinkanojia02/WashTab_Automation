@@ -61,7 +61,7 @@
       "tag": "ion-input",
       "text": "password",
       "attributes": {
-        "_ngcontent-bix-c151": "",
+        "_ngcontent-pde-c151": "",
         "type": "password",
         "id": "password",
         "clearonedit": "true",
@@ -86,7 +86,7 @@
       "tag": "ion-fab-button",
       "text": "home",
       "attributes": {
-        "_ngcontent-bix-c151": "",
+        "_ngcontent-pde-c151": "",
         "tappable": "",
         "color": "light",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
@@ -118,7 +118,7 @@
       "tag": "ion-fab-button",
       "text": "arrow back",
       "attributes": {
-        "_ngcontent-bix-c151": "",
+        "_ngcontent-pde-c151": "",
         "tappable": "",
         "color": "light",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
@@ -150,7 +150,7 @@
       "tag": "ion-button",
       "text": "SIGN IN",
       "attributes": {
-        "_ngcontent-bix-c151": "",
+        "_ngcontent-pde-c151": "",
         "text": "Login",
         "shape": "round",
         "class": "ion-button-style md button button-round button-solid ion-activatable ion-focusable hydrated"

@@ -2,7 +2,7 @@
   "pageName": "login_page",
   "keywords": [
     {
-      "keywordId": "KW_005",
+      "keywordId": "KW_004",
       "keywordName": "Click Sign In Button",
       "targetElement": "sign_in_button",
       "action": "click",
@@ -10,6 +10,43 @@
       "implementation": [
         "    [Documentation]    Submit the login form using the Sign In button.",
         "    Click When Ready    ${SIGN_IN_BUTTON}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_005",
+      "keywordName": "Click Home Navigation Button",
+      "targetElement": "home_navigation_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [
+        "    [Documentation]    Navigate to the home page using the Home navigation control.",
+        "    Click When Ready    ${HOME_NAVIGATION_BUTTON}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_006",
+      "keywordName": "Click Back Navigation Button",
+      "targetElement": "back_navigation_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [
+        "    [Documentation]    Navigate using the Back navigation control.",
+        "    Click When Ready    ${BACK_NAVIGATION_BUTTON}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_009",
+      "keywordName": "Verify Password Field Is Masked",
+      "targetElement": "password_field",
+      "action": "verify",
+      "arguments": [],
+      "implementation": [
+        "    [Documentation]    Verifies that the password field masks entered characters.",
+        "    ${type}=    Get Element Attribute    ${PASSWORD_FIELD}    type",
+        "    Should Be Equal    ${type}    password"
       ],
       "approved": true
     }
