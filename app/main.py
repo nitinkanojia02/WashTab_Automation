@@ -759,11 +759,11 @@ def get_page_review_data(workflow: dict):
                 refined_elements_data = reviewed_data.get("elements", [])
                 if reviewed_data.get("reviewSummary"):
                     review_summary = reviewed_data.get("reviewSummary")
-                source_artifact = "refined"
+                source_artifact = "approved" if approved_elements_data and approved_elements_data == refined_elements_data else "refined"
         except Exception:
             refined_elements_data = []
 
-    if approved_elements_data and source_artifact != "refined":
+    elif approved_elements_data:
         source_artifact = "approved"
 
     source_elements = refined_elements_data or approved_elements_data or extracted_elements_data
@@ -1214,6 +1214,14 @@ def get_keyword_review_data(workflow: dict):
     reviewed_keywords_path = get_keywords_reviewed_path(page_name)
     resource_path = get_resource_path(page_name)
 
+    review_summary = None
+    source_artifact = "raw"
+    source_keywords_path = reviewed_keywords_path if reviewed_keywords_path.exists() else keywords_path
+    if reviewed_keywords_path.exists():
+        source_artifact = "refined"
+    elif keywords_path.exists():
+        source_artifact = "approved"
+
     approved_elements = load_approved_elements_for_workflow(workflow)
     approved_manual_tests = get_manual_tests_for_workflow(workflow)
     approved_elements_by_name = {
@@ -1239,7 +1247,6 @@ def get_keyword_review_data(workflow: dict):
         return ""
 
     keywords = []
-    source_keywords_path = reviewed_keywords_path if reviewed_keywords_path.exists() else keywords_path
     if source_keywords_path.exists() and approved_elements_by_name:
         try:
             payload = read_json(source_keywords_path)
@@ -1334,6 +1341,7 @@ def get_keyword_review_data(workflow: dict):
                     reviewed_keywords = json.loads(strip_markdown_fences(reviewed_keywords_raw))
                     if isinstance(reviewed_keywords, list):
                         normalized_reviewed = []
+                        source_artifact = "refined"
                         for idx, item in enumerate(reviewed_keywords, start=1):
                             if not isinstance(item, dict):
                                 continue
@@ -1376,6 +1384,8 @@ def get_keyword_review_data(workflow: dict):
         "resource_path": resource_path,
         "keywords": keywords,
         "approved_elements": approved_elements,
+        "review_summary": review_summary,
+        "source_artifact": source_artifact,
     }
 
 def review_and_refine_resource_artifact(workflow: dict, page_name: str, elements: list[dict], draft_resource: str):
@@ -2651,12 +2661,12 @@ async def save_page_review(request: Request, workflow_name: str):
 def keyword_review(request: Request, workflow_name: str):
     workflow = load_workflow_or_404(workflow_name)
     keyword_data = get_keyword_review_data(workflow)
-    review_summary = None
     return render_template(request, "keyword_review.html", {
         "workflow_name": workflow_name,
         "page_name": keyword_data["page_name"],
         "keywords": keyword_data["keywords"],
-        "review_summary": review_summary,
+        "review_summary": keyword_data.get("review_summary"),
+        "source_artifact": keyword_data.get("source_artifact", "raw"),
     })
 
 @app.post("/keywords/{workflow_name}/save")
