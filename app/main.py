@@ -715,15 +715,21 @@ def get_resource_path(page_name: str) -> Path:
 def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
     review_data = get_page_review_data(workflow)
     approved = review_data.get("approved_elements") or []
-    if approved:
-        return [
-            item for item in approved
-            if isinstance(item, dict)
-            and clean_text(str(item.get("approvedName", "")))
-            and clean_text(str(item.get("locator", "")))
-            and bool(item.get("approved", True))
-        ]
-    return []
+    canonical_elements = []
+    for item in approved:
+        if not isinstance(item, dict):
+            continue
+        approved_name = clean_text(str(item.get("approvedName", "")))
+        locator = clean_text(str(item.get("locator", "")))
+        if not approved_name or not locator or not bool(item.get("approved", True)):
+            continue
+        canonical_elements.append({
+            "approvedName": approved_name,
+            "type": clean_text(str(item.get("type", "element"))).lower() or "element",
+            "locator": locator,
+            "approved": True,
+        })
+    return canonical_elements
 
 def build_keywords_from_elements(elements: list[dict]) -> list[dict]:
     keywords = []
@@ -873,6 +879,8 @@ def get_keyword_review_data(workflow: dict):
                     continue
                 normalized_item = dict(item)
                 normalized_item["targetElement"] = target_element
+                if not normalized_item.get("implementation"):
+                    normalized_item["implementation"] = []
                 filtered_keywords.append(normalized_item)
             keywords = filtered_keywords
         except Exception:
@@ -880,6 +888,74 @@ def get_keyword_review_data(workflow: dict):
 
     if not keywords:
         keywords = build_keywords_from_elements(approved_elements)
+
+    if resource_path.exists() and approved_elements_by_name:
+        try:
+            workflow_name = clean_text(str(workflow.get("workflowName", ""))) or page_name
+            config = validate_robot_config(load_robot_ai_json(CONFIG_PATH))
+            ai_cfg = config.get("ai", {})
+            if ai_cfg.get("enabled", True):
+                endpoint = ai_cfg.get("endpoint", "").strip()
+                token = get_robot_ai_token(ai_cfg)
+                if endpoint and token and keywords:
+                    resource_context = parse_resource_file(resource_path)
+                    ai_payload = {
+                        "workflow": clean_workflow_for_prompting(workflow),
+                        "approved_elements": approved_elements,
+                        "resource_keywords": keywords,
+                        "resource_file": resource_context,
+                        "goal": "Review and refine the provided page-specific keyword models for MVP UI display. Keep only approved-element-backed keywords, preserve implementation from the current resource file, improve naming/action classification if needed, and return only valid JSON as an array of keyword objects with keys keywordId, keywordName, targetElement, action, arguments, implementation, approved. Do not invent keywords not grounded in the current resource file and approved elements."
+                    }
+                    ai_prompt = (
+                        "You are AI Layer K1: a keyword-review refinement specialist for an AI-first automation framework.\n"
+                        "Return only valid JSON array data.\n"
+                        "Preserve the current resource-backed implementations.\n"
+                        "Use approved elements as the source of truth for targetElement mapping.\n"
+                        "Keep the keyword list thin, readable, and page-specific.\n\n"
+                        f"Input JSON:\n{json.dumps(ai_payload, indent=2)}"
+                    )
+                    reviewed_keywords_raw = call_ai_with_workflow_session(
+                        workflow_name=workflow_name,
+                        stage="keyword_ui_review",
+                        endpoint=endpoint,
+                        token=token,
+                        prompt=ai_prompt,
+                        timeout_seconds=ai_cfg.get("timeout_seconds", 120),
+                        verify_ssl=ai_cfg.get("verify_ssl", False),
+                    )
+                    reviewed_keywords = json.loads(strip_markdown_fences(reviewed_keywords_raw))
+                    if isinstance(reviewed_keywords, list):
+                        normalized_reviewed = []
+                        for idx, item in enumerate(reviewed_keywords, start=1):
+                            if not isinstance(item, dict):
+                                continue
+                            keyword_name = clean_text(str(item.get("keywordName", "")))
+                            if not keyword_name or keyword_name.lower() in disallowed_resource_keywords:
+                                continue
+                            target_element = clean_text(str(item.get("targetElement", ""))) or resolve_target_element(keyword_name)
+                            if target_element not in approved_elements_by_name:
+                                continue
+                            implementation = item.get("implementation", [])
+                            if isinstance(implementation, str):
+                                implementation = [line.rstrip() for line in implementation.splitlines() if clean_text(line)]
+                            implementation = [str(line).rstrip() for line in implementation if clean_text(str(line))]
+                            arguments = item.get("arguments", [])
+                            if isinstance(arguments, str):
+                                arguments = [arg.strip() for arg in arguments.split(",") if arg.strip()]
+                            arguments = [str(arg).replace("${", "").replace("}", "").strip() for arg in arguments if clean_text(str(arg))]
+                            normalized_reviewed.append({
+                                "keywordId": clean_text(str(item.get("keywordId", ""))) or f"KW_{idx:03d}",
+                                "keywordName": keyword_name,
+                                "targetElement": target_element,
+                                "action": clean_text(str(item.get("action", ""))) or "generic",
+                                "arguments": arguments,
+                                "implementation": implementation,
+                                "approved": bool(item.get("approved", True)),
+                            })
+                        if normalized_reviewed:
+                            keywords = normalized_reviewed
+        except Exception:
+            pass
 
     return {
         "page_name": page_name,
