@@ -19,6 +19,7 @@ Goals:
 7. Remove duplicate, noisy, or low-value keywords
 8. Preserve useful valid content from the original draft
 9. Make the resource reusable across different workflows that operate on the same page
+10. Reflect meaningful page understanding rather than only direct UI mechanics
 
 Mandatory refinement rules:
 - Return ONLY valid Robot Framework resource content
@@ -39,7 +40,9 @@ Mandatory refinement rules:
 Refinement guidance:
 - Prefer semantic keyword names over raw control-type names
 - If the draft is only a low-level one-element-one-keyword mapping, improve it by introducing meaningful page-level abstractions where justified by the context
-- Add useful verification keywords for meaningful states, validations, or messages when clearly supported
+- Add useful verification keywords for meaningful states, validations, navigation outcomes, or messages when clearly supported
+- Use the approved page elements as the source of truth for variables and supported interactions
 - Reuse valid existing keywords from the draft where they are already good
+- Favor a concise, high-value page resource over a long list of weak repetitive wrappers
 
 Return only the final Robot Framework resource file content.

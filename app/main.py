@@ -647,10 +647,6 @@ def get_page_review_data(workflow: dict):
     review_summary = None
 
     source_path = elements_path
-    if elements_refined_path.exists():
-        source_path = elements_refined_path
-    elif elements_draft_path.exists():
-        source_path = elements_draft_path
 
     if source_path.exists():
         try:
@@ -735,36 +731,32 @@ def get_resource_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.resource"
 
 
-def get_internal_artifacts_dir(page_name: str) -> Path:
-    return POM_DIR / page_name / ".internal"
-
-
 def get_effective_resource_path(page_name: str) -> Path:
     return get_resource_path(page_name)
 
 
 def get_elements_draft_path(page_name: str) -> Path:
-    return get_internal_artifacts_dir(page_name) / f"{page_name}.elements.draft.json"
+    return POM_DIR / page_name / f"{page_name}.elements.draft.json"
 
 
 def get_elements_review_path(page_name: str) -> Path:
-    return get_internal_artifacts_dir(page_name) / f"{page_name}.elements.review.json"
+    return POM_DIR / page_name / f"{page_name}.elements.review.json"
 
 
 def get_elements_refined_path(page_name: str) -> Path:
-    return get_internal_artifacts_dir(page_name) / f"{page_name}.elements.refined.json"
+    return POM_DIR / page_name / f"{page_name}.elements.refined.json"
 
 
 def get_resource_draft_path(page_name: str) -> Path:
-    return get_internal_artifacts_dir(page_name) / f"{page_name}.resource.draft"
+    return POM_DIR / page_name / f"{page_name}.resource.draft"
 
 
 def get_resource_review_path(page_name: str) -> Path:
-    return get_internal_artifacts_dir(page_name) / f"{page_name}.resource.review.json"
+    return POM_DIR / page_name / f"{page_name}.resource.review.json"
 
 
 def get_resource_refined_path(page_name: str) -> Path:
-    return get_internal_artifacts_dir(page_name) / f"{page_name}.resource.refined"
+    return POM_DIR / page_name / f"{page_name}.resource.refined"
 
 def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
     pages = workflow.get("pages", [])
@@ -2398,7 +2390,6 @@ async def save_page_review(request: Request, workflow_name: str):
         "elements": approved_elements,
     }
     write_json(review_data["elements_path"], payload)
-    write_json(review_data["elements_refined_path"], payload)
 
     return RedirectResponse(url=f"/keywords/{workflow_name}", status_code=HTTP_303_SEE_OTHER)
 

@@ -9,19 +9,21 @@ This framework must support many modules, features, workflows, page types, and a
 
 Goals:
 1. Keep only meaningful and automation-relevant elements
-2. Remove noise, duplicate wrappers, and decorative elements
+2. Remove noise, duplicate wrappers, decorative elements, and low-value branding-only items unless needed for validation
 3. Use strong semantic element names
 4. Preserve important controls required by the workflow
 5. Keep validation, message, status, and navigation elements if they are useful for automation
 6. Prefer stable and meaningful locators where possible
 7. Make the refined element model reusable and understandable across different workflows
+8. Produce a clean approved element set that can directly support high-quality resource generation
 
 Naming rules:
 - Use lowercase snake_case names
 - Prefer names based on business purpose and user intent
-- Avoid generic names like element, input, textbox, button, link, message_2 unless the context truly does not support a better name
+- Avoid generic names like element, input, textbox, button, link, label_2, message_2 unless the context truly does not support a better name
 - Use semantic meaning, not raw technical IDs, where possible
 - Distinguish similar validation or message elements semantically if supported by the provided context
+- Favor names that would make sense to an automation engineer reading a page object or resource file
 
 Output rules:
 - Return ONLY valid JSON
