@@ -10,41 +10,26 @@ ${HOME_BUTTON}    xpath=(//ion-fab-button)[last()]
 
 *** Keywords ***
 Verify Login Page Loaded
-    [Documentation]    Verifies that the core login controls are visible and ready for interaction.
+    [Documentation]    Verifies that key login page controls are visible and ready for interaction.
     Wait For Element To Be Ready    ${USERNAME_FIELD}
     Wait For Element To Be Ready    ${PASSWORD_FIELD}
     Wait For Element To Be Ready    ${SIGN_IN_BUTTON}
-
-Verify Login Navigation Controls Visible
-    [Documentation]    Verifies that navigation controls on the login page are visible.
     Wait For Element To Be Ready    ${BACK_BUTTON}
     Wait For Element To Be Ready    ${HOME_BUTTON}
 
 Enter Username
     [Documentation]    Enter text into the User Name field.
-    [Arguments]    ${username}
-    Input Text When Ready    ${USERNAME_FIELD}    ${username}
+    [Arguments]    ${text}
+    Input Text When Ready    ${USERNAME_FIELD}    ${text}
 
 Enter Password
     [Documentation]    Enter password into the Password field.
     [Arguments]    ${password}
-    Wait For Element To Be Ready    ${PASSWORD_FIELD}
-    Input Password    ${PASSWORD_FIELD}    ${password}
+    Input Text When Ready    ${PASSWORD_FIELD}    ${password}
 
 Click Sign In Button
     [Documentation]    Click the Sign In button on the login page.
     Click When Ready    ${SIGN_IN_BUTTON}
-
-Submit Login
-    [Documentation]    Submits the login form using the Sign In button.
-    Click Sign In Button
-
-Login With Credentials
-    [Documentation]    Performs login using provided username and password.
-    [Arguments]    ${username}    ${password}
-    Enter Username    ${username}
-    Enter Password    ${password}
-    Submit Login
 
 Click Home Button
     [Documentation]    Click the Home button on the login page.

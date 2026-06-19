@@ -20,7 +20,7 @@
       "action": "click",
       "arguments": [],
       "implementation": [
-        "    [Documentation]    Click the Home button which navigates to the home page.",
+        "    [Documentation]    Click the Home button on the login page.",
         "    Click When Ready    ${HOME_BUTTON}"
       ],
       "approved": true
@@ -32,7 +32,7 @@
       "action": "click",
       "arguments": [],
       "implementation": [
-        "    [Documentation]    Click the Arrow Back button which navigates to the home page.",
+        "    [Documentation]    Click the Arrow Back button on the login page.",
         "    Click When Ready    ${BACK_BUTTON}"
       ],
       "approved": true
