@@ -61,7 +61,7 @@
       "tag": "ion-input",
       "text": "password",
       "attributes": {
-        "_ngcontent-mjv-c151": "",
+        "_ngcontent-hqw-c151": "",
         "type": "password",
         "id": "password",
         "clearonedit": "true",
@@ -86,7 +86,7 @@
       "tag": "ion-fab-button",
       "text": "home",
       "attributes": {
-        "_ngcontent-mjv-c151": "",
+        "_ngcontent-hqw-c151": "",
         "tappable": "",
         "color": "light",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
@@ -118,7 +118,7 @@
       "tag": "ion-fab-button",
       "text": "arrow back",
       "attributes": {
-        "_ngcontent-mjv-c151": "",
+        "_ngcontent-hqw-c151": "",
         "tappable": "",
         "color": "light",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
@@ -150,7 +150,7 @@
       "tag": "ion-button",
       "text": "SIGN IN",
       "attributes": {
-        "_ngcontent-mjv-c151": "",
+        "_ngcontent-hqw-c151": "",
         "text": "Login",
         "shape": "round",
         "class": "ion-button-style md button button-round button-solid ion-activatable ion-focusable hydrated"
@@ -181,39 +181,33 @@
   ],
   "elements": [
     {
-      "approvedName": "user_name_textbox",
+      "approvedName": "username_textbox",
       "type": "textbox",
-      "locator": "xpath=//input[@placeholder='User Name']",
+      "locator": "xpath=//input[@name='ion-input-0']",
       "approved": true
     },
     {
-      "approvedName": "password",
-      "type": "textbox",
-      "locator": "xpath=//input[@placeholder='Password']",
-      "approved": true
-    },
-    {
-      "approvedName": "password",
-      "type": "textbox",
+      "approvedName": "password_textbox",
+      "type": "password",
       "locator": "id=password",
-      "approved": true
-    },
-    {
-      "approvedName": "home_button",
-      "type": "button",
-      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='home'] or normalize-space(.)='home']",
-      "approved": true
-    },
-    {
-      "approvedName": "arrow_back_button",
-      "type": "button",
-      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back'] or normalize-space(.)='arrow back']",
       "approved": true
     },
     {
       "approvedName": "sign_in_button",
       "type": "button",
-      "locator": "xpath=//ion-button[normalize-space(.)='SIGN IN']",
+      "locator": "xpath=//ion-button[normalize-space()='SIGN IN']",
+      "approved": true
+    },
+    {
+      "approvedName": "home_navigation_button",
+      "type": "button",
+      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='home'] or normalize-space()='home']",
+      "approved": true
+    },
+    {
+      "approvedName": "back_navigation_button",
+      "type": "button",
+      "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back'] or normalize-space()='arrow back']",
       "approved": true
     }
   ]

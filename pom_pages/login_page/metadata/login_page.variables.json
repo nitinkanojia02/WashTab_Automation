@@ -1,5 +1,6 @@
 {
   "pageName": "login_page",
+  "pageUrl": "http://172.21.166.115/washtabui/login?data=undefined",
   "variables": [
     {
       "variableName": "PAGE_URL",
@@ -8,43 +9,43 @@
       "kind": "page_url"
     },
     {
-      "variableName": "USER_NAME_TEXTBOX",
-      "value": "xpath=//input[@placeholder='User Name']",
+      "variableName": "USERNAME_TEXTBOX",
+      "value": "xpath=//input[@name='ion-input-0']",
       "source": "approved_element",
       "kind": "locator",
-      "approvedName": "user_name_textbox",
+      "approvedName": "username_textbox",
       "type": "textbox"
     },
     {
-      "variableName": "PASSWORD",
-      "value": "xpath=//input[@placeholder='Password']",
+      "variableName": "PASSWORD_TEXTBOX",
+      "value": "id=password",
       "source": "approved_element",
       "kind": "locator",
-      "approvedName": "password",
-      "type": "textbox"
-    },
-    {
-      "variableName": "HOME_BUTTON",
-      "value": "xpath=//ion-fab-button[.//ion-icon[@aria-label='home'] or normalize-space(.)='home']",
-      "source": "approved_element",
-      "kind": "locator",
-      "approvedName": "home_button",
-      "type": "button"
-    },
-    {
-      "variableName": "ARROW_BACK_BUTTON",
-      "value": "xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back'] or normalize-space(.)='arrow back']",
-      "source": "approved_element",
-      "kind": "locator",
-      "approvedName": "arrow_back_button",
-      "type": "button"
+      "approvedName": "password_textbox",
+      "type": "password"
     },
     {
       "variableName": "SIGN_IN_BUTTON",
-      "value": "xpath=//ion-button[normalize-space(.)='SIGN IN']",
+      "value": "xpath=//ion-button[normalize-space()='SIGN IN']",
       "source": "approved_element",
       "kind": "locator",
       "approvedName": "sign_in_button",
+      "type": "button"
+    },
+    {
+      "variableName": "HOME_NAVIGATION_BUTTON",
+      "value": "xpath=//ion-fab-button[.//ion-icon[@aria-label='home'] or normalize-space()='home']",
+      "source": "approved_element",
+      "kind": "locator",
+      "approvedName": "home_navigation_button",
+      "type": "button"
+    },
+    {
+      "variableName": "BACK_NAVIGATION_BUTTON",
+      "value": "xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back'] or normalize-space()='arrow back']",
+      "source": "approved_element",
+      "kind": "locator",
+      "approvedName": "back_navigation_button",
       "type": "button"
     }
   ]
