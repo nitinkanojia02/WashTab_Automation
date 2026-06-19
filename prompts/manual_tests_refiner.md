@@ -23,6 +23,7 @@ Refinement rules:
 - Prefer explicit observable expected results over vague wording
 - Expected results should describe what a reviewer or automation can actually observe on the page, in navigation state, in field behavior, or in visible validation feedback
 - Keep only the allowed top-level keys and test-case keys
+- Preserve wording that makes interaction intent inferable later without introducing hardcoded logic in the framework
 - Do not invent unsupported business rules or hidden system behavior
 - Use only information grounded in the provided inputs
 - When refining titles and steps, improve clarity without flattening specialized scenario intent into generic wording

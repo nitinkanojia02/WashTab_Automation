@@ -191,6 +191,7 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "common_resource_hint": "../resources/common_keywords.resource",
         "intent_preservation_notes": [
             "Preserve manual interaction intent from steps and any interactionIntent metadata.",
+            "Use interactionIntent as AI guidance, not as a hardcoded routing table.",
             "If interactionIntent.inputMethod is paste, preserve paste-like behavior instead of generic typing when feasible.",
             "If interactionIntent.submissionMethod is keyboard_enter, preserve Enter-key submission behavior.",
             "If interactionIntent.interactionPattern is repeat_click, preserve repeated click behavior and validate duplicate-prevention outcome when supported.",

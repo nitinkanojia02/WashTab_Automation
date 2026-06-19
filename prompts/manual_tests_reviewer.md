@@ -27,6 +27,7 @@ Review emphasis:
 - Repair vague expected results into observable outcomes that can be asserted later
 - Keep scenario wording faithful to what the user intended to do, not just the end state
 - Avoid flattening specialized interactions into generic 'enter data and submit' phrasing when the source artifact is more specific
+- Preserve enough semantic wording that later AI layers can infer interaction intent without brittle Python mappings
 
 Output rules:
 - Return ONLY valid JSON

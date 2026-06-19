@@ -142,6 +142,10 @@ Return ONLY a valid JSON object with exactly these top-level keys:
 
 Return ONLY test cases in JSON form. Do not include commentary, markdown, notes, headings, or explanations.
 
+Behavior-faithfulness requirement:
+- Even though the output schema stays minimal, preserve interaction nuance in the wording of title, steps, and expectedResult so downstream AI layers can infer intent without hardcoded mapping.
+- Keep distinctions such as paste, keyboard submit, repeated click, whitespace handling, masking, navigation-specific behavior, and validation-specific behavior explicit in the artifact wording whenever they are materially different.
+
 Context usage requirements:
 1. Treat approvedElements as the approved UI ground truth for this workflow.
 2. Use observedPreconditions, observedSteps, observedExpectedResult, observedValidations, testData, scenarioIntent, fields, resourceFiles, and approvedElements together.
@@ -175,6 +179,7 @@ Schema rules:
    - steps
    - expectedResult
    - fields
+2. Do not add extra keys for intent metadata in the output; instead preserve intent clearly in natural-language wording so downstream refinement layers can infer it.
 2. type must be one of:
    - positive
    - negative
@@ -300,6 +305,46 @@ def map_test_type(title: str, expected_result: str, raw_type: str) -> str:
     return "positive"
 
 
+def infer_interaction_intent(title: str, steps: List[str], expected_result: str) -> Dict[str, str]:
+    combined = " ".join([title or "", expected_result or "", *steps]).lower()
+
+    def has_any(*tokens: str) -> bool:
+        return any(token in combined for token in tokens)
+
+    input_method = "type"
+    if has_any("paste", "copy paste", "copy-paste", "clipboard"):
+        input_method = "paste"
+
+    submission_method = "click"
+    if has_any("press enter", "hit enter", "enter key", "keyboard submit", "submit using enter"):
+        submission_method = "keyboard_enter"
+
+    interaction_pattern = "standard"
+    if has_any("multiple rapid click", "multiple clicks", "click multiple times", "repeated click", "duplicate click", "double click"):
+        interaction_pattern = "repeat_click"
+    elif has_any("whitespace", "leading spaces", "trailing spaces", "with spaces"):
+        interaction_pattern = "whitespace"
+    elif has_any("special character", "special characters", "symbols"):
+        interaction_pattern = "special_characters"
+
+    validation_type = "generic"
+    if has_any("required", "mandatory", "empty", "blank"):
+        validation_type = "required_field"
+    elif has_any("error message", "validation message", "invalid credentials", "authentication failed", "rejected", "denied"):
+        validation_type = "error_message"
+    elif has_any("redirect", "dashboard", "home page", "landing page", "successful login", "logged in"):
+        validation_type = "navigation_success"
+    elif has_any("masked", "masking", "password hidden"):
+        validation_type = "masking"
+
+    return {
+        "inputMethod": input_method,
+        "submissionMethod": submission_method,
+        "interactionPattern": interaction_pattern,
+        "validationType": validation_type,
+    }
+
+
 def normalize_test_case(
     test_case: Dict[str, Any],
     idx: int,
@@ -321,7 +366,7 @@ def normalize_test_case(
     if not expected:
         expected = "System behaves as expected"
 
-    return {
+    normalized = {
         "id": tc_id,
         "title": title,
         "type": tc_type,
@@ -329,6 +374,8 @@ def normalize_test_case(
         "expectedResult": expected,
         "fields": fields,
     }
+    normalized["interactionIntent"] = infer_interaction_intent(title, steps, expected)
+    return normalized
 
 
 def generate_fallback_test_cases(workflow_input: Dict[str, Any], workflow_name: str) -> List[Dict[str, Any]]:
@@ -458,6 +505,7 @@ def normalize_manual_test(generated: Dict[str, Any], workflow_input: Dict[str, A
             tuple(s.strip().lower() for s in tc["steps"]),
             tc["expectedResult"].strip().lower(),
             tuple(f.strip().lower() for f in tc["fields"]),
+            tuple(sorted((tc.get("interactionIntent") or {}).items())),
         )
 
         if signature not in seen_signatures:
@@ -468,7 +516,18 @@ def normalize_manual_test(generated: Dict[str, Any], workflow_input: Dict[str, A
         "workflowName": workflow_name,
         "resourceFiles": [str(x).strip() for x in resource_files if str(x).strip()],
         "preconditions": preconditions,
-        "testCases": deduped_cases,
+        "testCases": [
+            {
+                "id": case["id"],
+                "title": case["title"],
+                "type": case["type"],
+                "steps": case["steps"],
+                "expectedResult": case["expectedResult"],
+                "fields": case["fields"],
+                "interactionIntent": case.get("interactionIntent", infer_interaction_intent(case["title"], case["steps"], case["expectedResult"])),
+            }
+            for case in deduped_cases
+        ],
     }
 
 
