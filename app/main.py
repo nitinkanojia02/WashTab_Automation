@@ -2777,7 +2777,8 @@ def automation_page(request: Request, workflow_name: str):
 
 @app.post("/automation/{workflow_name}/generate")
 def generate_automation_route(request: Request, workflow_name: str):
-    existing_content = read_text(get_automation_path(workflow_name))
+    automation_path = get_automation_path(workflow_name)
+    existing_content = read_text(automation_path) if automation_path.exists() else ""
     ensure_workflow_run(workflow_name)
     try:
         robot_content = generate_automation_for_workflow(workflow_name)
