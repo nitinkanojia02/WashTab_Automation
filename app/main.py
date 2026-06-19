@@ -625,6 +625,7 @@ def get_page_review_data(workflow: dict):
     pages = workflow.get("pages", [])
     page_name = pages[0].get("name") if pages else "page"
     page_url = pages[0].get("url") if pages else ""
+    workflow_name = clean_text(str(workflow.get("workflowName", ""))) or page_name
 
     page_dir = POM_DIR / page_name
     elements_path = page_dir / f"{page_name}.elements.json"
@@ -689,7 +690,6 @@ def get_page_review_data(workflow: dict):
 
     if resource_path.exists() and normalized_elements:
         try:
-            workflow_name = clean_text(str(workflow.get("workflowName", ""))) or page_name
             config = validate_robot_config(load_robot_ai_json(CONFIG_PATH))
             ai_cfg = config.get("ai", {})
             if ai_cfg.get("enabled", True):
@@ -768,8 +768,21 @@ def get_resource_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.resource"
 
 def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
-    review_data = get_page_review_data(workflow)
-    approved = review_data.get("approved_elements") or []
+    pages = workflow.get("pages", [])
+    page_name = pages[0].get("name") if pages else "page"
+    elements_path = POM_DIR / page_name / f"{page_name}.elements.json"
+
+    approved = []
+    if elements_path.exists():
+        try:
+            data = read_json(elements_path)
+            if isinstance(data, dict):
+                approved = data.get("elements", [])
+            elif isinstance(data, list):
+                approved = data
+        except Exception:
+            approved = []
+
     canonical_elements = []
     for item in approved:
         if not isinstance(item, dict):
@@ -1394,6 +1407,39 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
 
     resource_content = normalize_resource_content(resource_content)
 
+    resource_context_preview = parse_resource_file(resource_path) if resource_path.exists() else {"variables": [], "keywords": [], "source": existing_page_resource[:12000]}
+    ai_payload = {
+        "workflow": clean_workflow_for_prompting(workflow),
+        "approved_elements": approved_elements,
+        "approved_keywords": approved_keywords,
+        "approved_manual_tests": approved_manual_tests,
+        "common_resource_context": common_resource_context,
+        "generated_page_resource": resource_content,
+        "existing_page_resource": existing_page_resource,
+        "parsed_resource_context": resource_context_preview,
+        "goal": "Review and refine the generated page resource so it stays fully aligned with the approved elements and approved keywords, preserves readable user-friendly keyword names when appropriate, uses only approved-element-backed variables and keywords, and removes anything not grounded in approved elements. Return only valid Robot Framework resource code."
+    }
+    alignment_prompt = (
+        "You are AI Layer R0: a resource alignment reviewer for an AI-first automation framework.\n"
+        "Return only Robot Framework resource code with no markdown fences.\n"
+        "Use approved elements and approved keywords as the canonical source of truth.\n"
+        "Preserve practical, user-friendly keyword naming where appropriate, such as 'Enter User Name' instead of mechanically verbose names, while keeping strong locator-variable alignment.\n"
+        "Remove any variable or keyword not grounded in approved elements.\n\n"
+        f"Input JSON:\n{json.dumps(ai_payload, indent=2)}"
+    )
+    aligned_resource_content = call_ai_with_workflow_session(
+        workflow_name=page_name,
+        stage="resource_alignment_review",
+        endpoint=endpoint,
+        token=token,
+        prompt=alignment_prompt,
+        timeout_seconds=ai_cfg.get("timeout_seconds", 120),
+        verify_ssl=ai_cfg.get("verify_ssl", False),
+    )
+    aligned_resource_content = normalize_resource_content(aligned_resource_content)
+    if aligned_resource_content:
+        resource_content = aligned_resource_content
+
     review_prompt = build_resource_review_prompt(
         workflow,
         approved_elements,
@@ -1419,6 +1465,7 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
     resource_path.write_text(resource_content, encoding="utf-8")
+    save_keywords_for_workflow(workflow, approved_keywords)
 
 # -------------------------------------------------------------------
 # Manual tests handling
