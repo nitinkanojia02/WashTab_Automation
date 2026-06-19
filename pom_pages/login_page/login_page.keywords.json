@@ -2,154 +2,38 @@
   "pageName": "login_page",
   "keywords": [
     {
-      "keywordId": "KW_001",
-      "keywordName": "Verify Login Page Loaded",
-      "targetElement": "username_textbox",
-      "action": "verify",
-      "arguments": [],
-      "implementation": [
-        "    [Documentation]    Verifies that the login page is loaded and core controls are visible and ready.",
-        "    Location Should Contain    ${LOGIN_PATH_FRAGMENT}",
-        "    Wait For Element To Be Ready    ${USERNAME_TEXTBOX}",
-        "    Wait For Element To Be Ready    ${PASSWORD_TEXTBOX}",
-        "    Wait For Element To Be Ready    ${SIGN_IN_BUTTON}",
-        "    Wait For Element To Be Ready    ${BACK_NAVIGATION_BUTTON}",
-        "    Wait For Element To Be Ready    ${HOME_NAVIGATION_BUTTON}"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_002",
-      "keywordName": "Verify Navigation Buttons Visible",
-      "targetElement": "back_navigation_button",
-      "action": "verify",
-      "arguments": [],
-      "implementation": [
-        "    [Documentation]    Verifies that back and home navigation buttons are visible on the login page.",
-        "    Wait For Element To Be Ready    ${BACK_NAVIGATION_BUTTON}",
-        "    Wait For Element To Be Ready    ${HOME_NAVIGATION_BUTTON}"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_003",
-      "keywordName": "Enter Username",
-      "targetElement": "username_textbox",
-      "action": "input",
-      "arguments": [
-        "username"
-      ],
-      "implementation": [
-        "    [Documentation]    Enters the provided username into the username textbox.",
-        "    [Arguments]    ${username}",
-        "    Input Text When Ready    ${USERNAME_TEXTBOX}    ${username}"
-      ],
-      "approved": true
-    },
-    {
       "keywordId": "KW_004",
-      "keywordName": "Enter Password",
-      "targetElement": "password_textbox",
-      "action": "input",
-      "arguments": [
-        "password"
-      ],
-      "implementation": [
-        "    [Documentation]    Enters the provided password into the password textbox.",
-        "    [Arguments]    ${password}",
-        "    Input Text When Ready    ${PASSWORD_TEXTBOX}    ${password}"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_005",
       "keywordName": "Click Sign In Button",
       "targetElement": "sign_in_button",
       "action": "click",
       "arguments": [],
       "implementation": [
-        "    [Documentation]    Clicks the Sign In button on the login page.",
+        "    [Documentation]    Click the Sign In button on the login page.",
         "    Click When Ready    ${SIGN_IN_BUTTON}"
       ],
       "approved": true
     },
     {
-      "keywordId": "KW_006",
+      "keywordId": "KW_005",
       "keywordName": "Click Back Navigation Button",
       "targetElement": "back_navigation_button",
       "action": "click",
       "arguments": [],
       "implementation": [
-        "    [Documentation]    Clicks the back navigation control.",
+        "    [Documentation]    Click the Back navigation control to navigate away from the login page.",
         "    Click When Ready    ${BACK_NAVIGATION_BUTTON}"
       ],
       "approved": true
     },
     {
-      "keywordId": "KW_007",
+      "keywordId": "KW_006",
       "keywordName": "Click Home Navigation Button",
       "targetElement": "home_navigation_button",
       "action": "click",
       "arguments": [],
       "implementation": [
-        "    [Documentation]    Clicks the home navigation control.",
+        "    [Documentation]    Click the Home navigation control to navigate to the home page.",
         "    Click When Ready    ${HOME_NAVIGATION_BUTTON}"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_008",
-      "keywordName": "Perform Login",
-      "targetElement": "sign_in_button",
-      "action": "generic",
-      "arguments": [
-        "username",
-        "password"
-      ],
-      "implementation": [
-        "    [Documentation]    Performs login using the provided username and password.",
-        "    [Arguments]    ${username}    ${password}",
-        "    Enter Username    ${username}",
-        "    Enter Password    ${password}",
-        "    Click Sign In Button"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_009",
-      "keywordName": "Verify Successful Login Redirect",
-      "targetElement": "home_navigation_button",
-      "action": "verify",
-      "arguments": [],
-      "implementation": [
-        "    [Documentation]    Verifies that authentication succeeded and the browser redirects to the home page.",
-        "    Wait Until Location Contains    ${HOME_PATH_FRAGMENT}    10s"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_010",
-      "keywordName": "Verify Login Failed And Still On Login Page",
-      "targetElement": "sign_in_button",
-      "action": "verify",
-      "arguments": [],
-      "implementation": [
-        "    [Documentation]    Verifies that authentication failed and the user remains on the login page.",
-        "    Location Should Contain    ${LOGIN_PATH_FRAGMENT}",
-        "    Wait For Element To Be Ready    ${SIGN_IN_BUTTON}"
-      ],
-      "approved": true
-    },
-    {
-      "keywordId": "KW_011",
-      "keywordName": "Verify Password Field Is Masked",
-      "targetElement": "password_textbox",
-      "action": "verify",
-      "arguments": [],
-      "implementation": [
-        "    [Documentation]    Verifies that the password field masks entered characters.",
-        "    ${type}=    Get Element Attribute    ${PASSWORD_TEXTBOX}    type",
-        "    Should Be Equal    ${type}    password"
       ],
       "approved": true
     }

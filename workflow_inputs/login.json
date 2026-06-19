@@ -15,12 +15,14 @@
   "pages": [
     {
       "name": "login_page",
-      "url": "http://172.21.166.115/washtabui/login?data=undefined"
+      "url": " http://172.21.166.115/washtabui/login?data=undefined"
     }
   ],
   "observedPreconditions": [
+    "Valid username is hacklarr",
+    "Valid Password is Icstunnel1",
     "Page should contain username, password, signin button, back button and home button",
-    "User starts on the login page"
+    "login page url is http://172.21.166.115/washtabui/login?data=undefined"
   ],
   "observedSteps": [],
   "observedExpectedResult": "",
@@ -32,16 +34,7 @@
     "click back button should take to home page",
     "click home button should take to home page"
   ],
-  "testData": {
-    "loginPageUrl": "http://172.21.166.115/washtabui/login?data=undefined",
-    "homePagePathFragment": "/washtabui/home",
-    "validUsername": "hacklarr",
-    "validPassword": "Icstunnel1",
-    "invalidUsername": "invaliduser",
-    "invalidPassword": "wrongpassword",
-    "specialCharacterUsername": "user!@#",
-    "longUsername": "verylongusernamevalueexceedingtypicallengthlimitfortestingpurposes1234567890"
-  },
+  "testData": {},
   "scenarioIntent": [
     "positive",
     "negative",
