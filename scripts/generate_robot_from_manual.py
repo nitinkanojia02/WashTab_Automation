@@ -230,6 +230,8 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "- For values with leading/trailing spaces or other simple compositions, prefer inline expressions such as ${SPACE}${VALID_USERNAME}${SPACE} instead of expecting separate resource aliases like ${USERNAME_WITH_SPACES}.\n"
         "- Reuse canonical semantic variables consistently. If one ${INVALID_USERNAME} or ${INVALID_PASSWORD} already captures the invalid-login intent, reuse it across negative scenarios instead of expecting duplicate variants.\n"
         "- Never hardcode reusable credential, URL, path, expected-text, and negative or edge data values directly in tests when a meaningful resource variable is available or clearly implied by the resource context. If the approved manual tests clearly require an edge-case value, prefer a semantic resource variable or built-in composition over ad hoc literals in the suite.\n"
+        "- If the resource context contains variables such as ${PAGE_URL}, ${LOGIN_PAGE_URL}, ${VALID_USERNAME}, ${VALID_PASSWORD}, ${INVALID_USERNAME}, ${INVALID_PASSWORD}, or other approved semantic data variables, you must use those variables in the suite instead of literal values.\n"
+        "- Hardcoded URLs like http://..., hardcoded credentials, and hardcoded special-character strings are not allowed in the suite when equivalent approved resource variables exist or are clearly implied by the approved manual tests and resource context.\n"
         "- For masking, visibility, error message, disabled state, enabled state, page navigation, redirection, and UI behavior expectations, include explicit assertion/verification steps that satisfy expectedResult.\n"
         "- Keep the suite focused on calling resource keywords and assertions only.\n"
         "- Do not include markdown fences.\n"
@@ -377,6 +379,7 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "- Do not add a *** Keywords *** section unless a tiny test-specific helper is absolutely unavoidable; prefer resource keywords instead.\n"
         "- Replace bad blank handling with ${EMPTY} and single-space handling with ${SPACE}. Never leave input arguments visually empty.\n"
         "- Replace hardcoded reusable test data with semantic resource variables whenever the resource context supports it or clearly implies it. Do not leave reusable usernames, passwords, URLs, paths, expected texts, role-specific credentials, or other meaningful business data inline in the suite when a page-resource variable should be used instead.\n"
+        "- If page-resource variables for page URL, valid credentials, invalid credentials, or reusable edge data exist in resource_context, use them and remove corresponding literals from the suite.\n"
         "- Eliminate unnecessary dependence on noisy derived variables. If the suite uses aliases that merely duplicate ${EMPTY}, ${SPACE}, padded forms of valid credentials, duplicate invalid credential variants, or other simple compositions, rewrite the suite to use built-ins, canonical semantic variables, and inline composition instead.\n"
         "- Reuse one canonical invalid username/password pair across similar negative scenarios unless the approved manual tests clearly require distinct invalid data classes.\n"
         "- Prefer common/shared resource keywords for generic browser lifecycle, page opening, navigation, waiting, clicking, and text entry when suitable. Raw SeleniumLibrary keywords in the suite should be replaced by shared/common resource keywords whenever a suitable helper exists.\n"
@@ -726,6 +729,7 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
 
     likely_inline_literals = [
         r"(?im)^\s{4,}(?:Enter|Input|Type)\b.*\s{2,}(?!\$\{)(?!xpath=)(?!css=)(?!id=)(?!name=)(?!//)([^\n]+)$",
+        r"(?im)^\s{4,}.*https?://[^\s]+.*$",
     ]
     for pattern in likely_inline_literals:
         if re.search(pattern, content):

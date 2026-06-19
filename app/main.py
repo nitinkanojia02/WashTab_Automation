@@ -664,8 +664,20 @@ def get_page_reviewed_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.elements.reviewed.json"
 
 
+def get_page_variables_path(page_name: str) -> Path:
+    return POM_DIR / page_name / f"{page_name}.variables.json"
+
+
 def get_keywords_reviewed_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.keywords.reviewed.json"
+
+
+def get_manual_reviewed_path(workflow_name: str) -> Path:
+    return MANUAL_DIR / f"{workflow_name}.reviewed.json"
+
+
+def get_automation_reviewed_path(workflow_name: str) -> Path:
+    return TESTS_DIR / f"{workflow_name}_tests.reviewed.robot"
 
 
 def get_page_review_data(workflow: dict):
@@ -837,6 +849,51 @@ def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
             "approved": True,
         })
     return canonical_elements
+
+
+def sync_page_variables_from_approved_elements(workflow: dict, approved_elements: list[dict]) -> dict:
+    pages = workflow.get("pages", [])
+    page_name = pages[0].get("name") if pages else "page"
+    page_url = pages[0].get("url") if pages and isinstance(pages[0], dict) else ""
+
+    variables = []
+    seen_names: set[str] = set()
+
+    if clean_text(page_url):
+        variables.append({
+            "variableName": "PAGE_URL",
+            "value": clean_text(page_url),
+            "source": "approved_page",
+            "kind": "page_url",
+        })
+        seen_names.add("PAGE_URL")
+
+    for item in approved_elements:
+        if not isinstance(item, dict):
+            continue
+        approved_name = clean_text(str(item.get("approvedName", "")))
+        locator = clean_text(str(item.get("locator", "")))
+        if not approved_name or not locator:
+            continue
+        variable_name = to_robot_variable_name(approved_name)
+        if variable_name in seen_names:
+            continue
+        seen_names.add(variable_name)
+        variables.append({
+            "variableName": variable_name,
+            "value": locator,
+            "source": "approved_element",
+            "kind": "locator",
+            "approvedName": approved_name,
+            "type": clean_text(str(item.get("type", "element"))).lower() or "element",
+        })
+
+    payload = {
+        "pageName": page_name,
+        "variables": variables,
+    }
+    write_json(get_page_variables_path(page_name), payload)
+    return payload
 
 def build_keywords_from_elements(elements: list[dict]) -> list[dict]:
     keywords = []
@@ -1330,7 +1387,7 @@ def enrich_resource_with_manual_test_variables(workflow: dict, approved_keywords
         ai_cfg = config.get("ai", {})
         endpoint = ai_cfg.get("endpoint", "").strip()
         token = get_robot_ai_token(ai_cfg)
-        if not ai_cfg.get("enabled", True) or not endpoint or not token or not current_resource.strip():
+        if not ai_cfg.get("enabled", True) or not endpoint or not token:
             return current_resource
 
         enrichment_prompt = get_manual_tests_variable_enrichment_prompt(
@@ -1626,6 +1683,7 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     review_data = get_page_review_data(workflow)
     page_name = review_data["page_name"]
     approved_elements = load_approved_elements_for_workflow(workflow)
+    sync_page_variables_from_approved_elements(workflow, approved_elements)
 
     approved_manual_tests = []
     workflow_name = slugify(str(workflow.get("workflowName", "")))
@@ -1704,6 +1762,7 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
     resource_path.write_text(resource_content, encoding="utf-8")
+    enrich_resource_with_manual_test_variables(workflow, approved_keywords)
 
 # -------------------------------------------------------------------
 # Manual tests handling
@@ -1796,6 +1855,8 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
 
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
+    reviewed_path = get_manual_reviewed_path(workflow_name)
+    write_json(reviewed_path, final_json)
     write_json(MANUAL_DIR / f"{workflow_name}.json", final_json)
     return final_json
 
@@ -2167,6 +2228,10 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
 
+    reviewed_target = get_automation_reviewed_path(workflow_name)
+    reviewed_target.parent.mkdir(parents=True, exist_ok=True)
+    reviewed_target.write_text(robot_content, encoding="utf-8")
+
     target = TESTS_DIR / f"{workflow_name}_tests.robot"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(robot_content, encoding="utf-8")
@@ -2393,6 +2458,7 @@ async def save_page_review(request: Request, workflow_name: str):
         "elements": approved_elements,
     }
     write_json(review_data["elements_path"], payload)
+    sync_page_variables_from_approved_elements(workflow, approved_elements)
 
     return RedirectResponse(url=f"/manual-tests/{workflow_name}", status_code=HTTP_303_SEE_OTHER)
 
@@ -2464,8 +2530,10 @@ async def save_keyword_review(request: Request, workflow_name: str):
 def manual_tests_page(request: Request, workflow_name: str):
     workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
     manual_path = MANUAL_DIR / f"{workflow_name}.json"
+    reviewed_manual_path = get_manual_reviewed_path(workflow_name)
     workflow = read_json(workflow_path) if workflow_path.exists() else None
-    manual = read_json(manual_path) if manual_path.exists() else None
+    effective_manual_path = reviewed_manual_path if reviewed_manual_path.exists() else manual_path
+    manual = read_json(effective_manual_path) if effective_manual_path.exists() else None
     test_cases = extract_manual_test_cases(manual) if manual else []
 
     return render_template(request, "manual_tests.html", {
@@ -2563,7 +2631,23 @@ async def save_manual_tests(request: Request, workflow_name: str):
 
         updated = update_manual_with_ui_cases(original, cases)
         write_json(manual_path, updated)
+        write_json(get_manual_reviewed_path(workflow_name), updated)
         export_manual_tests_to_excel(workflow_name, workflow, updated)
+
+        page_name = ""
+        pages = workflow.get("pages", []) if isinstance(workflow, dict) else []
+        if pages and isinstance(pages[0], dict):
+            page_name = clean_text(str(pages[0].get("name", "")))
+        if page_name:
+            keywords_path = get_keywords_path(page_name)
+            approved_keywords = []
+            if keywords_path.exists():
+                try:
+                    payload = read_json(keywords_path)
+                    approved_keywords = payload.get("keywords", []) if isinstance(payload, dict) else []
+                except Exception:
+                    approved_keywords = []
+            enrich_resource_with_manual_test_variables(workflow, approved_keywords)
 
         return RedirectResponse(url=f"/keywords/{workflow_name}", status_code=HTTP_303_SEE_OTHER)
 
@@ -2580,7 +2664,9 @@ async def save_manual_tests(request: Request, workflow_name: str):
 @app.get("/automation/{workflow_name}")
 def automation_page(request: Request, workflow_name: str):
     robot_path = TESTS_DIR / f"{workflow_name}_tests.robot"
-    robot_content = read_text(robot_path)
+    reviewed_robot_path = get_automation_reviewed_path(workflow_name)
+    effective_robot_path = reviewed_robot_path if reviewed_robot_path.exists() else robot_path
+    robot_content = read_text(effective_robot_path)
     return render_template(request, "automation.html", {
         "workflow_name": workflow_name,
         "robot_content": robot_content,
