@@ -360,15 +360,23 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
             if isinstance(field, dict) and any(clean_text(str(field.get(k, ""))) for k in ("name", "label", "type"))
         ]
 
+    page_resources = [resource.get("file", "") for resource in resource_context if "/pom_pages/" in f"/{resource.get('file', '')}" or str(resource.get("file", "")).startswith("pom_pages/")]
     payload = {
         "manual_test": prompt_manual_data,
         "resource_context": resource_context,
         "generated_robot": generated_robot,
         "resource_import_prefix": "../pom_pages/",
         "common_resource_hint": "../resources/common_keywords.resource",
+        "approved_artifact_lineage": {
+            "resource_context_role": "Approved page/common resources are the semantic source of truth for suite keyword and variable reuse.",
+            "page_resources": page_resources,
+            "suite_target": "tests/<workflow>_tests.robot",
+        },
         "intent_review_focus": [
             "Confirm that copy-paste, Enter-key submit, repeated-click, whitespace, and special-character scenarios were not collapsed into generic flows.",
+            "Preserve approved resource keyword names and approved resource variable names whenever feasible.",
             "Prefer page-resource or common-resource abstractions over raw low-level suite steps when reusable.",
+            "Keep the suite thin and move reusable semantics into page/common resource usage rather than low-level chaining.",
             "Ensure negative scenarios contain observable evidence-backed assertions beyond simply staying on the same page when supported by the resource context."
         ]
     }
@@ -434,16 +442,24 @@ def build_validation_review_prompt(manual_data: dict, resource_context: List[Dic
             if isinstance(field, dict) and any(clean_text(str(field.get(k, ""))) for k in ("name", "label", "type"))
         ]
 
+    page_resources = [resource.get("file", "") for resource in resource_context if "/pom_pages/" in f"/{resource.get('file', '')}" or str(resource.get("file", "")).startswith("pom_pages/")]
     payload = {
         "manual_test": prompt_manual_data,
         "resource_context": resource_context,
         "generated_robot": generated_robot,
         "resource_import_prefix": "../pom_pages/",
         "common_resource_hint": "../resources/common_keywords.resource",
+        "approved_artifact_lineage": {
+            "resource_context_role": "Approved page/common resources are the semantic source of truth for suite refinement.",
+            "page_resources": page_resources,
+            "suite_target": "tests/<workflow>_tests.robot",
+        },
         "intent_review_focus": [
             "Preserve manual interaction intent from interactionIntent metadata and step wording.",
+            "Preserve approved resource keyword names and approved resource variable names whenever feasible.",
             "Strengthen negative assertions using only evidence-backed resource keywords and observable outcomes.",
-            "Reduce low-level suite leakage when equivalent reusable page/common keywords exist."
+            "Reduce low-level suite leakage when equivalent reusable page/common keywords exist.",
+            "Keep the suite thin and rely on page/common resource semantics instead of low-level orchestration where possible."
         ]
     }
 

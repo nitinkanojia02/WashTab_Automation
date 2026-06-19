@@ -61,6 +61,8 @@ Refinement guidance:
 - Add useful verification keywords for meaningful states, validations, navigation outcomes, or messages when clearly supported
 - Use the approved page elements as the source of truth for variables and supported interactions
 - Use the approved reviewed keywords as the source of truth for keyword naming and target abstractions whenever provided
+- Treat approved artifact lineage as authoritative context for what names and abstractions must survive into the final page resource
+- Preserve approved variable names and approved keyword names exactly whenever feasible instead of silently renaming them during refinement
 - Reuse valid existing keywords from the draft where they are already good
 - Favor a concise, high-value page resource over a long list of weak repetitive wrappers
 - Prefer page-specific action and validation keywords that preserve manual-test intent when the approved manual scenarios require distinct interaction semantics

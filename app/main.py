@@ -1422,12 +1422,29 @@ def review_and_refine_resource_artifact(workflow: dict, page_name: str, elements
             )
             review_result = json.loads(strip_markdown_fences(review_raw))
 
+            approved_keywords_payload = {}
+            approved_keywords_path = get_keywords_reviewed_path(page_name)
+            if approved_keywords_path.exists():
+                try:
+                    approved_keywords_payload = read_json(approved_keywords_path)
+                except Exception:
+                    approved_keywords_payload = {}
+
             refiner_prompt = (
                 Path(BASE_DIR / "prompts" / "resource_refiner.md").read_text(encoding="utf-8")
                 + "\n\nWorkflow Context:\n"
                 + json.dumps(clean_workflow_for_prompting(workflow), indent=2)
+                + "\n\nApproved Artifact Lineage:\n"
+                + json.dumps({
+                    "elements_source": str(get_page_reviewed_path(page_name).relative_to(BASE_DIR)).replace("\\", "/"),
+                    "keywords_source": str(approved_keywords_path.relative_to(BASE_DIR)).replace("\\", "/") if approved_keywords_path.exists() else "",
+                    "resource_target": str(get_resource_path(page_name).relative_to(BASE_DIR)).replace("\\", "/"),
+                    "lineage_rule": "Approved reviewed artifacts are the semantic source of truth. Preserve approved names exactly whenever feasible.",
+                }, indent=2)
                 + "\n\nPage Elements Artifact:\n"
                 + json.dumps(elements, indent=2)
+                + "\n\nApproved Reviewed Keywords Artifact:\n"
+                + json.dumps(approved_keywords_payload, indent=2)
                 + "\n\nCommon Shared Resource Content:\n"
                 + common_resource
                 + "\n\nReviewer Findings:\n"
@@ -1599,6 +1616,16 @@ def build_resource_generation_prompt(
     existing_page_resource: str = "",
 ) -> str:
     prompt_ready_workflow = clean_workflow_for_prompting(workflow)
+    pages = workflow.get("pages", []) if isinstance(workflow, dict) else []
+    page_name = clean_text(str(pages[0].get("name", ""))) if pages and isinstance(pages[0], dict) else "page"
+    reviewed_keywords_path = get_keywords_reviewed_path(page_name)
+    approved_keywords_path = get_keywords_path(page_name)
+    approved_artifact_lineage = {
+        "elements_source": f"pom_pages/{page_name}/metadata/{page_name}.elements.reviewed.json",
+        "keywords_source": str(reviewed_keywords_path.relative_to(BASE_DIR)).replace("\\", "/") if reviewed_keywords_path.exists() else str(approved_keywords_path.relative_to(BASE_DIR)).replace("\\", "/") if approved_keywords_path.exists() else "",
+        "resource_target": str(get_resource_path(page_name).relative_to(BASE_DIR)).replace("\\", "/"),
+        "lineage_rule": "Approved reviewed artifacts are the semantic source of truth. Preserve approved variable names and approved keyword names exactly whenever feasible.",
+    }
     payload = {
         "workflow": prompt_ready_workflow,
         "approved_elements": approved_elements,
@@ -1606,10 +1633,13 @@ def build_resource_generation_prompt(
         "approved_manual_tests": approved_manual_tests or [],
         "common_resource_context": common_resource_context or [],
         "existing_page_resource": existing_page_resource,
+        "approved_artifact_lineage": approved_artifact_lineage,
         "generation_focus": [
             "Use approved reviewed artifacts as the semantic source of truth.",
+            "Preserve approved variable names and approved keyword names exactly whenever feasible.",
             "Improve abstraction and naming quality through AI reasoning, not hardcoded workflow-specific logic.",
             "Prefer shared/common keywords for generic behavior and page-resource keywords for page semantics.",
+            "Keep the page resource expressive enough that downstream suites can stay thin and business-readable.",
             "Create stronger page validations only when supported by workflow inputs, approved manual tests, or approved page evidence."
         ],
     }

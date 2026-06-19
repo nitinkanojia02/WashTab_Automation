@@ -23,8 +23,10 @@ Refinement rules:
 - Keep only *** Settings *** and *** Test Cases *** unless a tiny local helper is absolutely unavoidable
 - Ensure every test ends with an observable validation aligned to expectedResult
 - Preserve specialized interaction intent such as Enter key submission, repeated clicking, whitespace handling, paste-like input, and masking verification
+- Treat approved page/common resource context as the semantic source of truth for keyword names, variable reuse, and supported abstractions
+- Preserve approved resource keyword names and approved resource variable names exactly whenever feasible instead of renaming them in the suite
 - Avoid invented keywords, unsupported assertions, and invalid library APIs
 - Prefer setup/teardown for repeated startup or cleanup behavior
 - Prefer semantic resource variables over inline reusable literals
 - Prefer approved page-resource keywords and shared common keywords over low-level suite steps when they can express the same intent
-- Keep the final suite compact and framework-safe
+- Keep the final suite compact, thin, and framework-safe
