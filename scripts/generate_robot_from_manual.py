@@ -444,6 +444,8 @@ def build_validation_review_prompt(manual_data: dict, resource_context: List[Dic
         ]
 
     page_resources = [resource.get("file", "") for resource in resource_context if "/pom_pages/" in f"/{resource.get('file', '')}" or str(resource.get("file", "")).startswith("pom_pages/")]
+    manual_expected_outcomes = collect_manual_expected_outcomes(prompt_manual_data)
+    resource_validation_keywords = collect_resource_validation_keywords(resource_context)
     payload = {
         "manual_test": prompt_manual_data,
         "resource_context": resource_context,
@@ -461,7 +463,16 @@ def build_validation_review_prompt(manual_data: dict, resource_context: List[Dic
             "Strengthen negative assertions using only evidence-backed resource keywords and observable outcomes.",
             "Reduce low-level suite leakage when equivalent reusable page/common keywords exist.",
             "Keep the suite thin and rely on page/common resource semantics instead of low-level orchestration where possible."
-        ]
+        ],
+        "assertion_guidance": {
+            "manual_expected_outcomes": manual_expected_outcomes,
+            "resource_validation_keywords": resource_validation_keywords,
+            "policy": [
+                "Prefer visible, observable, evidence-backed assertions when supported by approved manual expected outcomes and approved resource validations.",
+                "Do not invent unsupported validation messages or unsupported business behavior.",
+                "For negative scenarios, prefer stronger validation evidence over only checking that the user stayed on the same page when stronger approved evidence exists."
+            ]
+        }
     }
 
     if refiner_md:
@@ -671,6 +682,70 @@ def validate_robot_alignment_with_resource_context(content: str, resource_contex
             warnings.append("Generated suite does not appear to reuse approved page/common resource keywords from the provided resource context")
 
     return len(errors) == 0, ("Warnings:\n" + "\n".join(warnings)) if warnings else ""
+
+
+def collect_manual_expected_outcomes(manual_data: dict) -> list[str]:
+    outcomes: list[str] = []
+    cases = manual_data.get("testCases") or manual_data.get("manualTests") or []
+    if isinstance(cases, list):
+        for case in cases:
+            if not isinstance(case, dict):
+                continue
+            value = clean_text(str(case.get("expectedResult") or case.get("expected") or case.get("expectedOutcome") or ""))
+            if value:
+                outcomes.append(value)
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for item in outcomes:
+        lowered = item.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        deduped.append(item)
+    return deduped
+
+
+def collect_resource_validation_keywords(resource_context: list[dict]) -> list[str]:
+    validation_keywords: list[str] = []
+    for resource in resource_context:
+        for keyword in resource.get("keywords", []):
+            name = clean_text(str(keyword.get("name", "")))
+            lowered = name.lower()
+            if not name:
+                continue
+            if lowered.startswith("verify ") or lowered.startswith("validate ") or "assert" in lowered:
+                validation_keywords.append(name)
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for item in validation_keywords:
+        lowered = item.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        deduped.append(item)
+    return deduped
+
+
+def warn_on_assertion_quality(manual_expected_outcomes: list[str], robot_content: str, resource_validation_keywords: list[str]) -> str:
+    if not manual_expected_outcomes:
+        return ""
+
+    richer_expected = any(
+        any(token in outcome.lower() for token in [
+            "error", "message", "validation", "required", "redirect", "dashboard", "home", "landing", "masked", "disabled", "enabled", "rejected", "denied"
+        ])
+        for outcome in manual_expected_outcomes
+    )
+    if not richer_expected:
+        return ""
+
+    same_page_checks = len(re.findall(r"(?im)\b(still on|remain on|login page loaded|verify .* page loaded|location should be|location should contain)\b", robot_content))
+    stronger_verify_checks = len(re.findall(r"(?im)^\s*(Verify|Validate)\b", robot_content))
+    available_validation_keywords = len(resource_validation_keywords)
+
+    if same_page_checks >= 2 and stronger_verify_checks <= 2 and available_validation_keywords >= 1:
+        return "Generated suite may rely on weak same-page assertions even though richer approved expected outcomes and validation keywords appear to be available"
+    return ""
 
 
 def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[bool, str]:
@@ -1089,12 +1164,17 @@ def process_manual_file(config: dict, manual_json_path: Path):
 
     is_valid, validation_message = validate_robot_content(robot_content, resource_files)
     alignment_valid, alignment_message = validate_robot_alignment_with_resource_context(robot_content, resource_context)
+    manual_expected_outcomes = collect_manual_expected_outcomes(manual_data)
+    resource_validation_keywords = collect_resource_validation_keywords(resource_context)
+    assertion_warning = warn_on_assertion_quality(manual_expected_outcomes, robot_content, resource_validation_keywords)
     if not is_valid:
         raise ValueError(
             f"Generated invalid robot content for {manual_json_path.name}: {validation_message}"
         )
     if alignment_message:
         logger.warning("Robot alignment review for %s: %s", manual_json_path.name, alignment_message)
+    if assertion_warning:
+        logger.warning("Assertion quality review for %s: %s", manual_json_path.name, assertion_warning)
     
     ensure_dir(tests_output_dir)
     output_path.write_text(robot_content, encoding="utf-8")

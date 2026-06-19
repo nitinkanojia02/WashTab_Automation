@@ -448,6 +448,41 @@ def load_workflow_or_404(workflow_name: str) -> dict:
     migrate_manual_artifacts_to_feature_dir(workflow_name)
     return read_json(workflow_path)
 
+def collect_workflow_expected_outcomes(workflow: dict) -> list[str]:
+    outcomes: list[str] = []
+
+    observed_expected = clean_text(str(workflow.get("observedExpectedResult", "")))
+    if observed_expected:
+        outcomes.append(observed_expected)
+
+    observed_validations = workflow.get("observedValidations", [])
+    if isinstance(observed_validations, list):
+        for item in observed_validations:
+            value = clean_text(str(item))
+            if value:
+                outcomes.append(value)
+
+    pages = workflow.get("pages", [])
+    if isinstance(pages, list):
+        for page in pages:
+            if not isinstance(page, dict):
+                continue
+            for key in ("expectedResult", "expectedOutcome", "successCriteria"):
+                value = clean_text(str(page.get(key, "")))
+                if value:
+                    outcomes.append(value)
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for item in outcomes:
+        lowered = item.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        deduped.append(item)
+    return deduped
+
+
 def clean_workflow_for_prompting(workflow: dict) -> dict:
     cleaned = json.loads(json.dumps(workflow))
 
@@ -1626,6 +1661,7 @@ def build_resource_generation_prompt(
         "resource_target": str(get_resource_path(page_name).relative_to(BASE_DIR)).replace("\\", "/"),
         "lineage_rule": "Approved reviewed artifacts are the semantic source of truth. Preserve approved variable names and approved keyword names exactly whenever feasible.",
     }
+    workflow_expected_outcomes = collect_workflow_expected_outcomes(workflow)
     payload = {
         "workflow": prompt_ready_workflow,
         "approved_elements": approved_elements,
@@ -1634,13 +1670,16 @@ def build_resource_generation_prompt(
         "common_resource_context": common_resource_context or [],
         "existing_page_resource": existing_page_resource,
         "approved_artifact_lineage": approved_artifact_lineage,
+        "workflow_expected_outcomes": workflow_expected_outcomes,
         "generation_focus": [
             "Use approved reviewed artifacts as the semantic source of truth.",
             "Preserve approved variable names and approved keyword names exactly whenever feasible.",
             "Improve abstraction and naming quality through AI reasoning, not hardcoded workflow-specific logic.",
             "Prefer shared/common keywords for generic behavior and page-resource keywords for page semantics.",
             "Keep the page resource expressive enough that downstream suites can stay thin and business-readable.",
-            "Create stronger page validations only when supported by workflow inputs, approved manual tests, or approved page evidence."
+            "Create stronger page validations only when supported by workflow inputs, approved manual tests, or approved page evidence.",
+            "Prefer evidence-based page validations grounded in workflow expected outcomes and approved page artifacts.",
+            "Do not invent unsupported assertions; strengthen validations only when supported by approved evidence."
         ],
     }
 

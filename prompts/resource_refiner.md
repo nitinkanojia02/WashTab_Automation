@@ -66,6 +66,9 @@ Refinement guidance:
 - Reuse valid existing keywords from the draft where they are already good
 - Favor a concise, high-value page resource over a long list of weak repetitive wrappers
 - Prefer page-specific action and validation keywords that preserve manual-test intent when the approved manual scenarios require distinct interaction semantics
+- Prefer page validations grounded in workflow expected outcomes, approved manual expectations, approved reviewed keywords, and approved page evidence
+- Strengthen negative validations only when visible or approved evidence supports them
+- Do not invent unsupported validation messages, unsupported business rules, or unsupported page behavior
 - If behavior is clearly generic and reusable across pages, rely on shared/common keywords instead of reproducing that behavior in the page resource
 - Do not solve gaps by inventing workflow-specific hardcoded logic; use only grounded context from the approved artifacts
 

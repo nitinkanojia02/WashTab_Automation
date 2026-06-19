@@ -23,6 +23,9 @@ Review rules:
 - Prefer resource/common keywords over low-level suite logic
 - Treat approved page/common resource context as the semantic source of truth for suite naming and reuse
 - Preserve approved resource keyword names and approved resource variable names exactly whenever feasible
+- Prefer visible, observable, evidence-backed assertions when supported by approved manual expected outcomes and approved resource validations
+- Flag suites that rely only on same-page checks when stronger approved validation evidence appears available
+- Do not introduce unsupported assertions, unsupported messages, or unsupported business behavior
 - Do not add a *** Variables *** section
 - Do not add a *** Keywords *** section unless a tiny local helper is absolutely unavoidable
 - Keep repeated startup actions in setup when appropriate
