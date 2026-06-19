@@ -1829,6 +1829,39 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
     )
     final_json = normalize_manual_test(reviewed_manual or generated, workflow_input)
     is_valid, validation_message = validate_manual_content(final_json)
+
+    if is_valid and validation_message and (
+        "fewer than 6 test cases" in validation_message.lower()
+        or "missing scenario category" in validation_message.lower()
+    ):
+        expansion_prompt = (
+            build_manual_prompt(workflow_with_elements)
+            + "\n\nExpansion instruction:\n"
+            + "The previous manual-test result was too thin or missed scenario categories. Expand the suite while staying grounded in approved elements and workflow context.\n"
+            + "Preserve existing good cases and add missing positive, negative, UI, validation, navigation, blank-input, and edge/boundary scenarios where applicable.\n"
+            + "Do not return a minimal representative subset. Return a broader but still non-redundant suite."
+        )
+        expanded = call_manual_ai_with_workflow_session(
+            workflow_name=workflow_name,
+            stage="manual_expansion",
+            endpoint=endpoint,
+            token=token,
+            prompt=expansion_prompt,
+        )
+        expanded_reviewed = call_manual_ai_with_workflow_session(
+            workflow_name=workflow_name,
+            stage="manual_expansion_review",
+            endpoint=endpoint,
+            token=token,
+            prompt=build_manual_review_prompt(expanded),
+        )
+        expanded_json = normalize_manual_test(expanded_reviewed or expanded, workflow_input)
+        expanded_valid, expanded_message = validate_manual_content(expanded_json)
+        if expanded_valid and len(extract_manual_test_cases(expanded_json)) >= len(extract_manual_test_cases(final_json)):
+            final_json = expanded_json
+            validation_message = expanded_message
+            is_valid = expanded_valid
+
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
     write_json(MANUAL_DIR / f"{workflow_name}.json", final_json)

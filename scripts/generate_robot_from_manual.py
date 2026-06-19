@@ -275,12 +275,20 @@ def build_manual_review_prompt(manual_data: dict) -> str:
         "Return only valid JSON with the same top-level structure.\n\n"
         "Review and repair goals:\n"
         "- preserve approved workflow intent while improving test quality\n"
-        "- remove duplicate or low-signal cases\n"
+        "- preserve breadth of scenario coverage, not just a minimal representative subset\n"
+        "- remove only true duplicates or low-signal cases that do not add distinct observable coverage\n"
         "- strengthen expectedResult values so downstream automation can create observable assertions\n"
         "- ensure positive cases have explicit success outcomes\n"
         "- ensure negative cases have explicit rejection/validation outcomes\n"
         "- ensure edge cases describe exact observable behavior\n"
         "- keep the artifact practical for Robot Framework generation\n\n"
+        "Coverage preservation rules:\n"
+        "- preserve all meaningful scenario categories already present in the generated artifact\n"
+        "- do not collapse broad scenario coverage into only a few representative tests\n"
+        "- retain distinct positive, negative, UI, validation, and edge scenarios whenever they differ in observable intent\n"
+        "- retain distinct field-level validation scenarios such as blank input, invalid input, whitespace handling, boundary input, special characters, and navigation behavior when they are materially different\n"
+        "- if the generated artifact is missing obvious scenario categories for a form workflow, expand it rather than shrinking it\n"
+        "- prefer breadth with low redundancy over aggressive minimization\n\n"
         "Rules:\n"
         "- return only JSON\n"
         "- keep resourceFiles intact\n"
@@ -288,7 +296,8 @@ def build_manual_review_prompt(manual_data: dict) -> str:
         "- do not add extra top-level keys\n"
         "- each test case must still contain only id, title, type, steps, expectedResult, fields\n"
         "- remove shallow duplicates that differ only in wording but not observable intent\n"
-        "- repair vague expected results into observable outcomes\n\n"
+        "- repair vague expected results into observable outcomes\n"
+        "- preserve or improve overall coverage breadth\n\n"
         f"Input JSON:\n{json.dumps(manual_data, indent=2)}"
     )
 
@@ -706,6 +715,13 @@ def validate_manual_content(manual_data: dict) -> tuple[bool, str]:
     seen_signatures = set()
     positive_with_observable_success = False
     negative_with_observable_failure = False
+    category_flags = {
+        "ui": False,
+        "validation": False,
+        "navigation": False,
+        "boundary_or_edge_behavior": False,
+        "blank_or_required": False,
+    }
 
     for idx, case in enumerate(test_cases, start=1):
         if not isinstance(case, dict):
@@ -739,6 +755,13 @@ def validate_manual_content(manual_data: dict) -> tuple[bool, str]:
             warnings.append(f"Potential duplicate manual test detected: {title or idx}")
         seen_signatures.add(signature)
 
+        combined = " ".join([
+            title.lower(),
+            expected.lower(),
+            " ".join(clean_text(str(step)).lower() for step in steps if clean_text(str(step))),
+            " ".join(clean_text(str(field)).lower() for field in fields if clean_text(str(field))),
+        ])
+
         expected_lower = expected.lower()
         if case_type == "positive" and any(token in expected_lower for token in ["dashboard", "home", "redirect", "landing", "url", "success", "authenticated", "logged in"]):
             positive_with_observable_success = True
@@ -747,10 +770,27 @@ def validate_manual_content(manual_data: dict) -> tuple[bool, str]:
         if expected_lower in {"system behaves as expected", "workflow completes successfully", "login should happen", "system works correctly"}:
             warnings.append(f"Weak expected result detected in manual test: {title or idx}")
 
+        if any(token in combined for token in ["visible", "visibility", "ui", "label", "button", "link", "placeholder", "masked", "masking"]):
+            category_flags["ui"] = True
+        if any(token in combined for token in ["validation", "required", "error", "invalid", "rejected", "denied"]):
+            category_flags["validation"] = True
+        if any(token in combined for token in ["navigate", "navigation", "redirect", "home", "back", "url", "landing"]):
+            category_flags["navigation"] = True
+        if any(token in combined for token in ["edge", "boundary", "max", "min", "long", "length", "special character", "whitespace", "case sensitivity", "copy paste", "repeated", "duplicate", "enter key"]):
+            category_flags["boundary_or_edge_behavior"] = True
+        if any(token in combined for token in ["blank", "empty", "required", "missing", "without entering", "leave"]):
+            category_flags["blank_or_required"] = True
+
     if not positive_with_observable_success:
         warnings.append("No positive manual test explicitly asserts observable success state")
     if not negative_with_observable_failure:
         warnings.append("No negative manual test explicitly asserts observable failure or rejection state")
+
+    if len(test_cases) < 6:
+        warnings.append("Manual test coverage appears thin: fewer than 6 test cases were generated")
+    for category_name, present in category_flags.items():
+        if not present:
+            warnings.append(f"Manual test coverage may be missing scenario category: {category_name}")
 
     is_valid = len(errors) == 0
     message_parts = []
