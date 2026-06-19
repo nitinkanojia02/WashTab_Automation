@@ -556,10 +556,12 @@ def normalize_ui_element_name(label: str, role: str) -> str:
     base = re.sub(r"_(outline|icon)$", "", base)
     if base in {"person", "profile", "user"}:
         base = "profile"
-    if role == "textbox" and not base.endswith("textbox"):
+    if role == "textbox" and not base.endswith(("textbox", "input", "field")):
         return f"{base}_textbox"
-    if role == "password_textbox" and not base.endswith("textbox"):
-        return f"{base}_textbox"
+    if role == "password_textbox" and not base.endswith(("password", "field", "textbox", "input")):
+        return f"{base}_password"
+    if role == "message" and not base.endswith("message"):
+        return f"{base}_message"
     if role == "button" and not base.endswith("button"):
         return f"{base}_button"
     if role == "dropdown" and not base.endswith("dropdown"):
@@ -672,25 +674,36 @@ def get_page_review_data(workflow: dict):
 
     source_elements = refined_elements_data or approved_elements_data or extracted_elements_data
     normalized_elements = []
+    seen_name_locator: set[tuple[str, str]] = set()
     for idx, item in enumerate(source_elements):
         if not isinstance(item, dict):
             continue
+        normalized_item = None
         if "approvedName" in item and "locator" in item and "type" in item:
-            normalized_elements.append({
+            normalized_item = {
                 "approvedName": item.get("approvedName") or f"element_{idx+1}",
                 "type": item.get("type", "element"),
                 "locator": clean_text(item.get("locator", "")),
                 "approved": item.get("approved", True),
-            })
+            }
         elif "name" in item and "locator" in item and "type" in item:
-            normalized_elements.append({
+            normalized_item = {
                 "approvedName": clean_text(str(item.get("name", ""))) or f"element_{idx+1}",
                 "type": clean_text(str(item.get("type", "element"))).lower() or "element",
                 "locator": clean_text(str(item.get("locator", ""))),
                 "approved": True,
-            })
+            }
         else:
-            normalized_elements.append(normalize_extracted_element(item, idx))
+            normalized_item = normalize_extracted_element(item, idx)
+
+        approved_name = clean_text(str(normalized_item.get("approvedName", "")))
+        locator = clean_text(str(normalized_item.get("locator", "")))
+        lowered_name = approved_name.lower()
+        key = (lowered_name, locator)
+        if not approved_name or not locator or key in seen_name_locator:
+            continue
+        seen_name_locator.add(key)
+        normalized_elements.append(normalized_item)
 
     screenshot_web_path = None
     if screenshot_path.exists():
@@ -789,6 +802,11 @@ def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
 
 def build_keywords_from_elements(elements: list[dict]) -> list[dict]:
     keywords = []
+    seen_keyword_names: set[str] = set()
+    has_username = False
+    has_password = False
+    has_sign_in = False
+
     for idx, element in enumerate(elements, start=1):
         if not isinstance(element, dict) or not bool(element.get("approved", True)):
             continue
@@ -800,18 +818,27 @@ def build_keywords_from_elements(elements: list[dict]) -> list[dict]:
         if not element_name or not locator:
             continue
 
+        lowered_name = element_name.lower()
+        if lowered_name in {"company_logo", "copyright_message", "copyright_notice", "logo"}:
+            continue
+
         keyword_title = to_keyword_title(element_name)
         variable_name = to_robot_variable_name(element_name)
 
+        if "username" in lowered_name:
+            has_username = True
+        if "password" in lowered_name and element_type in {"password", "textbox"}:
+            has_password = True
+        if "sign_in" in lowered_name or "login" in lowered_name:
+            has_sign_in = True
+
         if element_type == "textbox":
-            keyword_name = f"Enter {keyword_title}"
-            implementation = [
-                f"Input Text When Ready    ${{{variable_name}}}    ${{text}}"
-            ]
+            keyword_name = "Enter Username" if "username" in lowered_name else f"Enter {keyword_title}"
+            implementation = [f"Input Text When Ready    ${{{variable_name}}}    ${{text}}"]
             arguments = ["text"]
             action = "input"
         elif element_type == "password":
-            keyword_name = f"Enter {keyword_title}"
+            keyword_name = "Enter Password" if "password" in lowered_name else f"Enter {keyword_title}"
             implementation = [
                 f"Wait For Element To Be Ready    ${{{variable_name}}}",
                 f"Input Password    ${{{variable_name}}}    ${{password}}"
@@ -819,10 +846,11 @@ def build_keywords_from_elements(elements: list[dict]) -> list[dict]:
             arguments = ["password"]
             action = "input"
         elif element_type == "button":
-            keyword_name = f"Click {keyword_title}"
-            implementation = [
-                f"Click When Ready    ${{{variable_name}}}"
-            ]
+            if "sign_in" in lowered_name or "login" in lowered_name:
+                keyword_name = "Click Sign In"
+            else:
+                keyword_name = f"Click {keyword_title}"
+            implementation = [f"Click When Ready    ${{{variable_name}}}"]
             arguments = []
             action = "click"
         elif element_type == "dropdown":
@@ -835,23 +863,29 @@ def build_keywords_from_elements(elements: list[dict]) -> list[dict]:
             action = "select"
         elif element_type == "link":
             keyword_name = f"Click {keyword_title}"
-            implementation = [
-                f"Click When Ready    ${{{variable_name}}}"
-            ]
+            implementation = [f"Click When Ready    ${{{variable_name}}}"]
             arguments = []
             action = "click"
         elif element_type == "message":
-            keyword_name = f"Verify {keyword_title}"
-            implementation = [
-                f"Wait Until Element Is Visible    ${{{variable_name}}}    10s"
-            ]
+            if "invalid_login" in lowered_name or "incorrect_login" in lowered_name:
+                keyword_name = "Verify Invalid Login Message"
+            elif "username_required" in lowered_name:
+                keyword_name = "Verify Username Required Message"
+            elif "password_required" in lowered_name:
+                keyword_name = "Verify Password Required Message"
+            else:
+                keyword_name = f"Verify {keyword_title}"
+            implementation = [f"Wait Until Element Is Visible    ${{{variable_name}}}    10s"]
             arguments = []
             action = "verify"
         else:
             continue
 
+        if keyword_name.lower() in seen_keyword_names:
+            continue
+        seen_keyword_names.add(keyword_name.lower())
         keywords.append({
-            "keywordId": f"KW_{idx:03d}",
+            "keywordId": f"KW_{len(keywords)+1:03d}",
             "keywordName": keyword_name,
             "targetElement": element_name,
             "action": action,

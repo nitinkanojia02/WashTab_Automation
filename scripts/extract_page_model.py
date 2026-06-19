@@ -273,6 +273,7 @@ def should_skip_item(item: dict) -> bool:
     attrs = item.get("attributes", {}) or {}
     shadow = item.get("shadow", {}) or {}
     text = clean_text(item.get("text", ""))
+    lowered_text = text.lower()
     label = clean_text(item.get("label", ""))
     placeholder = clean_text(attrs.get("placeholder", "") or shadow.get("placeholder", ""))
     aria = clean_text(attrs.get("aria-label", "") or shadow.get("aria_label", "") or shadow.get("icon_aria_label", ""))
