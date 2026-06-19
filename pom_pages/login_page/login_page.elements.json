@@ -6,7 +6,7 @@
       "tag": "ion-fab-button",
       "text": "home",
       "attributes": {
-        "_ngcontent-mky-c151": "",
+        "_ngcontent-wdp-c151": "",
         "tappable": "",
         "color": "light",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
@@ -38,7 +38,7 @@
       "tag": "ion-fab-button",
       "text": "arrow back",
       "attributes": {
-        "_ngcontent-mky-c151": "",
+        "_ngcontent-wdp-c151": "",
         "tappable": "",
         "color": "light",
         "class": "ion-color ion-color-light md fab-button-in-list ion-activatable ion-focusable hydrated fab-button-show"
@@ -67,38 +67,10 @@
       }
     },
     {
-      "tag": "input",
-      "text": "User Name",
-      "attributes": {
-        "class": "native-input sc-ion-input-md",
-        "aria-labelledby": "ion-input-0-lbl",
-        "autocapitalize": "off",
-        "autocomplete": "off",
-        "autocorrect": "off",
-        "autofocus": "",
-        "name": "ion-input-0",
-        "placeholder": "User Name",
-        "type": "text",
-        "style": ""
-      },
-      "label": "",
-      "visibility": {
-        "is_visible": true,
-        "is_in_viewport": true,
-        "is_covered": false,
-        "has_visible_descendant": false,
-        "width": 250,
-        "height": 44,
-        "x": 863,
-        "y": 447.953125
-      },
-      "shadow": null
-    },
-    {
       "tag": "ion-input",
       "text": "password",
       "attributes": {
-        "_ngcontent-mky-c151": "",
+        "_ngcontent-wdp-c151": "",
         "type": "password",
         "id": "password",
         "clearonedit": "true",
@@ -150,7 +122,7 @@
       "tag": "ion-button",
       "text": "SIGN IN",
       "attributes": {
-        "_ngcontent-mky-c151": "",
+        "_ngcontent-wdp-c151": "",
         "text": "Login",
         "shape": "round",
         "class": "ion-button-style md button button-round button-solid ion-activatable ion-focusable hydrated"
@@ -190,12 +162,6 @@
       "approvedName": "arrow_back_button",
       "type": "button",
       "locator": "xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back'] or normalize-space(.)='arrow back']",
-      "approved": true
-    },
-    {
-      "approvedName": "user_name_textbox",
-      "type": "textbox",
-      "locator": "xpath=//input[@name='ion-input-0']",
       "approved": true
     },
     {

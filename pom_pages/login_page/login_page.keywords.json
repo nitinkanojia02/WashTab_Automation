@@ -2,17 +2,6 @@
   "pageName": "login_page",
   "keywords": [
     {
-      "keywordId": "KW_003",
-      "keywordName": "Click Sign In Button",
-      "targetElement": "sign_in_button",
-      "action": "click",
-      "arguments": [],
-      "implementation": [
-        "    Click When Ready    ${SIGN_IN_BUTTON}"
-      ],
-      "approved": true
-    },
-    {
       "keywordId": "KW_001",
       "keywordName": "Click Home Button",
       "targetElement": "home_button",
@@ -31,6 +20,31 @@
       "arguments": [],
       "implementation": [
         "    Click When Ready    ${ARROW_BACK_BUTTON}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_003",
+      "keywordName": "Enter Password",
+      "targetElement": "password_textbox",
+      "action": "input_password",
+      "arguments": [
+        "password"
+      ],
+      "implementation": [
+        "    Wait For Element To Be Ready    ${PASSWORD_TEXTBOX}",
+        "    Input Password    ${PASSWORD_TEXTBOX}    ${password}"
+      ],
+      "approved": true
+    },
+    {
+      "keywordId": "KW_005",
+      "keywordName": "Click Sign In Button",
+      "targetElement": "sign_in_button",
+      "action": "click",
+      "arguments": [],
+      "implementation": [
+        "    Click When Ready    ${SIGN_IN_BUTTON}"
       ],
       "approved": true
     }
