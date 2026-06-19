@@ -24,9 +24,28 @@
     "User should be able to log in properly and should navigate to home page whose URL is http://172.21.166.115/washtabui/home",
     "CLicking back and home button also takes the user to home page whose URL is http://172.21.166.115/washtabui/home"
   ],
-  "observedSteps": [],
-  "observedExpectedResult": "",
-  "fields": [],
+  "observedSteps": [
+    "Open the login page URL",
+    "Verify Home and Arrow Back controls are visible",
+    "Enter username in the User Name field",
+    "Enter password in the Password field",
+    "Click the SIGN IN button or press Enter from the password field"
+  ],
+  "observedExpectedResult": "User is authenticated with valid credentials and redirected to the home page. Invalid or blank credential scenarios remain on the login page with observable rejection or required-field behavior.",
+  "fields": [
+    {
+      "name": "user_name",
+      "label": "User Name",
+      "type": "textbox",
+      "required": true
+    },
+    {
+      "name": "password",
+      "label": "Password",
+      "type": "password",
+      "required": true
+    }
+  ],
   "observedValidations": [
     "Login failed when incorrect username or password",
     "Login failed when username and password is blank"

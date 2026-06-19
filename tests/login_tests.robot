@@ -73,6 +73,7 @@ AUT-WT-LOGIN08: Login using Enter key instead of clicking Login button
     Enter Password    ${VALID_PASSWORD}
     Press Keys    ${PASSWORD_TEXTBOX}    ENTER
     Location Should Contain    /washtabui/home
+    Page Should Contain Element    ${HOME_BUTTON}
 
 AUT-WT-LOGIN09: Login with leading and trailing spaces in username
     [Tags]    WT-LOGIN09    edge
@@ -127,6 +128,7 @@ AUT-WT-LOGIN14: Repeated clicking of Login button during submission
     Click Sign In Button
     Click Sign In Button
     Location Should Contain    /washtabui/home
+    Page Should Contain Element    ${HOME_BUTTON}
 
 AUT-WT-LOGIN15: Browser back navigation after successful login returns to authenticated home
     [Tags]    WT-LOGIN15    edge
@@ -135,6 +137,8 @@ AUT-WT-LOGIN15: Browser back navigation after successful login returns to authen
     Enter Password    ${VALID_PASSWORD}
     Click Sign In Button
     Location Should Contain    /washtabui/home
+    Page Should Contain Element    ${HOME_BUTTON}
     Go Back
     Click Home Button
     Location Should Contain    /washtabui/home
+    Page Should Contain Element    ${HOME_BUTTON}

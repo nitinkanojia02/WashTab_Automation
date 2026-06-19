@@ -1076,14 +1076,14 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
         except Exception:
             resource_keywords_by_name = {}
 
+    approved_keywords_by_name = {
+        clean_text(str(item.get("keywordName", ""))).lower(): item
+        for item in keywords
+        if clean_text(str(item.get("keywordName", "")))
+    }
+
     normalized_keywords = []
     if resource_keywords_by_name and approved_elements_by_name:
-        approved_keywords_by_name = {
-            clean_text(str(item.get("keywordName", ""))).lower(): item
-            for item in keywords
-            if clean_text(str(item.get("keywordName", "")))
-        }
-
         for idx, (keyword_name_lower, resource_keyword) in enumerate(resource_keywords_by_name.items(), start=1):
             if keyword_name_lower in disallowed_resource_keywords:
                 continue
@@ -1147,7 +1147,7 @@ def save_keywords_for_workflow(workflow: dict, keywords: list[dict]):
                 "keywordId": clean_text(str(keyword.get("keywordId", ""))) or f"KW_{idx:03d}",
                 "keywordName": keyword_name,
                 "targetElement": target_element,
-                "action": clean_text(str(keyword.get("action", ""))),
+                "action": clean_text(str(keyword.get("action", ""))) or "generic",
                 "arguments": arguments,
                 "implementation": implementation,
                 "approved": bool(keyword.get("approved", True)),
@@ -1465,7 +1465,35 @@ def generate_resource_for_workflow(workflow: dict, approved_keywords: list[dict]
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_message)
     resource_path.write_text(resource_content, encoding="utf-8")
-    save_keywords_for_workflow(workflow, approved_keywords)
+
+    refreshed_resource_context = parse_resource_file(resource_path)
+    refreshed_keywords = []
+    for idx, resource_keyword in enumerate(refreshed_resource_context.get("keywords", []), start=1):
+        resource_keyword_name = clean_text(str(resource_keyword.get("name", "")))
+        if not resource_keyword_name:
+            continue
+        lowered_name = resource_keyword_name.lower()
+        action = "generic"
+        if lowered_name.startswith("click "):
+            action = "click"
+        elif lowered_name.startswith("enter ") or lowered_name.startswith("input "):
+            action = "input"
+        elif lowered_name.startswith("select "):
+            action = "select"
+        elif lowered_name.startswith("verify "):
+            action = "verify"
+
+        refreshed_keywords.append({
+            "keywordId": f"KW_{idx:03d}",
+            "keywordName": resource_keyword_name,
+            "targetElement": "",
+            "action": action,
+            "arguments": [arg.replace("${", "").replace("}", "") for arg in resource_keyword.get("args", [])],
+            "implementation": [str(line).rstrip() for line in resource_keyword.get("body", []) if clean_text(str(line))],
+            "approved": True,
+        })
+
+    save_keywords_for_workflow(workflow, refreshed_keywords)
 
 # -------------------------------------------------------------------
 # Manual tests handling

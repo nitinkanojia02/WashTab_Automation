@@ -35,8 +35,9 @@ Verify Login Page Loaded
     Element Should Be Visible    ${SIGN_IN_BUTTON}
 
 Verify Login Rejected
-    Element Should Be Visible    ${USER_NAME_TEXTBOX}
+    Wait For Element To Be Ready    ${USER_NAME_TEXTBOX}
     Element Should Be Visible    ${PASSWORD_TEXTBOX}
+    Location Should Contain    /washtabui/login
 
 Verify Username Required Validation
     Wait For Element To Be Ready    ${USER_NAME_TEXTBOX}
