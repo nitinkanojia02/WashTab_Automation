@@ -636,9 +636,6 @@ def get_page_review_data(workflow: dict):
 
     page_dir = POM_DIR / page_name
     elements_path = page_dir / f"{page_name}.elements.json"
-    elements_draft_path = get_elements_draft_path(page_name)
-    elements_review_path = get_elements_review_path(page_name)
-    elements_refined_path = get_elements_refined_path(page_name)
     screenshot_path = page_dir / f"{page_name}.png"
 
     extracted_elements_data = []
@@ -662,11 +659,7 @@ def get_page_review_data(workflow: dict):
             approved_elements_data = []
             refined_elements_data = []
 
-    if elements_review_path.exists():
-        try:
-            review_summary = read_json(elements_review_path)
-        except Exception:
-            review_summary = None
+    review_summary = None
 
     source_elements = refined_elements_data or approved_elements_data or extracted_elements_data
     normalized_elements = []
@@ -712,9 +705,6 @@ def get_page_review_data(workflow: dict):
         "screenshot_web_path": screenshot_web_path,
         "raw_elements_count": len(extracted_elements_data or normalized_elements),
         "elements_path": elements_path,
-        "elements_draft_path": elements_draft_path,
-        "elements_review_path": elements_review_path,
-        "elements_refined_path": elements_refined_path,
         "raw_elements": extracted_elements_data,
         "approved_elements": approved_elements_data,
         "review_summary": review_summary,
@@ -735,28 +725,8 @@ def get_effective_resource_path(page_name: str) -> Path:
     return get_resource_path(page_name)
 
 
-def get_elements_draft_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.elements.draft.json"
-
-
-def get_elements_review_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.elements.review.json"
-
-
-def get_elements_refined_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.elements.refined.json"
-
-
-def get_resource_draft_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.resource.draft"
-
-
 def get_resource_review_path(page_name: str) -> Path:
     return POM_DIR / page_name / f"{page_name}.resource.review.json"
-
-
-def get_resource_refined_path(page_name: str) -> Path:
-    return POM_DIR / page_name / f"{page_name}.resource.refined"
 
 def load_approved_elements_for_workflow(workflow: dict) -> list[dict]:
     pages = workflow.get("pages", [])
@@ -904,8 +874,6 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
         "rawElements": raw_elements,
         "elements": draft_elements,
     }
-    write_json(review_data["elements_draft_path"], draft_payload)
-
     review_result = None
     refined_elements = draft_elements
     try:
@@ -933,7 +901,6 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
                 verify_ssl=ai_cfg.get("verify_ssl", False),
             )
             review_result = json.loads(strip_markdown_fences(review_raw))
-            write_json(review_data["elements_review_path"], review_result)
 
             refiner_prompt = (
                 Path(BASE_DIR / "prompts" / "page_elements_refiner.md").read_text(encoding="utf-8")
@@ -978,7 +945,6 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
                     "rawElements": raw_elements,
                     "elements": refined_elements,
                 }
-                write_json(review_data["elements_refined_path"], refined_payload_to_store)
                 write_json(review_data["elements_path"], refined_payload_to_store)
     except Exception as exc:
         review_result = {
@@ -986,8 +952,6 @@ def review_and_refine_page_elements(workflow: dict, review_data: dict) -> tuple[
             "summary": f"AI refinement failed: {str(exc)}",
             "issues": [],
         }
-        write_json(review_data["elements_review_path"], review_result)
-        write_json(review_data["elements_refined_path"], draft_payload)
         write_json(review_data["elements_path"], draft_payload)
 
     return refined_elements, review_result
@@ -1161,10 +1125,7 @@ def get_keyword_review_data(workflow: dict):
 
 def review_and_refine_resource_artifact(workflow: dict, page_name: str, elements: list[dict], draft_resource: str):
     workflow_name = clean_text(str(workflow.get("workflowName", ""))) or page_name
-    draft_path = get_resource_draft_path(page_name)
     review_path = get_resource_review_path(page_name)
-    refined_path = get_resource_refined_path(page_name)
-    write_text_file(draft_path, draft_resource)
 
     review_result = None
     refined_resource = draft_resource
@@ -1232,7 +1193,6 @@ def review_and_refine_resource_artifact(workflow: dict, page_name: str, elements
         }
         write_json(review_path, review_result)
 
-    write_text_file(refined_path, refined_resource)
     write_text_file(get_resource_path(page_name), refined_resource)
     return refined_resource, review_result
 
@@ -2398,13 +2358,6 @@ def keyword_review(request: Request, workflow_name: str):
     workflow = load_workflow_or_404(workflow_name)
     keyword_data = get_keyword_review_data(workflow)
     review_summary = None
-    page_name = keyword_data["page_name"]
-    review_path = get_resource_review_path(page_name)
-    if review_path.exists():
-        try:
-            review_summary = read_json(review_path)
-        except Exception:
-            review_summary = None
     return render_template(request, "keyword_review.html", {
         "workflow_name": workflow_name,
         "page_name": keyword_data["page_name"],
