@@ -28,7 +28,7 @@
             <div class="card-body">
                 <h2 class="card-title">Automation Generation Workbench</h2>
                 <p class="text-muted">
-                    A simple MVP UI for exploratory input, page extraction review, keyword review, manual test review, and automation review.
+                    A simple MVP UI for exploratory input, page extraction review, manual test review, keyword review, and automation review.
                 </p>
                 <a href="/workflow/new" class="btn btn-primary">Create Workflow</a>
             </div>
@@ -71,12 +71,15 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <a href="/workflow/edit/{{ row.name }}" class="btn btn-outline-warning btn-sm">Edit Workflow</a>
+                                    <div class="d-flex gap-2 flex-wrap align-items-center">
                                         <a href="/page-review/{{ row.name }}" class="btn btn-outline-primary btn-sm">Page Review</a>
-                                        <a href="/keywords/{{ row.name }}" class="btn btn-outline-info btn-sm">Keywords</a>
                                         <a href="/manual-tests/{{ row.name }}" class="btn btn-outline-secondary btn-sm">Manual Tests</a>
+                                        <a href="/keywords/{{ row.name }}" class="btn btn-outline-info btn-sm">Keywords</a>
                                         <a href="/automation/{{ row.name }}" class="btn btn-outline-dark btn-sm">Automation</a>
+                                        <a href="/workflow/edit/{{ row.name }}" class="btn btn-outline-warning btn-sm">Edit Workflow</a>
+                                        <form method="post" action="/workflow/delete/{{ row.name }}" class="d-inline" onsubmit="return confirm('Delete workflow {{ row.name }} and all related generated artifacts? This cannot be undone.');">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete Workflow</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -87,36 +90,6 @@
                 {% else %}
                 <div class="text-muted">No workflows found.</div>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5>Manual Test Files</h5>
-                <ul>
-                    {% for item in manuals %}
-                    <li><a href="/manual-tests/{{ item }}">{{ item }}</a></li>
-                    {% else %}
-                    <li>No manual tests found.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5>Automation Files</h5>
-                <ul>
-                    {% for item in tests %}
-                    <li>{{ item }}</li>
-                    {% else %}
-                    <li>No automation files found.</li>
-                    {% endfor %}
-                </ul>
             </div>
         </div>
     </div>

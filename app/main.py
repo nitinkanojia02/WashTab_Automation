@@ -2189,8 +2189,6 @@ def generate_automation_for_workflow(workflow_name: str) -> str:
 @app.get("/")
 def home(request: Request):
     workflows = sorted([p.stem for p in WORKFLOW_DIR.glob("*.json") if not p.name.endswith(".status.json")])
-    manuals = sorted([p.stem for p in MANUAL_DIR.glob("*.json")])
-    tests = sorted([p.name for p in TESTS_DIR.glob("*.robot")])
 
     workflow_rows = []
     for workflow_name in workflows:
@@ -2201,9 +2199,43 @@ def home(request: Request):
 
     return render_template(request, "index.html", {
         "workflow_rows": workflow_rows,
-        "manuals": manuals,
-        "tests": tests,
     })
+
+@app.post("/workflow/delete/{workflow_name}")
+def delete_workflow(workflow_name: str):
+    workflow = load_workflow_or_404(workflow_name)
+
+    workflow_path = WORKFLOW_DIR / f"{workflow_name}.json"
+    if workflow_path.exists():
+        workflow_path.unlink()
+
+    session_path = get_session_path(workflow_name)
+    if session_path.exists():
+        session_path.unlink()
+
+    manual_json_path = MANUAL_DIR / f"{workflow_name}.json"
+    if manual_json_path.exists():
+        manual_json_path.unlink()
+
+    manual_excel_path = MANUAL_DIR / f"{workflow_name}_approved_manual_tests.xlsx"
+    if manual_excel_path.exists():
+        manual_excel_path.unlink()
+
+    automation_path = TESTS_DIR / f"{workflow_name}_tests.robot"
+    if automation_path.exists():
+        automation_path.unlink()
+
+    page_name = ""
+    pages = workflow.get("pages", []) if isinstance(workflow, dict) else []
+    if pages and isinstance(pages[0], dict):
+        page_name = clean_text(str(pages[0].get("name", "")))
+
+    if page_name:
+        page_dir = POM_DIR / page_name
+        if page_dir.exists() and page_dir.is_dir():
+            shutil.rmtree(page_dir, ignore_errors=True)
+
+    return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
 
 @app.get("/workflow/new")
 def workflow_form(request: Request):
