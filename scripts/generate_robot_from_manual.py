@@ -188,7 +188,14 @@ def build_prompt(manual_data: dict, resource_context: List[Dict]) -> str:
         "manual_test": prompt_manual_data,
         "resource_context": resource_context,
         "resource_import_prefix": "../pom_pages/",
-        "common_resource_hint": "../resources/common_keywords.resource"
+        "common_resource_hint": "../resources/common_keywords.resource",
+        "intent_preservation_notes": [
+            "Preserve manual interaction intent from steps and any interactionIntent metadata.",
+            "If interactionIntent.inputMethod is paste, preserve paste-like behavior instead of generic typing when feasible.",
+            "If interactionIntent.submissionMethod is keyboard_enter, preserve Enter-key submission behavior.",
+            "If interactionIntent.interactionPattern is repeat_click, preserve repeated click behavior and validate duplicate-prevention outcome when supported.",
+            "If interactionIntent.interactionPattern is whitespace or special_characters, preserve those exact input semantics in the generated suite."
+        ]
     }
 
     return (
@@ -322,6 +329,11 @@ def build_manual_refiner_prompt(original_manual_data: dict, reviewed_manual_data
     payload = {
         "original_manual": original_manual_data,
         "reviewed_manual": reviewed_manual_data,
+        "refinement_focus": [
+            "Preserve action intent and behavioral nuance from the source artifact.",
+            "Strengthen expectedResult into observable evidence without inventing unsupported behavior.",
+            "Keep scenario breadth high and avoid collapsing distinct interaction patterns into generic flows."
+        ],
     }
     if refiner_md:
         return f"{refiner_md}\n\nInput JSON:\n{json.dumps(payload, indent=2)}"
@@ -353,7 +365,12 @@ def build_review_prompt(manual_data: dict, resource_context: List[Dict], generat
         "resource_context": resource_context,
         "generated_robot": generated_robot,
         "resource_import_prefix": "../pom_pages/",
-        "common_resource_hint": "../resources/common_keywords.resource"
+        "common_resource_hint": "../resources/common_keywords.resource",
+        "intent_review_focus": [
+            "Confirm that copy-paste, Enter-key submit, repeated-click, whitespace, and special-character scenarios were not collapsed into generic flows.",
+            "Prefer page-resource or common-resource abstractions over raw low-level suite steps when reusable.",
+            "Ensure negative scenarios contain observable evidence-backed assertions beyond simply staying on the same page when supported by the resource context."
+        ]
     }
 
     if reviewer_md:
@@ -422,7 +439,12 @@ def build_validation_review_prompt(manual_data: dict, resource_context: List[Dic
         "resource_context": resource_context,
         "generated_robot": generated_robot,
         "resource_import_prefix": "../pom_pages/",
-        "common_resource_hint": "../resources/common_keywords.resource"
+        "common_resource_hint": "../resources/common_keywords.resource",
+        "intent_review_focus": [
+            "Preserve manual interaction intent from interactionIntent metadata and step wording.",
+            "Strengthen negative assertions using only evidence-backed resource keywords and observable outcomes.",
+            "Reduce low-level suite leakage when equivalent reusable page/common keywords exist."
+        ]
     }
 
     if refiner_md:
@@ -600,6 +622,10 @@ def build_keyword_signature_map(allowed_resources: list[str]) -> dict[str, dict]
 def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[bool, str]:
     errors: list[str] = []
     warnings: list[str] = []
+
+    low_level_usage = len(re.findall(r"(?im)^\s*(Input Text|Press Keys|Click Element|Wait Until Element Is Visible|Wait Until Page Contains Element)\b", content))
+    if low_level_usage >= 6:
+        warnings.append("Generated suite appears to rely heavily on low-level interaction keywords; prefer approved page/common abstractions when available")
 
     def normalize_keyword_token(value: str) -> str:
         return clean_text(value).lower()

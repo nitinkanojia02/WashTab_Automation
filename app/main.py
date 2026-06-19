@@ -1606,6 +1606,12 @@ def build_resource_generation_prompt(
         "approved_manual_tests": approved_manual_tests or [],
         "common_resource_context": common_resource_context or [],
         "existing_page_resource": existing_page_resource,
+        "generation_focus": [
+            "Use approved reviewed artifacts as the semantic source of truth.",
+            "Improve abstraction and naming quality through AI reasoning, not hardcoded workflow-specific logic.",
+            "Prefer shared/common keywords for generic behavior and page-resource keywords for page semantics.",
+            "Create stronger page validations only when supported by workflow inputs, approved manual tests, or approved page evidence."
+        ],
     }
 
     return (
@@ -1993,6 +1999,46 @@ def generate_manual_tests_for_workflow(workflow_name: str) -> dict:
     write_json(get_manual_json_path(workflow_name), final_json)
     return final_json
 
+def infer_manual_intent(title: str, steps: list[str], expected_result: str) -> dict:
+    combined = " ".join([title or "", expected_result or "", *steps]).lower()
+
+    def has_any(*tokens: str) -> bool:
+        return any(token in combined for token in tokens)
+
+    input_method = "type"
+    if has_any("paste", "copy paste", "copy-paste", "clipboard"):
+        input_method = "paste"
+
+    submission_method = "click"
+    if has_any("press enter", "hit enter", "enter key", "keyboard submit", "submit using enter"):
+        submission_method = "keyboard_enter"
+
+    interaction_pattern = "standard"
+    if has_any("multiple rapid click", "multiple clicks", "click multiple times", "repeated click", "duplicate click", "double click"):
+        interaction_pattern = "repeat_click"
+    elif has_any("whitespace", "leading spaces", "trailing spaces", "with spaces"):
+        interaction_pattern = "whitespace"
+    elif has_any("special character", "special characters", "symbols"):
+        interaction_pattern = "special_characters"
+
+    validation_type = "generic"
+    if has_any("required", "mandatory", "empty", "blank"):
+        validation_type = "required_field"
+    elif has_any("error message", "validation message", "invalid credentials", "authentication failed", "rejected", "denied"):
+        validation_type = "error_message"
+    elif has_any("redirect", "dashboard", "home page", "landing page", "successful login", "logged in"):
+        validation_type = "navigation_success"
+    elif has_any("masked", "masking", "password hidden"):
+        validation_type = "masking"
+
+    return {
+        "inputMethod": input_method,
+        "submissionMethod": submission_method,
+        "interactionPattern": interaction_pattern,
+        "validationType": validation_type,
+    }
+
+
 def extract_manual_test_cases(manual: dict) -> list[dict]:
     if not manual:
         return []
@@ -2035,15 +2081,17 @@ def extract_manual_test_cases(manual: dict) -> list[dict]:
             or case.get("expectedOutcome")
             or ""
         )
+        title = case.get("title") or case.get("name") or f"Test Case {idx}"
 
         normalized.append({
             "id": case.get("id") or case.get("testCaseId") or f"TC_{idx:03d}",
-            "title": case.get("title") or case.get("name") or f"Test Case {idx}",
+            "title": title,
             "type": case.get("type") or case.get("scenarioType") or "General",
             "priority": case.get("priority") or "Medium",
             "preconditions": preconditions,
             "steps": steps,
             "expectedResult": expected_result,
+            "interactionIntent": infer_manual_intent(title, steps, expected_result),
             "approved": True,
         })
     return normalized

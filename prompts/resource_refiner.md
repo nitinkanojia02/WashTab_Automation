@@ -23,6 +23,8 @@ Goals:
 8. Preserve useful valid content from the original draft
 9. Make the resource reusable across different workflows that operate on the same page
 10. Reflect meaningful page understanding rather than only direct UI mechanics
+11. Use approved reviewed artifacts as the semantic source of truth for naming and abstraction quality
+12. Improve resource quality through semantic refinement, not through hardcoded workflow-specific assumptions
 
 Required design expectations:
 - Include at least one page-state verification or state verification keyword when page context supports it
@@ -58,7 +60,11 @@ Refinement guidance:
 - If the draft is only a low-level one-element-one-keyword mapping, improve it by introducing meaningful page-level abstractions where justified by the context
 - Add useful verification keywords for meaningful states, validations, navigation outcomes, or messages when clearly supported
 - Use the approved page elements as the source of truth for variables and supported interactions
+- Use the approved reviewed keywords as the source of truth for keyword naming and target abstractions whenever provided
 - Reuse valid existing keywords from the draft where they are already good
 - Favor a concise, high-value page resource over a long list of weak repetitive wrappers
+- Prefer page-specific action and validation keywords that preserve manual-test intent when the approved manual scenarios require distinct interaction semantics
+- If behavior is clearly generic and reusable across pages, rely on shared/common keywords instead of reproducing that behavior in the page resource
+- Do not solve gaps by inventing workflow-specific hardcoded logic; use only grounded context from the approved artifacts
 
 Return only the final Robot Framework resource file content.

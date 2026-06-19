@@ -12,6 +12,8 @@ Goals:
 4. Promote repeated startup behavior into setup when appropriate
 5. Replace weak or invented logic with valid supported keywords
 6. Reuse semantic resource variables and approved resource keywords wherever possible
+7. Reduce low-level suite leakage by preferring approved page abstractions and shared common helpers
+8. Improve behavior fidelity without introducing hardcoded workflow-specific logic
 
 Refinement rules:
 - Return ONLY Robot Framework code
@@ -20,8 +22,9 @@ Refinement rules:
 - Use only imported resource files and ../resources/common_keywords.resource
 - Keep only *** Settings *** and *** Test Cases *** unless a tiny local helper is absolutely unavoidable
 - Ensure every test ends with an observable validation aligned to expectedResult
-- Preserve specialized interaction intent such as Enter key submission, repeated clicking, whitespace handling, and masking verification
+- Preserve specialized interaction intent such as Enter key submission, repeated clicking, whitespace handling, paste-like input, and masking verification
 - Avoid invented keywords, unsupported assertions, and invalid library APIs
 - Prefer setup/teardown for repeated startup or cleanup behavior
 - Prefer semantic resource variables over inline reusable literals
+- Prefer approved page-resource keywords and shared common keywords over low-level suite steps when they can express the same intent
 - Keep the final suite compact and framework-safe

@@ -11,8 +11,9 @@ Review goals:
 3. Improve reuse of page-resource keywords, shared common keywords, and resource variables
 4. Keep the suite thin and maintainable
 5. Ensure every test has explicit observable validation aligned to expectedResult
-6. Preserve specialized interaction intent such as repeated clicks, Enter key submission, whitespace handling, and masking checks
+6. Preserve specialized interaction intent such as repeated clicks, Enter key submission, whitespace handling, paste behavior, and masking checks
 7. Remove weak, invented, or unsupported keyword usage
+8. Reduce low-level leakage when reusable approved abstractions already exist in page/common resources
 
 Review rules:
 - Return ONLY Robot Framework code
