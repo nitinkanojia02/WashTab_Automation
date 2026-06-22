@@ -67,6 +67,9 @@ Refinement guidance:
 - Favor a concise, high-value page resource over a long list of weak repetitive wrappers
 - Prefer page-specific action and validation keywords that preserve manual-test intent when the approved manual scenarios require distinct interaction semantics
 - Prefer page validations grounded in workflow expected outcomes, approved manual expectations, approved reviewed keywords, and approved page evidence
+- Add semantic reusable variables for approved manual-test data variants that would otherwise be hardcoded in suites, including credential casing variants and other stable edge-case inputs when grounded in approved artifacts
+- Add reusable observable validation keywords for approved negative and validation scenarios when grounded in approved artifacts
+- Ensure the final resource gives downstream suite generation enough semantic support to avoid literal business data and weak same-page-only assertions
 - Strengthen negative validations only when visible or approved evidence supports them
 - Do not invent unsupported validation messages, unsupported business rules, or unsupported page behavior
 - If behavior is clearly generic and reusable across pages, rely on shared/common keywords instead of reproducing that behavior in the page resource

@@ -899,6 +899,8 @@ def get_manual_tests_variable_enrichment_prompt(
         "- Preserve useful existing page resource content.\n"
         "- Add or refine reusable semantic variables only when clearly grounded in approved manual tests, workflow context, or existing approved page understanding.\n"
         "- Prefer semantic reusable variables for stable business data such as valid credentials, invalid credentials, page URLs, expected validation text, expected navigation targets, and other reusable test data.\n"
+        "- Inspect approved manual tests for semantically meaningful data variants that would otherwise be hardcoded in suites, including credential casing variants, distinct invalid credential classes, reusable long or boundary values, and stable expected validation texts.\n"
+        "- Treat uppercase, lowercase, mixed-case, role-specific, invalid, and other semantically meaningful credential variants as reusable business data when approved manual tests depend on them; do not leave such values to be embedded as literals in generated suites.\n"
         "- Do not create unnecessary alias variables for Robot built-ins such as ${EMPTY} or ${SPACE}.\n"
         "- Prefer Robot built-ins and inline composition for blank, whitespace-only, padded, or other trivially derived values. For example, prefer ${EMPTY}, ${SPACE}, ${SPACE}${VALID_USERNAME}, ${VALID_USERNAME}${SPACE}, or ${SPACE}${VALID_USERNAME}${SPACE} instead of creating wrapper aliases like ${WHITESPACE_ONLY_VALUE} or ${USERNAME_WITH_SPACES}.\n"
         "- If a value is a simple derived variation of an existing semantic variable, prefer composition over a new standalone variable. Examples include leading/trailing spaces, repeated spaces, repeated existing usernames, or other formatting-only variations.\n"
@@ -907,7 +909,8 @@ def get_manual_tests_variable_enrichment_prompt(
         "- Do not invent unsupported data.\n"
         "- Keep the Variables section concise, semantic, and reusable.\n"
         "- Ensure resulting page keywords remain valid and maintainable.\n"
-        "- The output must support downstream robot test generation where tests reference resource variables instead of direct literal values whenever reusable abstraction is possible.\n\n"
+        "- The output must support downstream robot test generation where tests reference resource variables instead of direct literal values whenever reusable abstraction is possible.\n"
+        "- The refined page resource must support zero hardcoded business-data literals in downstream suites except Robot built-ins and trivial inline composition explicitly allowed by framework policy.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"
     )
 
@@ -1136,6 +1139,7 @@ def build_keyword_generation_prompt(
         "- Avoid generating scenario-wrapper keywords that merely encode one approved manual test case, unless a concise page-level composite action is clearly justified.\n"
         "- Avoid overfitting keywords to one test variation such as blank username, wrong password, or whitespace username when reusable atomic keywords plus resource variables can support those scenarios.\n"
         "- If approved manual tests imply reusable validations for required fields, authentication rejection, redirect success, page readiness, masking, navigation controls, or visible messages, include those validations when grounded in the approved elements or existing resource content.\n"
+        "- When approved manual tests expect visible rejection, validation feedback, authentication failure, required-field indication, blocked access, or other observable negative outcomes, prefer dedicated reusable page validation keywords over weak same-page-only checks whenever grounded evidence is available.\n"
         "- Preserve useful existing page keywords when they are still aligned with the approved manual tests.\n"
         "- Keep the keyword set thin, maintainable, and sufficient for downstream resource generation and automation generation.\n\n"
         f"Input JSON:\n{json.dumps(payload, indent=2)}"

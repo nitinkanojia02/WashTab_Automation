@@ -47,6 +47,9 @@ Flag as a major quality issue if:
 - common wrapper keywords are not used where applicable
 - validation support is weak despite visible validation, message, or state elements
 - keyword naming is technically correct but not semantically useful
+- reusable semantic edge-case or credential-like data from approved manual tests is missing from the Variables section, causing likely hardcoding in downstream suites
+- negative or validation-focused approved manual expectations cannot be expressed through observable page validation keywords
+- the resource supports only same-page or URL-presence negative checks even though richer approved manual expectations clearly require visible rejection or validation evidence
 
 Examples of desired improvements:
 - use Click When Ready instead of raw click patterns where appropriate

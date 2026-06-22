@@ -30,6 +30,9 @@ Review rules:
 - Do not add a *** Keywords *** section unless a tiny local helper is absolutely unavoidable
 - Keep repeated startup actions in setup when appropriate
 - Replace hardcoded reusable data with semantic resource variables when supported
+- Treat uppercase, lowercase, mixed-case, role-specific, invalid, boundary, and other semantically meaningful credential variants as reusable business data that must not appear as inline literals in the suite
+- Flag any negative scenario whose final assertion only checks page presence or URL when the approved manual expectedResult requires visible validation, rejection, or other observable feedback
+- Reject suites that weaken approved manual expectations into generic same-page checks when stronger approved resource semantics exist or are clearly expected from the approved artifact lineage
 - Use ${EMPTY} and ${SPACE} correctly for blank and single-space values
 - Preserve compact formatting and one blank line between test cases
 - Keep tags minimal and aligned to testcase id and scenario type

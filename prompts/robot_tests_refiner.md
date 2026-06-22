@@ -31,5 +31,7 @@ Refinement rules:
 - Avoid invented keywords, unsupported assertions, and invalid library APIs
 - Prefer setup/teardown for repeated startup or cleanup behavior
 - Prefer semantic resource variables over inline reusable literals
+- Treat semantically meaningful credential variants such as uppercase, lowercase, mixed-case, role-specific, invalid, and other reusable edge-case business data as resource-driven data, not inline suite literals
+- Reject weak negative flows that reduce approved visible rejection or validation expectations into only same-page or URL checks when stronger approved resource semantics or manual expectations exist
 - Prefer approved page-resource keywords and shared common keywords over low-level suite steps when they can express the same intent
 - Keep the final suite compact, thin, and framework-safe
