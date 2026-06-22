@@ -1887,6 +1887,39 @@ def validate_review_artifact_consistency(workflow: dict, approved_keywords: list
     return True, ""
 
 
+def is_resource_level_keyword_name(name: str) -> bool:
+    normalized = clean_text(name).lower()
+    if not normalized:
+        return False
+
+    composite_markers = (
+        " with ",
+        " using ",
+        " and ",
+        " then ",
+        " after ",
+        " before ",
+    )
+    scenario_prefixes = (
+        "login ",
+        "log in ",
+        "logout ",
+        "log out ",
+        "submit ",
+        "complete ",
+        "perform ",
+    )
+
+    if normalized.startswith("open ") and normalized.endswith(" page"):
+        return False
+    if any(marker in normalized for marker in composite_markers):
+        return False
+    if any(normalized.startswith(prefix) for prefix in scenario_prefixes):
+        return False
+    return True
+
+
+
 def validate_generated_resource_against_approved_artifacts(
     workflow: dict,
     approved_keywords: list[dict],
@@ -1901,8 +1934,21 @@ def validate_generated_resource_against_approved_artifacts(
     approved_keyword_names = {
         clean_text(str(item.get("keywordName", ""))).lower()
         for item in approved_keywords
-        if isinstance(item, dict) and clean_text(str(item.get("keywordName", ""))) and bool(item.get("approved", True))
+        if isinstance(item, dict)
+        and clean_text(str(item.get("keywordName", "")))
+        and bool(item.get("approved", True))
+        and is_resource_level_keyword_name(str(item.get("keywordName", "")))
     }
+    non_resource_keyword_names = sorted(
+        {
+            clean_text(str(item.get("keywordName", "")))
+            for item in approved_keywords
+            if isinstance(item, dict)
+            and clean_text(str(item.get("keywordName", "")))
+            and bool(item.get("approved", True))
+            and not is_resource_level_keyword_name(str(item.get("keywordName", "")))
+        }
+    )
 
     parsed_keywords = extract_keywords_from_resource(resource_content)
     parsed_variables = extract_variables_from_resource(resource_content)
@@ -1924,13 +1970,18 @@ def validate_generated_resource_against_approved_artifacts(
     warnings = []
     if missing_keywords:
         errors.append(
-            "Generated page resource is missing approved keywords: "
+            "Generated page resource is missing approved reusable keywords: "
             + ", ".join(missing_keywords)
         )
     if missing_variables:
         warnings.append(
             "Generated page resource is missing approved locator variables: "
             + ", ".join(missing_variables)
+        )
+    if non_resource_keyword_names:
+        warnings.append(
+            "Approved composite/scenario keywords were not enforced as page-resource keywords: "
+            + ", ".join(non_resource_keyword_names)
         )
 
     is_valid = len(errors) == 0
