@@ -26,6 +26,8 @@ Quality requirements:
 - Names must reflect business purpose or user intent
 - Avoid generic numbering unless ambiguity cannot be resolved from the provided context
 - Preserve validation and state-related elements when they are useful for assertions
+- Prioritize authentication errors, required-field messages, inline validation text, toast or banner alerts, warning messages, blocked-access indicators, and other observable negative-outcome evidence when the workflow context implies failed, rejected, or validation-focused scenarios
+- If the provided inputs indicate that visible negative feedback matters but no grounded validation or error element can be supported, keep the refined artifact honest and minimal rather than inventing a fake validation element
 - The refined artifact should be concise, meaningful, and directly usable for downstream resource generation
 
 Naming rules:

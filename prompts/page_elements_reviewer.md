@@ -41,6 +41,9 @@ Review rules:
 - Favor names that would still make sense to a tester or automation engineer who never saw the raw DOM
 - If two similar validation or status messages exist, distinguish them semantically if the provided context supports that distinction
 - If multiple similar validation or message elements exist and semantic distinction is not supported by the context, explicitly report the ambiguity instead of inventing arbitrary numbering
+- Prioritize authentication errors, required-field messages, inline validation text, toast or banner alerts, warning messages, blocked-access indicators, disabled-state indicators, and other observable negative-outcome evidence when the workflow or manual expectations imply failed or rejected scenarios
+- If visible negative-outcome evidence is expected by the workflow but not confidently present in the draft artifact, report that gap explicitly as a validation_gap issue instead of silently approving a page model that only supports same-page checks
+- Distinguish between strong observable validation evidence and weaker fallback page-state evidence; do not imply that a generic page container or login form alone is an adequate substitute for a real error or validation element
 - Flag locators that are overly generic, brittle, likely to match multiple elements, or depend only on unstable UI text when stronger choices seem available
 - If a critical control from the workflow is missing, report it
 - If an extracted element appears wrongly classified, report it
