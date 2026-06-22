@@ -26,6 +26,8 @@ from scripts.generate_robot_from_manual import (
     build_review_prompt,
     build_validation_review_prompt,
     call_ai_chat,
+    extract_keywords_from_resource,
+    extract_variables_from_resource,
     get_ai_token as get_robot_ai_token,
     load_json as load_robot_ai_json,
     parse_resource_file,
