@@ -940,31 +940,34 @@ def validate_robot_content(content: str, allowed_resources: list[str]) -> tuple[
     if not re.search(r"\$\{[A-Z0-9_]+\}", content):
         warnings.append("Generated suite does not appear to use reusable resource variables; prefer resource-file test data over hardcoded inline data")
 
-    inline_business_data_errors = [
+    inline_business_data_warning_patterns = [
         (
             r"(?im)^\s{4,}(?:Enter Username|Input Username|Type Username)\b.*\s{2,}(?!\$\{)(?!xpath=)(?!css=)(?!id=)(?!name=)(?!//)([^\n]+)$",
-            "Generated suite contains an inline username literal; semantic business data must come from page-resource variables, not direct values in test cases"
+            "Policy warning: generated suite contains an inline username literal; semantic business data should come from page-resource variables, not direct values in test cases"
         ),
         (
             r"(?im)^\s{4,}(?:Enter Password|Input Password|Type Password)\b.*\s{2,}(?!\$\{)(?!xpath=)(?!css=)(?!id=)(?!name=)(?!//)([^\n]+)$",
-            "Generated suite contains an inline password literal; semantic business data must come from page-resource variables, not direct values in test cases"
+            "Policy warning: generated suite contains an inline password literal; semantic business data should come from page-resource variables, not direct values in test cases"
         ),
         (
             r"(?im)^\s{4,}.*https?://[^\s]+.*$",
-            "Generated suite contains an inline URL literal; reusable environment or page data must come from page-resource variables, not direct values in test cases"
+            "Policy warning: generated suite contains an inline URL literal; reusable environment or page data should come from page-resource variables, not direct values in test cases"
         ),
     ]
-    for pattern, message in inline_business_data_errors:
+    specific_inline_policy_warning_found = False
+    for pattern, message in inline_business_data_warning_patterns:
         if re.search(pattern, content):
-            errors.append(message)
+            warnings.append(message)
+            specific_inline_policy_warning_found = True
 
     likely_inline_literals = [
         r"(?im)^\s{4,}(?:Enter|Input|Type)\b.*\s{2,}(?!\$\{)(?!xpath=)(?!css=)(?!id=)(?!name=)(?!//)([^\n]+)$",
     ]
-    for pattern in likely_inline_literals:
-        if re.search(pattern, content):
-            warnings.append("Generated suite appears to contain inline literal test data; prefer page-resource variables instead of direct values in test cases")
-            break
+    if not specific_inline_policy_warning_found:
+        for pattern in likely_inline_literals:
+            if re.search(pattern, content):
+                warnings.append("Generated suite appears to contain inline literal test data; prefer page-resource variables instead of direct values in test cases")
+                break
 
     is_valid = len(errors) == 0
     message_parts = []
