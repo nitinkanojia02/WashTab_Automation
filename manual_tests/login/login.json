@@ -4,79 +4,79 @@
     "login_page/login_page.resource"
   ],
   "preconditions": [
-    "Login page is accessible at http://172.21.166.115/washtabui/login?data=undefined",
+    "Navigate to login page URL http://172.21.166.115/washtabui/login?data=undefined",
     "Valid username is hacklarr",
     "Valid password is Icstunnel1",
-    "Login page displays username textbox, password textbox, SIGN IN button, home navigation button, and back navigation button"
+    "Login page should display username textbox, password textbox, SIGN IN button, home navigation button and back navigation button"
   ],
   "testCases": [
     {
       "id": "LOGIN_TC_001",
-      "title": "Verify login page loads and all required UI elements are visible",
+      "title": "Verify login page loads with username textbox, password textbox, SIGN IN button, home navigation button and back navigation button visible",
       "type": "Positive",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
-        "Open a browser and navigate to http://172.21.166.115/washtabui/login?data=undefined",
-        "Observe the login page layout and visible controls"
+        "Open browser and navigate to http://172.21.166.115/washtabui/login?data=undefined",
+        "Observe the login page layout and available controls"
       ],
-      "expectedResult": "Login page loads successfully with URL http://172.21.166.115/washtabui/login?data=undefined and the username textbox, password textbox, SIGN IN button, home navigation button, and back navigation button are visible and interactable."
+      "expectedResult": "Login page loads successfully at URL http://172.21.166.115/washtabui/login?data=undefined and username textbox, password textbox, SIGN IN button, home navigation button and back navigation button are visible and interactable"
     },
     {
       "id": "LOGIN_TC_002",
-      "title": "Verify successful login using valid credentials via SIGN IN button",
+      "title": "Verify successful login using valid username and valid password through SIGN IN button",
       "type": "Positive",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Enter hacklarr in the username textbox",
-        "Enter Icstunnel1 in the password textbox",
+        "Enter hacklarr into username textbox",
+        "Enter Icstunnel1 into password textbox",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "User is authenticated successfully and the application redirects to the home page. Browser URL changes to http://172.21.166.115/washtabui/home and login page elements are no longer visible."
+      "expectedResult": "User is authenticated successfully and browser redirects to home page with URL http://172.21.166.115/washtabui/home and login page elements are no longer displayed"
     },
     {
       "id": "LOGIN_TC_003",
-      "title": "Verify login submission using keyboard Enter key after entering valid credentials",
+      "title": "Verify login submission using Enter key from password textbox with valid credentials",
       "type": "Edge",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Enter hacklarr in the username textbox",
-        "Enter Icstunnel1 in the password textbox",
-        "Press Enter on the keyboard while the cursor focus is inside the password textbox"
+        "Enter hacklarr into username textbox",
+        "Enter Icstunnel1 into password textbox",
+        "Press Enter key while focus is inside the password textbox"
       ],
-      "expectedResult": "Login form is submitted through the keyboard action and the application redirects to the home page with URL http://172.21.166.115/washtabui/home indicating successful authentication."
+      "expectedResult": "Form submission is triggered by Enter key and user is authenticated successfully and redirected to http://172.21.166.115/washtabui/home"
     },
     {
       "id": "LOGIN_TC_004",
-      "title": "Verify login fails with valid username and incorrect password",
+      "title": "Verify login fails when valid username is used with incorrect password",
       "type": "Negative",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Enter hacklarr in the username textbox",
-        "Enter Icstunnel2 in the password textbox",
+        "Enter hacklarr into username textbox",
+        "Enter IncorrectPass123 into password textbox",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "Authentication fails and the user remains on the login page with URL http://172.21.166.115/washtabui/login?data=undefined. A visible sign-in failure or error indication is displayed and the application does not navigate to the home page."
+      "expectedResult": "Authentication is rejected, a visible sign-in failure message is displayed and the page remains at URL http://172.21.166.115/washtabui/login?data=undefined without redirecting to the home page"
     },
     {
       "id": "LOGIN_TC_005",
-      "title": "Verify login fails with invalid username and valid password",
+      "title": "Verify login fails when invalid username is used with valid password",
       "type": "Negative",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Enter hacklarr123 in the username textbox",
-        "Enter Icstunnel1 in the password textbox",
+        "Enter invaliduser into username textbox",
+        "Enter Icstunnel1 into password textbox",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "Authentication is rejected and the application remains on the login page. Browser URL does not change to the home page and a visible login failure indication appears."
+      "expectedResult": "Authentication fails, a visible sign-in failure message is displayed and user remains on login page URL http://172.21.166.115/washtabui/login?data=undefined"
     },
     {
       "id": "LOGIN_TC_006",
@@ -86,69 +86,126 @@
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Enter invaliduser in the username textbox",
-        "Enter invalidpass in the password textbox",
+        "Enter wronguser into username textbox",
+        "Enter wrongpassword into password textbox",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "System rejects the authentication attempt and the login page remains visible. Browser URL remains the login URL and a visible authentication failure indication is displayed."
+      "expectedResult": "Authentication attempt is rejected, a sign-in failure message is displayed and the page remains on the login URL without navigation to the home page"
     },
     {
       "id": "LOGIN_TC_007",
-      "title": "Verify login attempt when username is empty and password is provided",
+      "title": "Verify login validation when both username and password fields are empty",
       "type": "Negative",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Leave the username textbox empty",
-        "Enter Icstunnel1 in the password textbox",
+        "Leave username textbox empty",
+        "Leave password textbox empty",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "Authentication does not succeed and the application remains on the login page with a visible validation or authentication failure indication. No navigation to the home page occurs."
+      "expectedResult": "Login is rejected and the user remains on the login page with a visible validation or authentication failure message and no redirect to the home page"
     },
     {
       "id": "LOGIN_TC_008",
-      "title": "Verify login attempt when password is empty and username is provided",
+      "title": "Verify login validation when username is entered and password field is empty",
       "type": "Negative",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Enter hacklarr in the username textbox",
-        "Leave the password textbox empty",
+        "Enter hacklarr into username textbox",
+        "Leave password textbox empty",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "Authentication is rejected and the user remains on the login page. A visible validation or authentication failure indication appears and the browser does not redirect to the home page."
+      "expectedResult": "Login submission is rejected, validation or authentication failure message is displayed and the application remains on login page URL http://172.21.166.115/washtabui/login?data=undefined"
     },
     {
       "id": "LOGIN_TC_009",
-      "title": "Verify login attempt when both username and password fields are empty",
+      "title": "Verify login validation when password is entered and username field is empty",
       "type": "Negative",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Leave the username textbox empty",
-        "Leave the password textbox empty",
+        "Leave username textbox empty",
+        "Enter Icstunnel1 into password textbox",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "Login submission is rejected and the login page remains visible with a validation or authentication failure indication. Browser does not navigate to the home page."
+      "expectedResult": "Authentication is not performed, a validation or failure message is displayed and the page remains at login URL"
     },
     {
       "id": "LOGIN_TC_010",
-      "title": "Verify password textbox masks entered characters",
+      "title": "Verify password textbox masks characters while user types password",
       "type": "Positive",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
         "Click inside the password textbox",
-        "Type Icstunnel1 into the password textbox"
+        "Type Icstunnel1 into password textbox"
       ],
-      "expectedResult": "Password characters are not displayed as plain text. Each entered character appears masked (for example as dots or asterisks) confirming the field behaves as a password field."
+      "expectedResult": "Password characters appear masked such as dots or asterisks and the actual password text is not visible on the screen"
     },
     {
       "id": "LOGIN_TC_011",
+      "title": "Verify login succeeds when valid credentials are entered with leading and trailing spaces",
+      "type": "Edge",
+      "priority": "Medium",
+      "preconditions": [],
+      "steps": [
+        "Navigate to the login page",
+        "Enter space hacklarr space into username textbox",
+        "Enter space Icstunnel1 space into password textbox",
+        "Click the SIGN IN button"
+      ],
+      "expectedResult": "Application trims leading and trailing spaces, authenticates the user successfully and redirects to http://172.21.166.115/washtabui/home"
+    },
+    {
+      "id": "LOGIN_TC_012",
+      "title": "Verify login fails when username and password contain only whitespace characters",
+      "type": "Negative",
+      "priority": "Medium",
+      "preconditions": [],
+      "steps": [
+        "Navigate to the login page",
+        "Enter multiple spaces into username textbox",
+        "Enter multiple spaces into password textbox",
+        "Click the SIGN IN button"
+      ],
+      "expectedResult": "Login attempt is rejected, visible validation or sign-in failure message appears and browser remains on the login page URL"
+    },
+    {
+      "id": "LOGIN_TC_013",
+      "title": "Verify login using copy and paste actions for username and password fields",
+      "type": "Edge",
+      "priority": "Medium",
+      "preconditions": [],
+      "steps": [
+        "Copy text hacklarr to clipboard",
+        "Paste the copied value into username textbox",
+        "Copy text Icstunnel1 to clipboard",
+        "Paste the copied value into password textbox",
+        "Click the SIGN IN button"
+      ],
+      "expectedResult": "Pasted values are accepted correctly and user is authenticated successfully and redirected to home page URL http://172.21.166.115/washtabui/home"
+    },
+    {
+      "id": "LOGIN_TC_014",
+      "title": "Verify system behavior when SIGN IN button is clicked repeatedly during login submission",
+      "type": "Edge",
+      "priority": "Medium",
+      "preconditions": [],
+      "steps": [
+        "Navigate to the login page",
+        "Enter hacklarr into username textbox",
+        "Enter Icstunnel1 into password textbox",
+        "Rapidly click the SIGN IN button multiple times"
+      ],
+      "expectedResult": "Application processes only a single authentication request and redirects once to the home page without duplicate navigation, duplicate sessions or visible errors"
+    },
+    {
+      "id": "LOGIN_TC_015",
       "title": "Verify navigation to home page using home navigation button from login page",
       "type": "Positive",
       "priority": "Medium",
@@ -157,10 +214,10 @@
         "Navigate to the login page",
         "Click the home navigation button"
       ],
-      "expectedResult": "Application navigates away from the login page and loads the home page. Browser URL becomes http://172.21.166.115/washtabui/home."
+      "expectedResult": "Browser navigates directly to home page and URL becomes http://172.21.166.115/washtabui/home"
     },
     {
-      "id": "LOGIN_TC_012",
+      "id": "LOGIN_TC_016",
       "title": "Verify navigation to home page using back navigation button from login page",
       "type": "Positive",
       "priority": "Medium",
@@ -169,105 +226,35 @@
         "Navigate to the login page",
         "Click the back navigation button"
       ],
-      "expectedResult": "Application navigates away from the login page and loads the home page. Browser URL changes to http://172.21.166.115/washtabui/home."
-    },
-    {
-      "id": "LOGIN_TC_013",
-      "title": "Verify login behavior when credentials contain leading and trailing whitespace",
-      "type": "Edge",
-      "priority": "Medium",
-      "preconditions": [],
-      "steps": [
-        "Navigate to the login page",
-        "Enter space followed by hacklarr followed by space in the username textbox",
-        "Enter space followed by Icstunnel1 followed by space in the password textbox",
-        "Click the SIGN IN button"
-      ],
-      "expectedResult": "Application processes the submitted credentials. If the system trims leading and trailing whitespace, login succeeds and the user is redirected to http://172.21.166.115/washtabui/home; otherwise authentication fails and the user remains on the login page with a visible failure indication."
-    },
-    {
-      "id": "LOGIN_TC_014",
-      "title": "Verify login fails when username contains only whitespace characters",
-      "type": "Negative",
-      "priority": "Medium",
-      "preconditions": [],
-      "steps": [
-        "Navigate to the login page",
-        "Enter multiple spaces in the username textbox",
-        "Enter Icstunnel1 in the password textbox",
-        "Click the SIGN IN button"
-      ],
-      "expectedResult": "Authentication is rejected and the login page remains visible. A visible login failure or validation indication appears and the application does not redirect to the home page."
-    },
-    {
-      "id": "LOGIN_TC_015",
-      "title": "Verify login fails when password contains only whitespace characters",
-      "type": "Negative",
-      "priority": "Medium",
-      "preconditions": [],
-      "steps": [
-        "Navigate to the login page",
-        "Enter hacklarr in the username textbox",
-        "Enter multiple spaces in the password textbox",
-        "Click the SIGN IN button"
-      ],
-      "expectedResult": "Authentication attempt fails and the user remains on the login page. A visible authentication failure message or indication is displayed and the browser does not navigate to the home page."
-    },
-    {
-      "id": "LOGIN_TC_016",
-      "title": "Verify system behavior when SIGN IN button is clicked repeatedly with valid credentials",
-      "type": "Edge",
-      "priority": "Medium",
-      "preconditions": [],
-      "steps": [
-        "Navigate to the login page",
-        "Enter hacklarr in the username textbox",
-        "Enter Icstunnel1 in the password textbox",
-        "Click the SIGN IN button multiple times rapidly"
-      ],
-      "expectedResult": "Application processes the login request once and redirects to the home page. Only a single successful navigation to http://172.21.166.115/washtabui/home occurs and no duplicate navigation or visible error appears."
+      "expectedResult": "Application navigates away from the login page and browser URL becomes http://172.21.166.115/washtabui/home"
     },
     {
       "id": "LOGIN_TC_017",
-      "title": "Verify login using credentials pasted into username and password fields",
+      "title": "Verify login behavior when extremely long username and password values are entered",
       "type": "Edge",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Copy hacklarr and paste it into the username textbox",
-        "Copy Icstunnel1 and paste it into the password textbox",
+        "Enter a string longer than 200 characters into username textbox",
+        "Enter a string longer than 200 characters into password textbox",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "Pasted values are accepted in both fields and authentication succeeds. User is redirected to the home page and the browser URL becomes http://172.21.166.115/washtabui/home."
+      "expectedResult": "Authentication attempt fails safely without page crash or layout break and the login page remains visible with a sign-in failure message"
     },
     {
       "id": "LOGIN_TC_018",
-      "title": "Verify login fails when extremely long text values are entered in username and password fields",
-      "type": "Edge",
+      "title": "Verify login fails when username case differs from the valid credential case",
+      "type": "Negative",
       "priority": "Medium",
       "preconditions": [],
       "steps": [
         "Navigate to the login page",
-        "Enter a very long string exceeding typical username length into the username textbox",
-        "Enter a very long string exceeding typical password length into the password textbox",
+        "Enter HACKLARR into username textbox",
+        "Enter Icstunnel1 into password textbox",
         "Click the SIGN IN button"
       ],
-      "expectedResult": "Authentication does not succeed and the application remains stable on the login page without crashes. Browser does not redirect to the home page and the login form remains visible."
-    },
-    {
-      "id": "LOGIN_TC_019",
-      "title": "Verify login behavior when credentials are entered with different letter casing",
-      "type": "Edge",
-      "priority": "Medium",
-      "preconditions": [],
-      "steps": [
-        "Navigate to the login page",
-        "Enter HACKLARR in the username textbox",
-        "Enter ICSTUNNEL1 in the password textbox",
-        "Click the SIGN IN button"
-      ],
-      "expectedResult": "If authentication is case sensitive, the login attempt fails and the user remains on the login page with a visible authentication failure indication and no redirect to the home page."
+      "expectedResult": "Authentication fails due to username case mismatch and a sign-in failure message is displayed while the browser remains on the login page"
     }
   ]
 }

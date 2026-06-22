@@ -6,8 +6,8 @@ ${LOGIN_PAGE_URL}    http://172.21.166.115/washtabui/login?data=undefined
 ${HOME_PAGE_URL}    http://172.21.166.115/washtabui/home
 ${VALID_USERNAME}    hacklarr
 ${VALID_PASSWORD}    Icstunnel1
-${INVALID_USERNAME}    hacklarr123
-${INVALID_PASSWORD}    Icstunnel2
+${INVALID_USERNAME}    invaliduser
+${INVALID_PASSWORD}    IncorrectPass123
 ${USERNAME_TEXTBOX}    xpath=//input[@name='ion-input-0']
 ${PASSWORD_TEXTBOX}    id=password
 ${SIGN_IN_BUTTON}    xpath=//ion-button[normalize-space()='SIGN IN']
