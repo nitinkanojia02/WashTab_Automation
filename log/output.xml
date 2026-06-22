@@ -1,0 +1,2126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.4.2 (Python 3.11.0 on win32)" generated="2026-06-19T22:25:53.186835" rpa="false" schemaversion="5">
+<suite id="s1" name="Login Tests" source="D:\New folder\WashTab_Automation\tests\login_tests.robot">
+<test id="s1-t1" name="AUT-WT-LOGIN01: Verify login page loads with all required UI elements" line="7">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:25:53.630459" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:25:53.630459" elapsed="2.494197"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:25:56.125655" elapsed="0.043527"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:25:53.629471" elapsed="2.539711"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:25:56.171182" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:25:56.170185" elapsed="4.193553"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:25:56.170185" elapsed="4.195064"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:25:53.629471" elapsed="6.735778"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:25:53.627462" elapsed="6.737787"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:10.829701" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-1.png"&gt;&lt;img src="selenium-screenshot-1.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:26:10.830701" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:26:00.366262" elapsed="10.466991">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:10.834219" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:10.834219" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:10.834219" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:10.834219" elapsed="0.000997"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:10.835216" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:26:00.365249" elapsed="10.469967">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:26:10.835216" elapsed="2.279821"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:26:10.835216" elapsed="2.280733"/>
+</kw>
+<tag>positive</tag>
+<tag>WT-LOGIN01</tag>
+<status status="FAIL" start="2026-06-19T22:25:53.626460" elapsed="19.489489">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t2" name="AUT-WT-LOGIN02: Verify successful login with valid credentials" line="12">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:13.122452" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:26:13.122452" elapsed="1.547625"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:26:14.670077" elapsed="0.044442"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:26:13.121351" elapsed="1.593168"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:14.716539" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:26:14.715522" elapsed="3.656979"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:14.715522" elapsed="3.657981"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:13.120362" elapsed="5.253141"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:13.118267" elapsed="5.255236"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:28.832219" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-2.png"&gt;&lt;img src="selenium-screenshot-2.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:26:28.832219" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:26:18.374500" elapsed="10.458720">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.834218" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.834218" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.834724" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.834724" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.834724" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:26:18.373503" elapsed="10.461221">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.834724" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.835730" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.835730" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Successful Login Redirect" owner="login_page">
+<doc>Verify successful authentication redirects the user to the home page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:28.835730" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:26:28.836834" elapsed="2.278680"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:26:28.835730" elapsed="2.279784"/>
+</kw>
+<tag>positive</tag>
+<tag>WT-LOGIN02</tag>
+<status status="FAIL" start="2026-06-19T22:26:13.117041" elapsed="17.999587">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t3" name="AUT-WT-LOGIN03: Verify login fails with incorrect password" line="21">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:31.120652" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:26:31.120652" elapsed="1.493963"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:26:32.614615" elapsed="0.026517"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:26:31.120652" elapsed="1.520480"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:32.643132" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:26:32.642135" elapsed="3.871387"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:32.642135" elapsed="3.871387"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:31.118630" elapsed="5.394892"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:31.117621" elapsed="5.395901"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:46.813176" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-3.png"&gt;&lt;img src="selenium-screenshot-3.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:26:46.813176" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:26:36.514527" elapsed="10.299643">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.814170" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.815173" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.815173" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.815173" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.815173" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:26:36.513522" elapsed="10.302726">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.816248" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${INVALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.816248" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.816248" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:26:46.817253" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:26:46.818170" elapsed="2.257179"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:26:46.817253" elapsed="2.259123"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN03</tag>
+<status status="FAIL" start="2026-06-19T22:26:31.116628" elapsed="17.959748">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t4" name="AUT-WT-LOGIN04: Verify login fails with incorrect username" line="30">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:49.083120" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:26:49.081471" elapsed="1.477040"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:26:50.559511" elapsed="0.023998"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:26:49.080452" elapsed="1.503057"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:26:50.584513" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:26:50.583509" elapsed="3.848622"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:50.583509" elapsed="3.848622"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:49.079453" elapsed="5.352678"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:26:49.078371" elapsed="5.353760"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:04.767899" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-4.png"&gt;&lt;img src="selenium-screenshot-4.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:27:04.768899" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:26:54.433131" elapsed="10.335768">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.769899" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.769899" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.769899" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.770898" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.770898" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:26:54.433131" elapsed="10.337767">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${INVALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.770898" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.770898" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.770898" elapsed="0.001003"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:04.771901" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:27:04.771901" elapsed="2.258991"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:27:04.771901" elapsed="2.260127"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN04</tag>
+<status status="FAIL" start="2026-06-19T22:26:49.077383" elapsed="17.954645">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t5" name="AUT-WT-LOGIN05: Verify login fails when both username and password are incorrect" line="39">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:07.036998" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:27:07.036020" elapsed="1.496182"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:27:08.533201" elapsed="0.024155"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:27:07.036020" elapsed="1.521336"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:08.558357" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:27:08.558357" elapsed="4.016245"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:08.557356" elapsed="4.017246"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:07.035009" elapsed="5.539593"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:07.033917" elapsed="5.540685"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:22.928885" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-5.png"&gt;&lt;img src="selenium-screenshot-5.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:27:22.929885" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:27:12.575599" elapsed="10.355289">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.930888" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.930888" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.931885" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.931885" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.931885" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:27:12.575599" elapsed="10.356286">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${INVALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.932887" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${INVALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.932887" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.932887" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:22.932887" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:27:22.933885" elapsed="2.279011"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:27:22.933885" elapsed="2.279011"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN05</tag>
+<status status="FAIL" start="2026-06-19T22:27:07.032913" elapsed="18.179983">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t6" name="AUT-WT-LOGIN06: Verify login validation when username field is empty" line="48">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:25.217911" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:27:25.217911" elapsed="1.474907"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:27:26.692818" elapsed="0.023527"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:27:25.216915" elapsed="1.499430"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:26.718349" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:27:26.718349" elapsed="3.840386"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:26.717344" elapsed="3.841391"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:25.215958" elapsed="5.342777"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:25.215958" elapsed="5.342777"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:40.876695" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-6.png"&gt;&lt;img src="selenium-screenshot-6.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:27:40.876695" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:27:30.559737" elapsed="10.316958">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.877694" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.877694" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.877694" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.877694" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.878698" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:27:30.558735" elapsed="10.319963">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${EMPTY}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.878698" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.878698" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.878698" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Username Required Validation" owner="login_page">
+<doc>Verify login attempt without username keeps the user on login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:40.879694" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:27:40.879694" elapsed="2.267896"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:27:40.879694" elapsed="2.267896"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN06</tag>
+<status status="FAIL" start="2026-06-19T22:27:25.214019" elapsed="17.933571">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t7" name="AUT-WT-LOGIN07: Verify login validation when password field is empty" line="57">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:43.149611" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:27:43.149611" elapsed="1.515890"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:27:44.665501" elapsed="0.023004"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:27:43.149611" elapsed="1.538894"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:44.688505" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:27:44.688505" elapsed="3.808349"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:44.688505" elapsed="3.809349"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:43.148590" elapsed="5.349264"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:27:43.148590" elapsed="5.349264"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:27:58.816060" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-7.png"&gt;&lt;img src="selenium-screenshot-7.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:27:58.816060" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:27:48.498854" elapsed="10.318210">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.817064" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.817064" elapsed="0.000998"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.818062" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.818062" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.818062" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:27:48.497854" elapsed="10.320208">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.818062" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${EMPTY}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.818062" elapsed="0.001001"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.819063" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Password Required Validation" owner="login_page">
+<doc>Verify login attempt without password keeps the user on login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:27:58.819063" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:27:58.819063" elapsed="2.250749"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:27:58.819063" elapsed="2.250749"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN07</tag>
+<status status="FAIL" start="2026-06-19T22:27:43.148590" elapsed="17.921222">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t8" name="AUT-WT-LOGIN08: Verify login validation when both username and password are empty" line="66">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:01.074807" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:01.073813" elapsed="1.466297"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:28:02.540110" elapsed="0.040652"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:28:01.073813" elapsed="1.506949"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:02.582762" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:02.582762" elapsed="3.793811"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:02.581774" elapsed="3.794799"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:01.072814" elapsed="5.303759"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:01.071813" elapsed="5.304760"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:16.651140" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-8.png"&gt;&lt;img src="selenium-screenshot-8.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:28:16.651140" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:28:06.377913" elapsed="10.274227">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.652140" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.652140" elapsed="0.001000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.653140" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.653140" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.653140" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:28:06.377913" elapsed="10.275227">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${EMPTY}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.653140" elapsed="0.000999"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${EMPTY}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.654139" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.654139" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:16.654139" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:28:16.655143" elapsed="2.250369"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:28:16.654139" elapsed="2.252402"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN08</tag>
+<status status="FAIL" start="2026-06-19T22:28:01.070804" elapsed="17.835737">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t9" name="AUT-WT-LOGIN09: Verify password textbox masks entered characters" line="75">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:18.911624" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:18.910622" elapsed="1.505717"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:28:20.416339" elapsed="0.024458"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:28:18.910622" elapsed="1.530175"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:20.442803" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:20.441800" elapsed="3.722008"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:20.441800" elapsed="3.722008"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:18.909550" elapsed="5.254258"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:18.908620" elapsed="5.255188"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:34.448060" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-9.png"&gt;&lt;img src="selenium-screenshot-9.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:28:34.448060" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:28:24.164810" elapsed="10.284251">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:34.450060" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:34.450060" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:34.450060" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:34.450060" elapsed="0.000999"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:34.451059" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:28:24.164810" elapsed="10.286249">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:34.452066" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Password Field Is Masked" owner="login_page">
+<doc>Verify password textbox masks entered characters.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:34.452066" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:28:34.453065" elapsed="2.284353"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:28:34.452066" elapsed="2.285352"/>
+</kw>
+<tag>positive</tag>
+<tag>WT-LOGIN09</tag>
+<status status="FAIL" start="2026-06-19T22:28:18.907539" elapsed="17.829879">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t10" name="AUT-WT-LOGIN10: Verify navigation to home page using home navigation button" line="82">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:36.740423" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:36.739334" elapsed="1.502059"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:28:38.241393" elapsed="0.033517"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:28:36.739334" elapsed="1.535576"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:38.275912" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:38.275912" elapsed="4.016870"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:38.274910" elapsed="4.018966"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:36.739334" elapsed="5.554542"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:36.739334" elapsed="5.554542"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:52.584135" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-10.png"&gt;&lt;img src="selenium-screenshot-10.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:28:52.584135" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:28:42.294877" elapsed="10.290260">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:52.585137" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:52.585137" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:52.585137" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:52.585137" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:52.586136" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:28:42.293876" elapsed="10.292260">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Click Home Navigation Button" owner="login_page">
+<doc>Click the home navigation button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:52.586136" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Successful Login Redirect" owner="login_page">
+<doc>Verify successful authentication redirects the user to the home page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:28:52.586136" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:28:52.586136" elapsed="2.258282"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:28:52.586136" elapsed="2.259284"/>
+</kw>
+<tag>positive</tag>
+<tag>WT-LOGIN10</tag>
+<status status="FAIL" start="2026-06-19T22:28:36.738423" elapsed="18.106997">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t11" name="AUT-WT-LOGIN11: Verify navigation to home page using back navigation button" line="89">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:54.847420" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:54.847420" elapsed="1.593140"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:28:56.440560" elapsed="0.033524"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:28:54.847420" elapsed="1.626664"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:28:56.477080" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:28:56.475081" elapsed="3.898445"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:56.474084" elapsed="3.899442"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:54.846421" elapsed="5.527105"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:28:54.846421" elapsed="5.527105"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:10.670544" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-11.png"&gt;&lt;img src="selenium-screenshot-11.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:29:10.671545" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:29:00.374557" elapsed="10.297993">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:10.672550" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:10.672550" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:10.673548" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:10.673548" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:10.673548" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:29:00.373526" elapsed="10.300022">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Click Back Navigation Button" owner="login_page">
+<doc>Click the back navigation button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:10.674546" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Successful Login Redirect" owner="login_page">
+<doc>Verify successful authentication redirects the user to the home page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:10.674546" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:29:10.675547" elapsed="2.264590"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:29:10.674546" elapsed="2.265591"/>
+</kw>
+<tag>positive</tag>
+<tag>WT-LOGIN11</tag>
+<status status="FAIL" start="2026-06-19T22:28:54.845420" elapsed="18.094717">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t12" name="AUT-WT-LOGIN12: Verify username textbox accepts pasted input" line="96">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:12.943171" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:29:12.943171" elapsed="1.615097"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:29:14.559262" elapsed="0.021008"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:29:12.943171" elapsed="1.638098"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:14.582275" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:29:14.582275" elapsed="3.841781"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:14.581269" elapsed="3.842787"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:12.942172" elapsed="5.481884"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:12.942172" elapsed="5.481884"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:28.748688" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-12.png"&gt;&lt;img src="selenium-screenshot-12.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:29:28.748688" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:29:18.425056" elapsed="10.324631">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.750685" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.750685" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.750685" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.750685" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.750685" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:29:18.424056" elapsed="10.326629">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.751683" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.751683" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.751683" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Successful Login Redirect" owner="login_page">
+<doc>Verify successful authentication redirects the user to the home page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:28.751683" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:29:28.752683" elapsed="2.269149"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:29:28.752683" elapsed="2.270249"/>
+</kw>
+<tag>edge</tag>
+<tag>WT-LOGIN12</tag>
+<status status="FAIL" start="2026-06-19T22:29:12.941172" elapsed="18.081760">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t13" name="AUT-WT-LOGIN13: Verify login attempt with leading and trailing spaces in username" line="105">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:31.026910" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:29:31.026910" elapsed="1.480376"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:29:32.508286" elapsed="0.024531"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:29:31.026910" elapsed="1.505907"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:32.533824" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:29:32.533824" elapsed="3.865109"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:32.532817" elapsed="3.867120"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:31.025921" elapsed="5.374016"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:31.024843" elapsed="5.375094"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:46.868865" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-13.png"&gt;&lt;img src="selenium-screenshot-13.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:29:46.868865" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:29:36.399937" elapsed="10.469928">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.869865" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.870867" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.870867" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.870867" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.870867" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:29:36.399937" elapsed="10.471928">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${SPACE}${VALID_USERNAME}${SPACE}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.871865" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.871865" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.871865" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:29:46.872863" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:29:46.872863" elapsed="2.264762"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:29:46.872863" elapsed="2.264762"/>
+</kw>
+<tag>edge</tag>
+<tag>WT-LOGIN13</tag>
+<status status="FAIL" start="2026-06-19T22:29:31.023842" elapsed="18.113783">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t14" name="AUT-WT-LOGIN14: Verify login attempt with whitespace-only username" line="114">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:49.140648" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:29:49.140648" elapsed="1.461796"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:29:50.602444" elapsed="0.022922"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:29:49.140648" elapsed="1.485717"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:29:50.627364" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:29:50.626365" elapsed="3.709492"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:50.626365" elapsed="3.709492"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:49.139646" elapsed="5.196211"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:29:49.138645" elapsed="5.198211"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:04.625006" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-14.png"&gt;&lt;img src="selenium-screenshot-14.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:30:04.626005" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:29:54.336856" elapsed="10.289149">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.627007" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.627007" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.627007" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.628015" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.628015" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:29:54.336856" elapsed="10.291159">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${SPACE}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.628015" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.628015" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.629009" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:04.629009" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:30:04.629009" elapsed="2.273041"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:30:04.629009" elapsed="2.274108"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN14</tag>
+<status status="FAIL" start="2026-06-19T22:29:49.138645" elapsed="17.764472">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t15" name="AUT-WT-LOGIN15: Verify login attempt with whitespace-only password" line="123">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:06.907113" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:30:06.907113" elapsed="1.496979"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:30:08.405096" elapsed="0.037996"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:30:06.906113" elapsed="1.536979"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:08.444094" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:30:08.444094" elapsed="3.974141"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:08.443092" elapsed="3.975143"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:06.906113" elapsed="5.512122"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:06.905114" elapsed="5.513121"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:22.702638" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-15.png"&gt;&lt;img src="selenium-screenshot-15.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:30:22.703563" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:30:12.419234" elapsed="10.284329">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.704565" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.704565" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.704565" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.705679" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.705679" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:30:12.418235" elapsed="10.287444">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.705679" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${SPACE}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.705679" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.706563" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:22.706563" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:30:22.706563" elapsed="2.265977"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:30:22.706563" elapsed="2.265977"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN15</tag>
+<status status="FAIL" start="2026-06-19T22:30:06.904115" elapsed="18.068425">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t16" name="AUT-WT-LOGIN16: Verify behavior when SIGN IN button is clicked multiple times rapidly" line="132">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:24.974504" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:30:24.974504" elapsed="1.479366"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:30:26.453870" elapsed="0.041903"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:30:24.974504" elapsed="1.521269"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:26.496771" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:30:26.496771" elapsed="3.702469"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:26.496771" elapsed="3.703468"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:24.974504" elapsed="5.225735"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:24.973549" elapsed="5.226690"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:40.530972" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-16.png"&gt;&lt;img src="selenium-screenshot-16.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:30:40.530972" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:30:30.200239" elapsed="10.331729">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.531968" elapsed="0.001002"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.532970" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.532970" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.532970" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.532970" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:30:30.200239" elapsed="10.332731">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.533968" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.533968" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.533968" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.533968" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.534969" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Successful Login Redirect" owner="login_page">
+<doc>Verify successful authentication redirects the user to the home page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:40.534969" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:30:40.535968" elapsed="2.275014"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:30:40.534969" elapsed="2.276013"/>
+</kw>
+<tag>edge</tag>
+<tag>WT-LOGIN16</tag>
+<status status="FAIL" start="2026-06-19T22:30:24.973549" elapsed="17.838397">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t17" name="AUT-WT-LOGIN17: Verify login attempt with extremely long username input" line="143">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:42.813992" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:30:42.813992" elapsed="1.498953"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:30:44.313943" elapsed="0.040758"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:30:42.813992" elapsed="1.540709"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:44.355699" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:30:44.355699" elapsed="3.767129"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:44.355699" elapsed="3.767129"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:42.812894" elapsed="5.309934"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:30:42.812894" elapsed="5.309934"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:30:58.587938" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-17.png"&gt;&lt;img src="selenium-screenshot-17.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:30:58.587938" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:30:48.122828" elapsed="10.465110">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.588939" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.588939" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.589941" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.589941" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.589941" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:30:48.122828" elapsed="10.467113">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}${VALID_USERNAME}${VALID_USERNAME}${VALID_USERNAME}${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.590941" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.590941" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.590941" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:30:58.590941" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:30:58.591940" elapsed="2.256751"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:30:58.590941" elapsed="2.258664"/>
+</kw>
+<tag>edge</tag>
+<tag>WT-LOGIN17</tag>
+<status status="FAIL" start="2026-06-19T22:30:42.811946" elapsed="18.037659">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t18" name="AUT-WT-LOGIN18: Verify login fails with special characters in username" line="152">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:00.850765" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:31:00.850765" elapsed="1.466099"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:31:02.316864" elapsed="0.027576"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:31:00.850765" elapsed="1.493675"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:02.345439" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:31:02.345439" elapsed="4.119471"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:02.345439" elapsed="4.120472"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:00.850765" elapsed="5.615146"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:00.849760" elapsed="5.616151"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:16.765030" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-18.png"&gt;&lt;img src="selenium-screenshot-18.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:31:16.766030" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:31:06.466911" elapsed="10.300116">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.767027" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.767027" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.767027" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.767027" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.767027" elapsed="0.001001"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:31:06.465911" elapsed="10.302117">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Input Text When Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<arg>@@@###</arg>
+<doc>Waits for an element and then inputs the provided text.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.768028" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.768028" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.768028" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:16.768028" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:31:16.769028" elapsed="2.264362"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:31:16.768028" elapsed="2.266470"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN18</tag>
+<status status="FAIL" start="2026-06-19T22:31:00.849760" elapsed="18.184738">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t19" name="AUT-WT-LOGIN19: Verify login submission using Enter key" line="161">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:19.038509" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:31:19.038509" elapsed="1.466623"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:31:20.505132" elapsed="0.044126"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:31:19.037417" elapsed="1.511841"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:20.550258" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:31:20.550258" elapsed="3.856585"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:20.549258" elapsed="3.857585"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:19.036425" elapsed="5.370418"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:19.035456" elapsed="5.371387"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:34.724025" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-19.png"&gt;&lt;img src="selenium-screenshot-19.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:31:34.725026" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:31:24.406843" elapsed="10.318183">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.726027" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.726027" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.727025" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.727025" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.727025" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:31:24.406843" elapsed="10.320182">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Enter Username" owner="login_page">
+<arg>${VALID_USERNAME}</arg>
+<doc>Enter username into username textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.728025" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.728025" elapsed="0.000000"/>
+</kw>
+<kw name="Press Keys" owner="SeleniumLibrary">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<arg>ENTER</arg>
+<doc>Simulates the user pressing key(s) to an element or on the active browser.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.728025" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Successful Login Redirect" owner="login_page">
+<doc>Verify successful authentication redirects the user to the home page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:34.729023" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:31:34.729023" elapsed="2.303312"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:31:34.729023" elapsed="2.303312"/>
+</kw>
+<tag>edge</tag>
+<tag>WT-LOGIN19</tag>
+<status status="FAIL" start="2026-06-19T22:31:19.034498" elapsed="17.997837">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<test id="s1-t20" name="AUT-WT-LOGIN20: Verify login attempt with uppercase username" line="170">
+<kw name="Open Login Page" owner="common_keywords">
+<kw name="Open Browser To Url" owner="common_keywords">
+<kw name="Open Browser Session" owner="common_keywords">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:37.034356" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${browser}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:31:37.034356" elapsed="1.457494"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2026-06-19T22:31:38.491850" elapsed="0.026787"/>
+</kw>
+<arg>${browser}</arg>
+<doc>Opens a browser session on a blank page and maximizes the window.</doc>
+<status status="PASS" start="2026-06-19T22:31:37.034356" elapsed="1.484281"/>
+</kw>
+<kw name="Go To Url" owner="common_keywords">
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:38.520636" level="INFO">Opening url 'http://172.21.166.115/washtabui/login?data=undefined'</msg>
+<arg>${url}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-06-19T22:31:38.519637" elapsed="3.834547"/>
+</kw>
+<arg>${url}</arg>
+<doc>Navigates the current browser session to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:38.519637" elapsed="3.835548"/>
+</kw>
+<arg>${url}</arg>
+<arg>${browser}</arg>
+<doc>Opens a browser session and navigates to the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:37.034356" elapsed="5.320829"/>
+</kw>
+<arg>${LOGIN_PAGE_URL}</arg>
+<doc>Opens the login page in a new browser session using the provided URL.</doc>
+<status status="PASS" start="2026-06-19T22:31:37.033353" elapsed="5.321832"/>
+</kw>
+<kw name="Verify Login Page Loaded" owner="login_page">
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<msg time="2026-06-19T22:31:52.822063" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="selenium-screenshot-20.png"&gt;&lt;img src="selenium-screenshot-20.png" width="800px"&gt;&lt;/a&gt;</msg>
+<msg time="2026-06-19T22:31:52.822063" level="FAIL">Location did not contain '/washtabui/login' in 10 seconds.</msg>
+<arg>/washtabui/login</arg>
+<arg>10s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="FAIL" start="2026-06-19T22:31:42.355185" elapsed="10.467878">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.824064" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${PASSWORD_TEXTBOX}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.824064" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${SIGN_IN_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.824064" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${HOME_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.825065" elapsed="0.000000"/>
+</kw>
+<kw name="Wait For Element To Be Ready" owner="common_keywords">
+<arg>${BACK_NAVIGATION_BUTTON}</arg>
+<doc>Waits until the provided locator is visible and enabled.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.825065" elapsed="0.000000"/>
+</kw>
+<doc>Verify login page loads with all required UI elements visible.</doc>
+<status status="FAIL" start="2026-06-19T22:31:42.355185" elapsed="10.469880">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</kw>
+<kw name="Input Text When Ready" owner="common_keywords">
+<arg>${USERNAME_TEXTBOX}</arg>
+<arg>HACKLARR</arg>
+<doc>Waits for an element and then inputs the provided text.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.825065" elapsed="0.000000"/>
+</kw>
+<kw name="Enter Password" owner="login_page">
+<arg>${VALID_PASSWORD}</arg>
+<doc>Enter password into password textbox.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.826066" elapsed="0.000000"/>
+</kw>
+<kw name="Click Sign In Button" owner="login_page">
+<doc>Click the SIGN IN button.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.826066" elapsed="0.000000"/>
+</kw>
+<kw name="Verify Login Failed And Still On Login Page" owner="login_page">
+<doc>Verify authentication failure keeps the user on the login page.</doc>
+<status status="NOT RUN" start="2026-06-19T22:31:52.826066" elapsed="0.000000"/>
+</kw>
+<kw name="Close Browser Session" owner="common_keywords" type="TEARDOWN">
+<kw name="Close All Browsers" owner="SeleniumLibrary">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" start="2026-06-19T22:31:52.827065" elapsed="2.284472"/>
+</kw>
+<doc>Closes all open browser instances for the current execution.</doc>
+<status status="PASS" start="2026-06-19T22:31:52.827065" elapsed="2.284472"/>
+</kw>
+<tag>negative</tag>
+<tag>WT-LOGIN20</tag>
+<status status="FAIL" start="2026-06-19T22:31:37.033353" elapsed="18.078184">Location did not contain '/washtabui/login' in 10 seconds.</status>
+</test>
+<status status="FAIL" start="2026-06-19T22:25:53.191837" elapsed="361.920692"/>
+</suite>
+<statistics>
+<total>
+<stat pass="0" fail="20" skip="0">All Tests</stat>
+</total>
+<tag>
+<stat pass="0" fail="5" skip="0">edge</stat>
+<stat pass="0" fail="10" skip="0">negative</stat>
+<stat pass="0" fail="5" skip="0">positive</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN01</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN02</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN03</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN04</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN05</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN06</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN07</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN08</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN09</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN10</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN11</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN12</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN13</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN14</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN15</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN16</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN17</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN18</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN19</stat>
+<stat pass="0" fail="1" skip="0">WT-LOGIN20</stat>
+</tag>
+<suite>
+<stat name="Login Tests" id="s1" pass="0" fail="20" skip="0">Login Tests</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

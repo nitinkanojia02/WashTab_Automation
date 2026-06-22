@@ -3,21 +3,21 @@ Resource    ../../resources/common_keywords.resource
 
 *** Variables ***
 ${LOGIN_PAGE_URL}    http://172.21.166.115/washtabui/login?data=undefined
-${HOME_PAGE_URL}     http://172.21.166.115/washtabui/home
+${HOME_PAGE_URL}    http://172.21.166.115/washtabui/home
 ${VALID_USERNAME}    hacklarr
 ${VALID_PASSWORD}    Icstunnel1
-${INVALID_USERNAME}  invaliduser
-${INVALID_PASSWORD}  WrongPassword123
-${USERNAME_TEXTBOX}          xpath=//input[@name='ion-input-0']
-${PASSWORD_TEXTBOX}          id=password
-${SIGN_IN_BUTTON}            xpath=//ion-button[normalize-space()='SIGN IN']
+${INVALID_USERNAME}    hacklarr123
+${INVALID_PASSWORD}    Icstunnel2
+${USERNAME_TEXTBOX}    xpath=//input[@name='ion-input-0']
+${PASSWORD_TEXTBOX}    id=password
+${SIGN_IN_BUTTON}    xpath=//ion-button[normalize-space()='SIGN IN']
 ${HOME_NAVIGATION_BUTTON}    xpath=//ion-fab-button[.//ion-icon[@aria-label='home']]
 ${BACK_NAVIGATION_BUTTON}    xpath=//ion-fab-button[.//ion-icon[@aria-label='arrow back']]
 
 *** Keywords ***
 Verify Login Page Loaded
-    [Documentation]    Verify login page loads with all required UI elements visible.
-    Wait Until Location Contains    /washtabui/login    10s
+    [Documentation]    Verify login page URL and required UI elements are visible and ready for interaction.
+    Wait Until Location Is    ${LOGIN_PAGE_URL}    10s
     Wait For Element To Be Ready    ${USERNAME_TEXTBOX}
     Wait For Element To Be Ready    ${PASSWORD_TEXTBOX}
     Wait For Element To Be Ready    ${SIGN_IN_BUTTON}
@@ -41,12 +41,17 @@ Click Sign In Button
     Click When Ready    ${SIGN_IN_BUTTON}
 
 Click Home Navigation Button
-    [Documentation]    Click the home navigation button.
+    [Documentation]    Click the home navigation button from the login page.
     Click When Ready    ${HOME_NAVIGATION_BUTTON}
 
 Click Back Navigation Button
-    [Documentation]    Click the back navigation button.
+    [Documentation]    Click the back navigation button from the login page.
     Click When Ready    ${BACK_NAVIGATION_BUTTON}
+
+Submit Login With Enter Key
+    [Documentation]    Submit the login form using ENTER key from the password field.
+    Wait For Element To Be Ready    ${PASSWORD_TEXTBOX}
+    Press Keys    ${PASSWORD_TEXTBOX}    ENTER
 
 Verify Successful Login Redirect
     [Documentation]    Verify successful authentication redirects the user to the home page.
@@ -54,17 +59,17 @@ Verify Successful Login Redirect
 
 Verify Login Failed And Still On Login Page
     [Documentation]    Verify authentication failure keeps the user on the login page.
-    Wait Until Location Contains    /washtabui/login    10s
+    Wait Until Location Is    ${LOGIN_PAGE_URL}    10s
     Wait For Element To Be Ready    ${SIGN_IN_BUTTON}
 
 Verify Username Required Validation
-    [Documentation]    Verify login attempt without username keeps the user on login page.
-    Wait Until Location Contains    /washtabui/login    10s
+    [Documentation]    Verify login attempt without username keeps the user on the login page.
+    Wait Until Location Is    ${LOGIN_PAGE_URL}    10s
     Wait For Element To Be Ready    ${USERNAME_TEXTBOX}
 
 Verify Password Required Validation
-    [Documentation]    Verify login attempt without password keeps the user on login page.
-    Wait Until Location Contains    /washtabui/login    10s
+    [Documentation]    Verify login attempt without password keeps the user on the login page.
+    Wait Until Location Is    ${LOGIN_PAGE_URL}    10s
     Wait For Element To Be Ready    ${PASSWORD_TEXTBOX}
 
 Verify Password Field Is Masked
@@ -72,3 +77,11 @@ Verify Password Field Is Masked
     Wait For Element To Be Ready    ${PASSWORD_TEXTBOX}
     ${type}=    Get Element Attribute    ${PASSWORD_TEXTBOX}    type
     Should Be Equal    ${type}    password
+
+Verify Home Navigation Redirects To Home Page
+    [Documentation]    Verify clicking home navigation button redirects to home page.
+    Wait Until Location Is    ${HOME_PAGE_URL}    10s
+
+Verify Back Navigation Redirects To Home Page
+    [Documentation]    Verify clicking back navigation button redirects to home page.
+    Wait Until Location Is    ${HOME_PAGE_URL}    10s
