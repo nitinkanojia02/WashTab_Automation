@@ -9,6 +9,7 @@ ${SUMMARY_SCRIPT}    scripts/robot_results_summary.py
 
 *** Test Cases ***
 Print Robot Execution Summary From Results Folder
+    [Tags]  summary
     ${result}=    Run Process    python    ${SUMMARY_SCRIPT}    ${RESULTS_OUTPUT_XML}    shell=False    stdout=PIPE    stderr=PIPE
     Should Be Equal As Integers    ${result.rc}    0    msg=${result.stderr}
 
