@@ -19,7 +19,7 @@
     }
   ],
   "observedPreconditions": [
-    "Valid username is hacklarr",
+    "Valid username is haklarr",
     "Valid Password is Icstunnel1",
     "Page should contain username, password, signin button, back button and home button",
     "login page url is http://172.21.166.115/washtabui/login?data=undefined"
